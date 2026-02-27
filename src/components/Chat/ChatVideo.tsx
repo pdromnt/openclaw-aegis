@@ -60,7 +60,7 @@ function extractFilename(src: string, alt?: string): string {
 // ── Save video via Electron IPC ──
 async function saveVideo(src: string, suggestedName: string): Promise<void> {
   try {
-    const result = await window.aegis?.video?.save?.(src, suggestedName);
+    const result = await (window.aegis as any)?.video?.save?.(src, suggestedName);
     if (result?.success) {
       console.log('[ChatVideo] Saved to:', result.path);
     } else {
@@ -152,7 +152,7 @@ export function ChatVideo({ src, alt, maxWidth = '100%', maxHeight = '400px', cl
           maxWidth, 
           maxHeight, 
           display: loaded ? 'block' : 'none',
-          backgroundColor: 'rgba(0,0,0,0.3)'
+          backgroundColor: 'var(--aegis-bg-frosted-60)'
         }}
         preload="metadata"
         playsInline
@@ -185,12 +185,12 @@ export function ChatVideo({ src, alt, maxWidth = '100%', maxHeight = '400px', cl
             className="w-14 h-14 rounded-full flex items-center justify-center transition-all hover:scale-110"
             style={{ 
               display: 'inline-flex',
-              background: 'rgba(0,0,0,0.6)', 
+              background: 'var(--aegis-bg-frosted-60)', 
               backdropFilter: 'blur(4px)',
-              border: '1px solid rgb(var(--aegis-overlay) / 0.2)'
+              border: '1px solid var(--aegis-border)'
             }}
           >
-            <Play size={24} className="text-white ms-1" fill="white" />
+            <Play size={24} className="text-aegis-text ms-1" fill="currentColor" />
           </span>
         </span>
       )}
@@ -208,9 +208,9 @@ export function ChatVideo({ src, alt, maxWidth = '100%', maxHeight = '400px', cl
             title={muted ? t('media.unmute') : t('media.muteAudio')}
           >
             {muted ? (
-              <VolumeX size={14} className="text-aegis-text hover:text-white" />
+              <VolumeX size={14} className="text-aegis-text hover:text-aegis-text" />
             ) : (
-              <Volume2 size={14} className="text-aegis-text hover:text-white" />
+              <Volume2 size={14} className="text-aegis-text hover:text-aegis-text" />
             )}
           </button>
           <button
@@ -219,7 +219,7 @@ export function ChatVideo({ src, alt, maxWidth = '100%', maxHeight = '400px', cl
             style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgb(var(--aegis-overlay) / 0.1)' }}
             title={t('media.saveVideo')}
           >
-            <Download size={14} className="text-aegis-text hover:text-white" />
+            <Download size={14} className="text-aegis-text hover:text-aegis-text" />
           </button>
           <button
             onClick={handleFullscreen}
@@ -227,7 +227,7 @@ export function ChatVideo({ src, alt, maxWidth = '100%', maxHeight = '400px', cl
             style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgb(var(--aegis-overlay) / 0.1)' }}
             title={t('media.fullscreen')}
           >
-            <Maximize2 size={14} className="text-aegis-text hover:text-white" />
+            <Maximize2 size={14} className="text-aegis-text hover:text-aegis-text" />
           </button>
         </span>
       )}
@@ -238,11 +238,11 @@ export function ChatVideo({ src, alt, maxWidth = '100%', maxHeight = '400px', cl
           className="absolute bottom-2 left-2 right-2 flex items-center gap-2 px-2 py-1 rounded-lg"
           style={{ 
             display: 'inline-flex',
-            background: 'rgba(0,0,0,0.6)', 
+            background: 'var(--aegis-bg-frosted-60)', 
             backdropFilter: 'blur(4px)'
           }}
         >
-          <button onClick={togglePlay} className="text-aegis-text hover:text-white">
+          <button onClick={togglePlay} className="text-aegis-text hover:text-aegis-text">
             <Pause size={16} />
           </button>
         </span>

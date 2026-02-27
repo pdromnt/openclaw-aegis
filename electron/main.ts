@@ -16,6 +16,7 @@ import { autoUpdater } from 'electron-updater';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createTray } from './tray';
+import { initI18n, setLanguage, t } from './i18n';
 import * as crypto from 'crypto';
 import { execFileSync } from 'child_process';
 // node-pty: dynamic require — graceful fallback if native module unavailable
@@ -110,6 +111,7 @@ interface AegisConfig {
   theme: 'dark' | 'light' | 'system';
   globalHotkey: string;
   fontSize: number;
+  openclawConfigPath?: string;
 }
 
 let config: AegisConfig = {
@@ -237,7 +239,7 @@ function createSplashWindow(): void {
     <body>
       <div class="logo">A</div>
       <div class="title">AEGIS Desktop</div>
-      <div class="subtitle">جاري التحميل...</div>
+      <div class="subtitle">${t('splash.loading')}</div>
       <div class="spinner"></div>
     </body>
     </html>
@@ -326,11 +328,11 @@ function createWindow(): void {
 
     if (linkURL) {
       menuItems.push({
-        label: '🔗 فتح الرابط',
+        label: t('contextMenu.openLink'),
         click: () => shell.openExternal(linkURL),
       });
       menuItems.push({
-        label: '📋 نسخ الرابط',
+        label: t('contextMenu.copyLink'),
         click: () => clipboard.writeText(linkURL),
       });
       menuItems.push({ type: 'separator' });
@@ -338,7 +340,7 @@ function createWindow(): void {
 
     if (isEditable) {
       menuItems.push({
-        label: 'قص',
+        label: t('contextMenu.cut'),
         accelerator: 'CmdOrCtrl+X',
         enabled: editFlags.canCut,
         role: 'cut',
@@ -347,7 +349,7 @@ function createWindow(): void {
 
     if (selectionText || isEditable) {
       menuItems.push({
-        label: 'نسخ',
+        label: t('contextMenu.copy'),
         accelerator: 'CmdOrCtrl+C',
         enabled: editFlags.canCopy,
         role: 'copy',
@@ -356,7 +358,7 @@ function createWindow(): void {
 
     if (isEditable) {
       menuItems.push({
-        label: 'لصق',
+        label: t('contextMenu.paste'),
         accelerator: 'CmdOrCtrl+V',
         enabled: editFlags.canPaste,
         role: 'paste',
@@ -366,7 +368,7 @@ function createWindow(): void {
     if (isEditable || selectionText) {
       menuItems.push({ type: 'separator' });
       menuItems.push({
-        label: 'تحديد الكل',
+        label: t('contextMenu.selectAll'),
         accelerator: 'CmdOrCtrl+A',
         role: 'selectAll',
       });
@@ -433,7 +435,6 @@ function setupIPC(): void {
     let installerLang: string | undefined;
     try {
       const langFile = path.join(process.resourcesPath, 'language.txt');
-      const fs = require('fs');
       if (fs.existsSync(langFile)) {
         installerLang = fs.readFileSync(langFile, 'utf-8').trim();
       }
@@ -443,6 +444,162 @@ function setupIPC(): void {
   ipcMain.handle('config:save', (_e, newConfig: Partial<AegisConfig>) => {
     saveConfig(newConfig);
     return { success: true };
+  });
+
+  // ── Settings: sync individual key from UI (localStorage) → aegis-config.json ──
+  ipcMain.handle('settings:save', (_e, key: string, value: any) => {
+    const configKeyMap: Partial<Record<string, keyof AegisConfig>> = {
+      gatewayUrl: 'gatewayUrl',
+      gatewayToken: 'gatewayToken',
+      theme: 'theme',
+      fontSize: 'fontSize',
+      openclawConfigPath: 'openclawConfigPath',
+    };
+    const configKey = configKeyMap[key];
+    if (configKey) {
+      saveConfig({ [configKey]: value } as Partial<AegisConfig>);
+      console.log(`[Settings] Synced to config: ${key} =`, configKey === 'gatewayToken' ? '***' : value);
+    }
+    return { success: true };
+  });
+
+  // ── OpenClaw Config (clawdbot.json) ──
+
+  const detectOpenClawConfigPath = (): string => {
+    // 1. Honor custom path stored in aegis settings
+    if (config.openclawConfigPath) {
+      return config.openclawConfigPath;
+    }
+
+    // 2. Legacy key check
+    const settingsPath = (config as any).configPath;
+    if (settingsPath && fs.existsSync(settingsPath)) {
+      return settingsPath;
+    }
+
+    // 3. Standard locations: ~/.openclaw/clawdbot.json (Linux/Mac) or %USERPROFILE%\.openclaw\clawdbot.json (Windows)
+    const homeDir = app.getPath('home');
+    const configDir = path.join(homeDir, '.openclaw');
+    const candidates = [
+      path.join(configDir, 'clawdbot.json'),
+      path.join(configDir, 'openclaw.json'),
+    ];
+
+    // 4. Docker bind-mount locations (Windows users with D: drive configs)
+    if (process.platform === 'win32') {
+      // Common patterns for users who mount configs outside home
+      const driveLetters = ['D', 'E', 'F'];
+      for (const drive of driveLetters) {
+        candidates.push(
+          path.join(`${drive}:\\MyClawdbot`, 'clawdbot.json'),
+          path.join(`${drive}:\\MyClawdbot`, 'openclaw.json'),
+        );
+      }
+    }
+
+    for (const candidate of candidates) {
+      if (fs.existsSync(candidate)) return candidate;
+    }
+
+    // Return default path even if it doesn't exist yet
+    return candidates[0];
+  };
+
+  ipcMain.handle('config:detect', () => {
+    const configPath = detectOpenClawConfigPath();
+    return { path: configPath, exists: fs.existsSync(configPath) };
+  });
+
+  ipcMain.handle('config:read', (_e, inputPath?: string) => {
+    try {
+      const configPath = inputPath || detectOpenClawConfigPath();
+      const raw = fs.readFileSync(configPath, 'utf-8');
+      let data: any;
+      // Try standard JSON first
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        // Basic JSON5 support: strip line comments, block comments, and trailing commas
+        const cleaned = raw
+          .replace(/\/\/[^\n]*/g, '')
+          .replace(/\/\*[\s\S]*?\*\//g, '')
+          .replace(/,(\s*[}\]])/g, '$1');
+        data = JSON.parse(cleaned);
+      }
+      console.log('[Config:read] Loaded from:', configPath);
+      return { data, path: configPath };
+    } catch (err: any) {
+      console.error('[Config:read] Error:', err.message);
+      throw new Error(`Failed to read config: ${err.message}`);
+    }
+  });
+
+  ipcMain.handle('config:write', (_e, { path: configPath, data }: { path?: string; data: object }) => {
+    try {
+      const targetPath = configPath || detectOpenClawConfigPath();
+      const backupPath = `${targetPath}.bak`;
+
+      // Step 1: Backup current file → .bak
+      if (fs.existsSync(targetPath)) {
+        fs.copyFileSync(targetPath, backupPath);
+      }
+
+      // Step 2: Delete .host-backup if it exists
+      // Docker entrypoint names backup as: .clawdbot.json.host-backup (dot-prefixed)
+      const dir = path.dirname(targetPath);
+      const base = path.basename(targetPath);
+      const hostBackupPath = path.join(dir, `.${base}.host-backup`);
+      if (fs.existsSync(hostBackupPath)) {
+        fs.unlinkSync(hostBackupPath);
+      }
+
+      // Step 3: Write new config (pretty-printed JSON)
+      fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+      fs.writeFileSync(targetPath, JSON.stringify(data, null, 2) + '\n', 'utf-8');
+      console.log('[Config:write] Saved to:', targetPath);
+      return { success: true, backupPath };
+    } catch (err: any) {
+      console.error('[Config:write] Error:', err.message);
+      return { success: false, error: err.message };
+    }
+  });
+
+  ipcMain.handle('config:restart', async () => {
+    const { execSync } = require('child_process');
+
+    // Strategy 1: OpenClaw CLI (native Windows install)
+    try {
+      execSync('openclaw gateway restart', { timeout: 15000, windowsHide: true });
+      return { success: true, method: 'cli' };
+    } catch { /* CLI not available or failed */ }
+
+    // Strategy 2: Docker Desktop (find openclaw container)
+    try {
+      const output = execSync(
+        'docker ps --filter "name=openclaw" --format "{{.Names}}"',
+        { timeout: 5000, windowsHide: true }
+      ).toString().trim();
+      if (output) {
+        const container = output.split('\n')[0];
+        execSync(`docker restart ${container}`, { timeout: 30000, windowsHide: true });
+        return { success: true, method: 'docker', container };
+      }
+    } catch { /* Docker not available or failed */ }
+
+    // Strategy 3: Fallback — manual instructions
+    return {
+      success: false,
+      error: 'auto-restart-failed',
+      instructions: {
+        native: 'openclaw gateway restart',
+        docker: 'docker restart <openclaw-container>',
+      }
+    };
+  });
+
+  // ── i18n: renderer notifies main of language changes ──
+  ipcMain.on('i18n:setLanguage', (_e, lang: string) => {
+    setLanguage(lang);
   });
 
   // Gateway is handled by React renderer — these are no-op stubs to prevent IPC errors
@@ -573,7 +730,7 @@ function setupIPC(): void {
       };
 
       const result = await dialog.showSaveDialog(mainWindow!, {
-        title: 'حفظ الصورة',
+        title: t('dialog.saveImage'),
         defaultPath: suggestedName,
         filters: [
           filterMap[ext.toLowerCase()] || { name: 'Image', extensions: [ext] },
@@ -614,7 +771,7 @@ function setupIPC(): void {
       // Show notification
       if (Notification.isSupported()) {
         new Notification({
-          title: 'تم حفظ الصورة',
+          title: t('dialog.imageSaved'),
           body: path.basename(result.filePath),
           silent: true,
         }).show();
@@ -712,7 +869,6 @@ function setupIPC(): void {
 
   // ── Memory: Local Files ──
   ipcMain.handle('memory:browse', async () => {
-    const { dialog } = require('electron');
     const result = await dialog.showOpenDialog(mainWindow!, {
       properties: ['openDirectory'],
       title: 'Select Memory Folder',
@@ -722,8 +878,6 @@ function setupIPC(): void {
   });
 
   ipcMain.handle('memory:readLocal', async (_e, dirPath: string) => {
-    const fs = require('fs');
-    const path = require('path');
     try {
       const files: { name: string; content: string; modified: string; size: number }[] = [];
       // Read MEMORY.md if exists
@@ -1107,12 +1261,44 @@ function registerHotkey(): void {
   } catch (e) {
     console.error('[Hotkey] Registration failed:', e);
   }
+  // ── Secrets ──
+  ipcMain.handle('secrets:audit', async () => {
+    const { spawnSync } = require('child_process');
+    const npmGlobal = process.env.APPDATA ? `${process.env.APPDATA}\npm` : '';
+    const extraPath = [npmGlobal, 'C:\Program Files\nodejs', process.env.PATH].filter(Boolean).join(';');
+    const result = spawnSync('openclaw', ['secrets', 'audit'], {
+      timeout: 12000,
+      windowsHide: true,
+      shell: true,
+      input: '',
+      encoding: 'utf-8' as const,
+      env: { ...process.env, PATH: extraPath },
+    });
+    if (result.error) return { success: false, error: (result.error as Error).message };
+    const exitCode = result.status ?? -1;
+    const statusMap: Record<number, string> = { 0: 'clean', 1: 'findings', 2: 'unresolved' };
+    return {
+      success: true,
+      data: { status: statusMap[exitCode] ?? 'unknown', rawOutput: (result.stdout ?? '').trim(), exitCode },
+    };
+  });
+  ipcMain.handle('secrets:reload', async () => {
+    const { spawnSync } = require('child_process');
+    const npmGlobal = process.env.APPDATA ? `${process.env.APPDATA}\npm` : '';
+    const extraPath = [npmGlobal, 'C:\Program Files\nodejs', process.env.PATH].filter(Boolean).join(';');
+    const result = spawnSync('openclaw', ['secrets', 'reload'], {
+      timeout: 10000,
+      windowsHide: true,
+      shell: true,
+      input: '',
+      encoding: 'utf-8' as const,
+      env: { ...process.env, PATH: extraPath },
+    });
+    if (result.error) return { success: false, error: (result.error as Error).message };
+    if (result.status !== 0) return { success: false, error: (result.stderr ?? '').trim() || `exit ${result.status}` };
+    return { success: true };
+  });
 }
-
-// ═══════════════════════════════════════════════════════════
-// Auto-Updater (electron-updater via GitHub Releases)
-// ═══════════════════════════════════════════════════════════
-
 function setupAutoUpdater(): void {
   if (isDev) {
     console.log('[Update] Skipped — dev mode');
@@ -1121,7 +1307,6 @@ function setupAutoUpdater(): void {
 
   autoUpdater.autoDownload = false;
 
-  // Forward updater events → renderer via IPC
   autoUpdater.on('update-available', (info) => {
     console.log('[Update] Available:', info.version);
     mainWindow?.webContents.send('update:available', info);
@@ -1147,15 +1332,11 @@ function setupAutoUpdater(): void {
     mainWindow?.webContents.send('update:error', err.message);
   });
 
-  // IPC handlers — renderer can trigger update actions
   ipcMain.handle('update:check', () => autoUpdater.checkForUpdates());
   ipcMain.handle('update:download', () => autoUpdater.downloadUpdate());
   ipcMain.handle('update:install', () => autoUpdater.quitAndInstall());
 
-  // Initial check on startup
   autoUpdater.checkForUpdates();
-
-  // Periodic check every 60 minutes
   setInterval(() => autoUpdater.checkForUpdates(), 60 * 60 * 1000);
 }
 
@@ -1179,6 +1360,7 @@ if (!gotTheLock) {
   app.whenReady().then(() => {
     loadConfig();
     detectInstallerLanguage();
+    initI18n(installerLangGlobal, (config as any).language ?? null);
     createSplashWindow();
     createWindow();
     setupIPC();
@@ -1209,5 +1391,5 @@ app.on('before-quit', () => {
   ptyProcesses.clear();
 });
 
-console.log('🛡️ AEGIS Desktop v5.4 started');
+console.log('Æ AEGIS Desktop v5.4.1 started');
 

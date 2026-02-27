@@ -23,8 +23,19 @@ const api = {
 
   // ── Config ──
   config: {
+    // AEGIS app settings (aegis-config.json)
     get: () => ipcRenderer.invoke('config:get'),
     save: (config: any) => ipcRenderer.invoke('config:save', config),
+    // OpenClaw config (clawdbot.json) management
+    detect: () => ipcRenderer.invoke('config:detect'),
+    read: (filePath?: string) => ipcRenderer.invoke('config:read', filePath),
+    write: (filePath: string, data: object) => ipcRenderer.invoke('config:write', { path: filePath, data }),
+    restart: () => ipcRenderer.invoke('config:restart'),
+  },
+
+  // ── Settings (sync individual key/value to aegis-config.json) ──
+  settings: {
+    save: (key: string, value: any) => ipcRenderer.invoke('settings:save', key, value),
   },
 
   // Gateway IPC removed — all WS communication handled by src/services/gateway.ts (renderer-side)
@@ -139,25 +150,41 @@ const api = {
     download: () => ipcRenderer.invoke('update:download'),
     install: () => ipcRenderer.invoke('update:install'),
     onAvailable: (cb: (info: any) => void) => {
-      ipcRenderer.on('update:available', (_e, info) => cb(info));
+      const handler = (_e: any, info: any) => cb(info);
+      ipcRenderer.on('update:available', handler);
+      return () => ipcRenderer.removeListener('update:available', handler);
     },
     onUpToDate: (cb: () => void) => {
-      ipcRenderer.on('update:up-to-date', () => cb());
+      const handler = () => cb();
+      ipcRenderer.on('update:up-to-date', handler);
+      return () => ipcRenderer.removeListener('update:up-to-date', handler);
     },
     onProgress: (cb: (progress: any) => void) => {
-      ipcRenderer.on('update:progress', (_e, p) => cb(p));
+      const handler = (_e: any, p: any) => cb(p);
+      ipcRenderer.on('update:progress', handler);
+      return () => ipcRenderer.removeListener('update:progress', handler);
     },
     onDownloaded: (cb: () => void) => {
-      ipcRenderer.on('update:downloaded', () => cb());
+      const handler = () => cb();
+      ipcRenderer.on('update:downloaded', handler);
+      return () => ipcRenderer.removeListener('update:downloaded', handler);
     },
     onError: (cb: (msg: string) => void) => {
-      ipcRenderer.on('update:error', (_e, msg) => cb(msg));
+      const handler = (_e: any, msg: string) => cb(msg);
+      ipcRenderer.on('update:error', handler);
+      return () => ipcRenderer.removeListener('update:error', handler);
     },
   },
 
   // ── Native Notifications ──
   notify: (title: string, body: string) =>
     ipcRenderer.invoke('notification:show', title, body),
+
+  // ── Secrets ──
+  secrets: {
+    audit: () => ipcRenderer.invoke('secrets:audit'),
+    reload: () => ipcRenderer.invoke('secrets:reload'),
+  },
 
   // ── Device Identity (Ed25519 for Gateway auth) ──
   device: {
@@ -178,4 +205,4 @@ contextBridge.exposeInMainWorld('aegis', api);
 // Type declaration for renderer
 export type AegisAPI = typeof api;
 
-console.log('🛡️ AEGIS Preload v5.4 ready');
+console.log('Æ AEGIS Preload v5.4.1 ready');

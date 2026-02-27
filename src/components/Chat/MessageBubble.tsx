@@ -347,7 +347,7 @@ export const MessageBubble = memo(function MessageBubble({ message, onResend }: 
                 title={t('chat.copy')}
               >
                 {copied ? (
-                  <Check size={11} className="text-emerald-400" />
+                  <Check size={11} className="text-aegis-success" />
                 ) : (
                   <Copy size={11} className="text-aegis-text-muted hover:text-aegis-text-secondary" />
                 )}

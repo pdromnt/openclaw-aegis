@@ -245,7 +245,7 @@ export function VoiceRecorder({ onSendVoice, onCancel, disabled }: VoiceRecorder
         disabled={saving || elapsed < 1}
         className={clsx(
           'p-2.5 rounded-xl transition-all',
-          'bg-aegis-primary hover:bg-aegis-primary-hover text-white',
+          'bg-aegis-primary hover:bg-aegis-primary-hover text-aegis-btn-primary-text',
           'shadow-lg shadow-aegis-primary/20',
           'disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none'
         )}

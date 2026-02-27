@@ -71,8 +71,6 @@ export function ChatView() {
   // prevCompactionsRef removed — compaction detection moved to gateway.ts (direct agent event)
 
   // ── Clarify Card state (auto-detection disabled — triggered too many false positives) ──
-  // ClarifyCard is kept for future use with official inline buttons from Gateway
-  // const [clarifyQuestion, setClarifyQuestion] = useState<ClarifyQuestion | null>(null);
 
   const scrollToBottom = useCallback((smooth = true) => {
     bottomRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'instant' });
@@ -318,7 +316,7 @@ export function ChatView() {
         ) : (
           <div className="space-y-0.5">
             {messages.map((msg) => {
-              if (msg.role === 'compaction') {
+              if ((msg.role as string) === 'compaction') {
                 return <CompactDivider key={msg.id} timestamp={msg.timestamp} />;
               }
               // Tool messages — check for inline buttons first, then normal tool display

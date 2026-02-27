@@ -185,7 +185,7 @@ export function MySkillRow({ skill, onToggle, index = 0, onDelete }: {
           <div className={clsx(
             'absolute top-[2px] w-3 h-3 rounded-full transition-all',
             skill.enabled ? 'start-[16px] bg-aegis-primary' : 'start-[2px] bg-[rgb(var(--aegis-overlay)/0.2)]',
-          )} style={skill.enabled ? { boxShadow: '0 0 6px rgba(var(--aegis-primary) / 0.5)' } : undefined} />
+          )} style={skill.enabled ? { boxShadow: '0 0 6px rgb(var(--aegis-primary) / 0.5)' } : undefined} />
         </button>
 
         {skill.source !== 'bundled' && (
@@ -454,7 +454,7 @@ export function SkillDetailPanel({ open, skill, loading, onClose }: {
                       </span>
                       {v.latest && (
                         <span className="px-1.5 py-0.5 rounded text-[9px] font-bold
-                          bg-aegis-success text-white">
+                          bg-aegis-success text-aegis-btn-primary-text">
                           latest
                         </span>
                       )}

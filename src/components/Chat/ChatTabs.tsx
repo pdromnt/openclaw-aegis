@@ -10,7 +10,7 @@ import clsx from 'clsx';
 
 // ═══════════════════════════════════════════════════════════
 // ChatHeader — Compact header replacing old tab bar
-// Layout: 🛡️ AEGIS ∨       +  ●  165k / 200k
+// Layout: Æ AEGIS ∨       +  ●  165k / 200k
 // ═══════════════════════════════════════════════════════════
 
 const MAIN_SESSION = 'agent:main:main';
@@ -92,7 +92,7 @@ function AgentStatusTooltip({ visible, tokenUsage, connected }: {
           {/* Header */}
           <div className="flex items-center gap-3 p-4 border-b border-[rgb(var(--aegis-overlay)/0.06)]">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-aegis-primary/20 to-aegis-primary/5 border border-aegis-primary/25 flex items-center justify-center text-lg">
-              🛡️
+              Æ
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-bold text-aegis-primary">AEGIS</div>
@@ -443,7 +443,7 @@ export function ChatTabs() {
         >
           {/* Icon */}
           {isMain ? (
-            <span className="text-[15px] leading-none">🛡️</span>
+            <span className="text-[15px] leading-none">Æ</span>
           ) : (
             <MessageSquare size={14} className="text-aegis-text-muted" />
           )}

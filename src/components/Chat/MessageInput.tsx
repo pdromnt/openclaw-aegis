@@ -265,7 +265,7 @@ export function MessageInput() {
               )}
               <button onClick={() => removeFile(i)}
                 className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-aegis-danger/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <X size={9} className="text-white" />
+                <X size={9} className="text-aegis-text" />
               </button>
               <div className="absolute bottom-0 left-0 right-0 bg-aegis-bg-solid/80 text-[7px] text-center text-aegis-text py-0.5">
                 {formatSize(file.size)}
@@ -330,7 +330,7 @@ export function MessageInput() {
                 try { await gateway.abortChat(); setIsTyping(false); setIsSending(false); }
                 catch (err) { console.error('[Abort] Error:', err); }
               }}
-                className="w-[34px] h-[34px] rounded-lg flex items-center justify-center flex-shrink-0 bg-aegis-danger/80 hover:bg-aegis-danger text-white transition-all"
+                className="w-[34px] h-[34px] rounded-lg flex items-center justify-center flex-shrink-0 bg-aegis-danger/80 hover:bg-aegis-danger text-aegis-text transition-all"
                 title={t('input.stop')}>
                 <Square size={16} fill="currentColor" />
               </button>

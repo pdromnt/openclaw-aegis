@@ -54,32 +54,29 @@ async function loadXterm() {
 // ═══════════════════════════════════════════════════════════
 
 function getTerminalTheme(): Record<string, string> {
-  const root = getComputedStyle(document.documentElement);
-  const isLight = document.documentElement.classList.contains('light');
-
   return {
-    background: isLight ? '#edeef2' : '#0a0a14',
-    foreground: isLight ? '#1e2030' : '#d4d4d8',
-    cursor: isLight ? '#1e2030' : '#4EC9B0',
-    cursorAccent: isLight ? '#edeef2' : '#0a0a14',
-    selectionBackground: isLight ? 'rgba(40,82,185,0.2)' : 'rgba(78,201,176,0.2)',
+    background:          '#0a0a14',
+    foreground:          '#d4d4d8',
+    cursor:              '#4EC9B0',
+    cursorAccent:        '#0a0a14',
+    selectionBackground: 'rgba(78,201,176,0.2)',
     selectionForeground: undefined as any,
-    black: isLight ? '#1e2030' : '#1a1a2e',
-    red: isLight ? '#c81e1e' : '#f87171',
-    green: isLight ? '#108c3c' : '#4ade80',
-    yellow: isLight ? '#aa7300' : '#fbbf24',
-    blue: isLight ? '#2852b9' : '#60a5fa',
-    magenta: isLight ? '#9333ea' : '#c084fc',
-    cyan: isLight ? '#058064' : '#4EC9B0',
-    white: isLight ? '#6b7280' : '#d4d4d8',
-    brightBlack: isLight ? '#9ca3af' : '#52525b',
-    brightRed: isLight ? '#ef4444' : '#fca5a5',
-    brightGreen: isLight ? '#22c55e' : '#86efac',
-    brightYellow: isLight ? '#eab308' : '#fde68a',
-    brightBlue: isLight ? '#3b82f6' : '#93bbfd',
-    brightMagenta: isLight ? '#a855f7' : '#d8b4fe',
-    brightCyan: isLight ? '#06b6d4' : '#67e8f9',
-    brightWhite: isLight ? '#1e2030' : '#fafafa',
+    black:        '#1a1a2e',
+    red:          '#f87171',
+    green:        '#4ade80',
+    yellow:       '#fbbf24',
+    blue:         '#60a5fa',
+    magenta:      '#c084fc',
+    cyan:         '#4EC9B0',
+    white:        '#d4d4d8',
+    brightBlack:  '#52525b',
+    brightRed:    '#fca5a5',
+    brightGreen:  '#86efac',
+    brightYellow: '#fde68a',
+    brightBlue:   '#93bbfd',
+    brightMagenta:'#d8b4fe',
+    brightCyan:   '#67e8f9',
+    brightWhite:  '#fafafa',
   };
 }
 
@@ -342,7 +339,7 @@ export function TerminalPage() {
       </div>
 
       {/* ═══ Terminal Area ═══ */}
-      <div className="flex-1 min-h-0 relative overflow-hidden bg-[var(--aegis-code-bg,#0a0a14)]">
+      <div className="flex-1 min-h-0 relative overflow-hidden bg-[#0a0a14]">
         {tabs.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">

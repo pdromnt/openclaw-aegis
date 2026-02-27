@@ -54,7 +54,7 @@ export function getAgentColor(agentId: string): string {
 
 /** Deterministic emoji icon per agent (hash-based) */
 export function getAgentIcon(agentId: string): string {
-  if (agentId === 'main') return '🛡️';
+  if (agentId === 'main') return 'Æ';
   const icons = ['🤖', '🔍', '📦', '⚽', '🧠', '🎯', '📊', '🔧', '🚀', '💡'];
   let hash = 0;
   for (let i = 0; i < agentId.length; i++) {

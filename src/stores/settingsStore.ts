@@ -5,7 +5,7 @@ import { create } from 'zustand';
 // ═══════════════════════════════════════════════════════════
 
 interface SettingsState {
-  theme: 'dark' | 'light' | 'system';
+  theme: 'aegis-dark' | 'aegis-light';
   fontSize: number;
   sidebarOpen: boolean;
   sidebarWidth: number;
@@ -25,7 +25,7 @@ interface SettingsState {
   gatewayUrl: string;
   gatewayToken: string;
 
-  setTheme: (theme: 'dark' | 'light' | 'system') => void;
+  setTheme: (theme: string) => void;
   setFontSize: (size: number) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
@@ -58,7 +58,7 @@ const detectLang = (): 'ar' | 'en' => {
 const savedLang = detectLang();
 
 export const useSettingsStore = create<SettingsState>((set) => ({
-  theme: (localStorage.getItem('aegis-theme') || 'dark') as 'dark' | 'light' | 'system',
+  theme: (localStorage.getItem('aegis-theme') || 'aegis-dark') as 'aegis-dark' | 'aegis-light',
   fontSize: 14,
   sidebarOpen: true,
   sidebarWidth: 280,
@@ -78,8 +78,15 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   gatewayUrl: localStorage.getItem('aegis-gateway-url') || '',
   gatewayToken: localStorage.getItem('aegis-gateway-token') || '',
 
-  setTheme: (theme) => { localStorage.setItem('aegis-theme', theme); set({ theme }); },
-  setFontSize: (size) => set({ fontSize: size }),
+  setTheme: (theme) => {
+    localStorage.setItem('aegis-theme', theme);
+    set({ theme: theme as 'aegis-dark' | 'aegis-light' });
+    window.aegis?.settings?.save?.('theme', theme).catch?.(() => {});
+  },
+  setFontSize: (size) => {
+    set({ fontSize: size });
+    window.aegis?.settings?.save?.('fontSize', size).catch?.(() => {});
+  },
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
   setSidebarWidth: (width) => set({ sidebarWidth: width }),
@@ -96,6 +103,14 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setMemoryLocalPath: (path) => { localStorage.setItem('aegis-memory-local-path', path); set({ memoryLocalPath: path }); },
   setContext1mEnabled: (enabled) => { localStorage.setItem('aegis-context1m', String(enabled)); set({ context1mEnabled: enabled }); },
   setToolIntentEnabled: (enabled) => { localStorage.setItem('aegis-tool-intent', String(enabled)); set({ toolIntentEnabled: enabled }); },
-  setGatewayUrl: (url) => { localStorage.setItem('aegis-gateway-url', url); set({ gatewayUrl: url }); },
-  setGatewayToken: (token) => { localStorage.setItem('aegis-gateway-token', token); set({ gatewayToken: token }); },
+  setGatewayUrl: (url) => {
+    localStorage.setItem('aegis-gateway-url', url);
+    set({ gatewayUrl: url });
+    window.aegis?.settings?.save?.('gatewayUrl', url).catch?.(() => {});
+  },
+  setGatewayToken: (token) => {
+    localStorage.setItem('aegis-gateway-token', token);
+    set({ gatewayToken: token });
+    window.aegis?.settings?.save?.('gatewayToken', token).catch?.(() => {});
+  },
 }));

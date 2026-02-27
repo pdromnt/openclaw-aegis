@@ -5,8 +5,8 @@
 // Falls back to 'dev' in non-Vite contexts (tests, storybook, etc.)
 //
 // Usage:
-//   const version = useAppVersion();        // "5.4.0"
-//   const display = useAppVersion('v');      // "v5.4.0"
+//   const version = useAppVersion();        // "5.4.1"
+//   const display = useAppVersion('v');      // "v5.4.1"
 // ═══════════════════════════════════════════════════════════
 
 /** App version string — injected at build time by Vite (see vite.config.ts) */

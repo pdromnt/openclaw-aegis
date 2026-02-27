@@ -18,7 +18,7 @@ interface EmojiPickerProps {
 
 export function EmojiPicker({ onSelect, disabled }: EmojiPickerProps) {
   const { t } = useTranslation();
-  const { language } = useSettingsStore();
+  const { language, theme } = useSettingsStore();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -68,14 +68,14 @@ export function EmojiPicker({ onSelect, disabled }: EmojiPickerProps) {
           "absolute bottom-full mb-2 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200",
           getDirection(language) === 'rtl' ? 'right-0' : 'left-0'
         )}>
-          <div className="rounded-2xl overflow-hidden shadow-2xl border border-aegis-border/30 bg-aegis-surface">
+          <div className="rounded-2xl overflow-hidden shadow-2xl border border-aegis-menu-border bg-aegis-menu-bg">
             <Picker
               data={data}
               onEmojiSelect={(emoji: any) => {
                 onSelect(emoji.native);
                 setOpen(false);
               }}
-              theme={document.documentElement.classList.contains('light') ? 'light' : 'dark'}
+              theme={theme === 'aegis-light' ? 'light' : 'dark'}
               locale={language}
               previewPosition="none"
               skinTonePosition="search"

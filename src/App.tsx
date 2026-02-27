@@ -12,6 +12,7 @@ import { MemoryExplorerPage } from '@/pages/MemoryExplorer';
 import { SkillsPage as SkillsPageFull } from '@/pages/SkillsPage';
 import { TerminalPage } from '@/pages/TerminalPage';
 import { SettingsPageFull } from '@/pages/SettingsPage';
+import { ConfigManagerPage } from '@/pages/ConfigManager';
 import { PairingScreen } from '@/components/PairingScreen';
 import { ToastContainer } from '@/components/Toast/ToastContainer';
 import { useChatStore } from '@/stores/chatStore';
@@ -26,6 +27,7 @@ import { changeLanguage } from '@/i18n';
 
 export default function App() {
   const { t } = useTranslation();
+  const { theme } = useSettingsStore();
   const {
     addMessage,
     updateStreamingMessage,
@@ -150,6 +152,11 @@ export default function App() {
     console.warn('[Models] All strategies failed — using hardcoded fallback');
   }, [setAvailableModels]);
 
+  // ── Apply theme to document root ──
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
   // ── Request notification permission (Web Notification API) ──
   useEffect(() => { notifications.requestPermission(); }, []);
 
@@ -210,14 +217,6 @@ export default function App() {
     });
 
     initConnection();
-
-    // Apply saved theme on startup
-    const savedTheme = useSettingsStore.getState().theme;
-    if (savedTheme === 'light') {
-      document.documentElement.classList.add('light');
-    } else {
-      document.documentElement.classList.remove('light');
-    }
 
     // Listen for model changes → refresh session metadata (maxTokens, contextTokens)
     const handleModelChanged = () => loadTokenUsage();
@@ -319,6 +318,7 @@ export default function App() {
             <Route path="/skills" element={<SkillsPageFull />} />
             <Route path="/terminal" element={<TerminalPage />} />
             <Route path="/memory" element={<MemoryExplorerPage />} />
+            <Route path="/config" element={<ConfigManagerPage />} />
             <Route path="/settings" element={<SettingsPageFull />} />
           </Route>
         </Routes>

@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, MessageCircle, Kanban, DollarSign, Clock, Bot, Brain,
-  Settings, Search, Wifi, WifiOff, Heart, Mail, Calendar, RefreshCw,
+  Settings, Wifi, WifiOff, Heart, Mail, Calendar, RefreshCw,
   Globe, Bell, BellOff, Command
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';

@@ -17,7 +17,7 @@ export const ChartTooltip = ({ active, payload, label }: TooltipProps) => {
     <div
       className="border border-[rgb(var(--aegis-overlay)/0.1)] rounded-xl px-3 py-2 text-[11px]"
       style={{
-        background: 'rgba(10,14,23,0.95)',
+        background: 'var(--aegis-bg-frosted)',
         backdropFilter: 'blur(20px)',
         boxShadow: '0 8px 32px rgb(var(--aegis-overlay) / 0.15)',
       }}

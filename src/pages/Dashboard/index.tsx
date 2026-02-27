@@ -23,7 +23,6 @@ import { StatusDot } from '@/components/shared/StatusDot';
 import { Sparkline } from '@/components/shared/Sparkline';
 import { useChatStore } from '@/stores/chatStore';
 import { useGatewayDataStore, refreshAll } from '@/stores/gatewayDataStore';
-import { gateway } from '@/services/gateway';
 import clsx from 'clsx';
 import { themeHex, themeAlpha, dataColor } from '@/utils/theme-colors';
 
@@ -35,7 +34,7 @@ import {
 // ── Agent emoji + display name helpers ───────────────────────
 
 const AGENT_EMOJIS: Record<string, string> = {
-  main:       '🛡️',
+  main:       'Æ',
   hilali:     '⚽',
   pipeline:   '📦',
   researcher: '🔍',

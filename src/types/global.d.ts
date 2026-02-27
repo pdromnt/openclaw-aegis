@@ -8,8 +8,17 @@ interface AegisAPI {
     isMaximized: () => Promise<boolean>;
   };
   config: {
+    // AEGIS app settings (aegis-config.json)
     get: () => Promise<any>;
     save: (config: any) => Promise<{ success: boolean }>;
+    // OpenClaw config (clawdbot.json) management
+    detect: () => Promise<{ path: string; exists: boolean }>;
+    read: (path?: string) => Promise<{ data: any; path: string }>;
+    write: (path: string, data: any) => Promise<{ success: boolean; backupPath?: string; error?: string }>;
+    restart: () => Promise<{ success: boolean; error?: string }>;
+  };
+  settings?: {
+    save: (key: string, value: any) => Promise<{ success: boolean }>;
   };
   // Gateway IPC removed — all WS handled by src/services/gateway.ts
   artifact: {
@@ -33,9 +42,6 @@ interface AegisAPI {
     }>;
   };
   image: {
-    save: (src: string, suggestedName: string) => Promise<{ success: boolean; path?: string; canceled?: boolean; error?: string }>;
-  };
-  video: {
     save: (src: string, suggestedName: string) => Promise<{ success: boolean; path?: string; canceled?: boolean; error?: string }>;
   };
   screenshot: {
@@ -79,22 +85,32 @@ interface AegisAPI {
     onData: (callback: (id: string, data: string) => void) => () => void;
     onExit: (callback: (id: string, exitCode: number, signal?: number) => void) => () => void;
   };
+  secrets: {
+    audit: () => Promise<{ success: boolean; data?: SecretsAuditResult; error?: string }>;
+    reload: () => Promise<{ success: boolean; error?: string }>;
+  };
   notify: (title: string, body: string) => Promise<void>;
   update: {
     check: () => Promise<any>;
     download: () => Promise<any>;
     install: () => Promise<void>;
-    onAvailable: (cb: (info: any) => void) => void;
-    onUpToDate: (cb: () => void) => void;
-    onProgress: (cb: (progress: any) => void) => void;
-    onDownloaded: (cb: () => void) => void;
-    onError: (cb: (msg: string) => void) => void;
+    onAvailable: (cb: (info: any) => void) => () => void;
+    onUpToDate: (cb: () => void) => () => void;
+    onProgress: (cb: (progress: any) => void) => () => void;
+    onDownloaded: (cb: () => void) => () => void;
+    onError: (cb: (msg: string) => void) => () => void;
   };
 }
 
 declare global {
   interface Window {
     aegis: AegisAPI;
+  }
+
+  interface SecretsAuditResult {
+    status: 'clean' | 'findings' | 'unresolved' | 'unknown';
+    rawOutput: string;
+    exitCode: number;
   }
 }
 

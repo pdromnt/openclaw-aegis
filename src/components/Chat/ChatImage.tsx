@@ -43,7 +43,7 @@ function resolveImageSrc(src: string): string {
 
 // ── Extract filename from src ──
 function extractFilename(src: string, alt?: string): string {
-  if (alt && alt !== 'image' && alt !== t('media.attachment') && !alt.startsWith('http')) {
+  if (alt && alt !== 'image' && alt !== 'attachment' && !alt.startsWith('http')) {
     // Sanitize alt as filename
     const sanitized = alt.replace(/[<>:"/\\|?*]/g, '_').slice(0, 60);
     if (sanitized.match(/\.\w{2,4}$/)) return sanitized;
@@ -86,6 +86,7 @@ interface LightboxProps {
 }
 
 function Lightbox({ src, alt, onClose }: LightboxProps) {
+  const { t } = useTranslation();
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -139,13 +140,13 @@ function Lightbox({ src, alt, onClose }: LightboxProps) {
   return (
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center"
-      style={{ background: 'rgba(0, 0, 0, 0.92)', backdropFilter: 'blur(8px)' }}
+      style={{ background: 'var(--aegis-bg-frosted)', backdropFilter: 'blur(8px)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       onWheel={handleWheel}
     >
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 h-12 flex items-center justify-between px-4 z-10"
-        style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.6), transparent)' }}>
+        style={{ background: 'linear-gradient(to bottom, var(--aegis-bg-frosted-60), transparent)' }}>
         <span className="text-[12px] text-aegis-text-muted font-mono">
           {alt || 'Image'} — {Math.round(zoom * 100)}%
         </span>
@@ -266,7 +267,7 @@ export function ChatImage({ src, alt, maxWidth = '100%', maxHeight = '400px', cl
               style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgb(var(--aegis-overlay) / 0.1)' }}
               title={t('media.saveImage')}
             >
-              <Download size={14} className="text-aegis-text hover:text-white" />
+              <Download size={14} className="text-aegis-text hover:text-aegis-text" />
             </button>
             <button
               onClick={handleExpand}
@@ -274,7 +275,7 @@ export function ChatImage({ src, alt, maxWidth = '100%', maxHeight = '400px', cl
               style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgb(var(--aegis-overlay) / 0.1)' }}
               title={t('media.zoom')}
             >
-              <Maximize2 size={14} className="text-aegis-text hover:text-white" />
+              <Maximize2 size={14} className="text-aegis-text hover:text-aegis-text" />
             </button>
           </span>
         )}

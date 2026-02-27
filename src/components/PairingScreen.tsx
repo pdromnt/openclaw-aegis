@@ -166,7 +166,7 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0a14]"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-aegis-bg-solid"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* Background pattern */}
@@ -181,14 +181,14 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
       </div>
 
       {/* Main card */}
-      <div className="relative w-full max-w-md mx-4 rounded-2xl bg-[#12121e] border border-[#1e1e30] shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-md mx-4 rounded-2xl bg-aegis-card-solid border border-aegis-border shadow-2xl overflow-hidden">
         {/* Top gradient bar */}
         <div className="h-1 bg-gradient-to-r from-aegis-primary via-aegis-accent to-aegis-primary" />
 
         {/* Cancel button */}
         <button
           onClick={onCancel}
-          className="absolute top-4 end-4 p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-[#1e1e30] transition-colors"
+          className="absolute top-4 end-4 p-1.5 rounded-lg text-aegis-text-dim hover:text-aegis-text-secondary hover:bg-aegis-glass transition-colors"
           title="Cancel"
         >
           <X size={18} />
@@ -199,7 +199,7 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
           <div className={`
             w-16 h-16 rounded-2xl flex items-center justify-center mb-6
             ${state === 'approved'
-              ? 'bg-emerald-500/20 text-emerald-400'
+              ? 'bg-aegis-primary/20 text-aegis-primary'
               : state === 'error'
                 ? 'bg-red-500/20 text-red-400'
                 : state === 'waiting-cli'
@@ -245,16 +245,16 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
           {/* Pairing code display */}
           {(state === 'waiting' || state === 'approved') && code && (
             <div className="w-full mb-6">
-              <p className="text-sm text-gray-400 mb-3">
+              <p className="text-sm text-aegis-text-muted mb-3">
                 {t('pairing.enterCode')}
               </p>
 
               {/* Code display */}
               <div className={`
-                py-4 px-6 rounded-xl bg-[#0a0a14] border-2 transition-colors duration-500
+                py-4 px-6 rounded-xl bg-aegis-bg-solid border-2 transition-colors duration-500
                 ${state === 'approved' ? 'border-emerald-500/50' : 'border-aegis-primary/30'}
               `}>
-                <span className="text-4xl font-mono font-bold tracking-[0.3em] text-white select-all">
+                <span className="text-4xl font-mono font-bold tracking-[0.3em] text-aegis-text select-all">
                   {code}
                 </span>
               </div>
@@ -262,13 +262,13 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
               {/* Instructions */}
               {state === 'waiting' && (
                 <div className="mt-5 space-y-2 text-start">
-                  <p className="text-xs text-gray-500 flex items-center gap-2">
+                  <p className="text-xs text-aegis-text-dim flex items-center gap-2">
                     <ShieldCheck size={14} className="text-aegis-primary shrink-0" />
                     <span>
                       {t('pairing.openTerminal')}
                     </span>
                   </p>
-                  <p className="text-xs text-gray-500 flex items-center gap-2">
+                  <p className="text-xs text-aegis-text-dim flex items-center gap-2">
                     <ShieldCheck size={14} className="text-aegis-primary shrink-0" />
                     <span>{t('pairing.orApproveFromUI')}</span>
                   </p>
@@ -277,7 +277,7 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
 
               {/* Polling indicator */}
               {state === 'waiting' && (
-                <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500">
+                <div className="mt-4 flex items-center justify-center gap-2 text-xs text-aegis-text-dim">
                   <Loader2 size={12} className="animate-spin text-aegis-primary" />
                   <span>{t('pairing.waitingApproval')}</span>
                 </div>
@@ -287,7 +287,7 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
 
           {/* Requesting state */}
           {state === 'requesting' && (
-            <div className="my-6 flex items-center gap-2 text-sm text-gray-400">
+            <div className="my-6 flex items-center gap-2 text-sm text-aegis-text-muted">
               <Loader2 size={16} className="animate-spin text-aegis-primary" />
               <span>{t('pairing.requestingPairing')}</span>
             </div>
@@ -296,29 +296,29 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
           {/* Waiting for CLI approval state */}
           {state === 'waiting-cli' && (
             <div className="w-full mb-6">
-              <p className="text-sm text-gray-400 mb-4">
+              <p className="text-sm text-aegis-text-muted mb-4">
                 {t('pairing.needsApprovalDesc')}
               </p>
 
               {/* CLI command */}
-              <div className="py-3 px-4 rounded-xl bg-[#0a0a14] border border-[#2a2a3e] font-mono text-sm text-emerald-400 select-all text-start" dir="ltr">
+              <div className="py-3 px-4 rounded-xl bg-aegis-bg-solid border border-aegis-border font-mono text-sm text-aegis-primary select-all text-start" dir="ltr">
                 openclaw pairing approve
               </div>
 
               {/* Alternative instructions */}
               <div className="mt-4 space-y-2 text-start">
-                <p className="text-xs text-gray-500 flex items-center gap-2">
+                <p className="text-xs text-aegis-text-dim flex items-center gap-2">
                   <ShieldCheck size={14} className="text-aegis-primary shrink-0" />
                   <span>{t('pairing.orApproveFromUIFull')}</span>
                 </p>
-                <p className="text-xs text-gray-500 flex items-center gap-2">
+                <p className="text-xs text-aegis-text-dim flex items-center gap-2">
                   <ShieldCheck size={14} className="text-aegis-primary shrink-0" />
                   <span>{t('pairing.oneTimeOnly')}</span>
                 </p>
               </div>
 
               {/* Polling indicator */}
-              <div className="mt-5 flex items-center justify-center gap-2 text-xs text-gray-500">
+              <div className="mt-5 flex items-center justify-center gap-2 text-xs text-aegis-text-dim">
                 <Loader2 size={12} className="animate-spin text-aegis-primary" />
                 <span>{t('pairing.waitingApprovalRetry')}</span>
               </div>
@@ -327,7 +327,7 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
 
           {/* Approved state */}
           {state === 'approved' && (
-            <div className="my-4 flex items-center gap-2 text-sm text-emerald-400">
+            <div className="my-4 flex items-center gap-2 text-sm text-aegis-primary">
               <CheckCircle2 size={16} />
               <span>{t('pairing.reconnecting')}</span>
             </div>
@@ -339,7 +339,7 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
               <button
                 onClick={requestPairing}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl
-                  bg-aegis-primary hover:bg-[#3db89f] text-black font-semibold text-sm
+                  bg-aegis-primary hover:bg-[rgb(var(--aegis-primary-hover))] text-aegis-btn-primary-text font-semibold text-sm
                   transition-colors"
               >
                 <RefreshCw size={16} />
@@ -349,8 +349,8 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
             {(state === 'error' || state === 'idle' || state === 'waiting-cli') && (
               <button
                 onClick={onCancel}
-                className="flex-1 py-2.5 px-4 rounded-xl border border-[#2a2a3e]
-                  text-gray-400 hover:text-white hover:border-[#3a3a5e] text-sm
+                className="flex-1 py-2.5 px-4 rounded-xl border border-aegis-border
+                  text-aegis-text-muted hover:text-aegis-text hover:border-aegis-border-hover text-sm
                   transition-colors"
               >
                 {t('pairing.cancel')}
@@ -362,7 +362,7 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
         {/* Manual Token Entry — fallback when auto-pairing fails or CLI approval mode */}
         {(state === 'error' || state === 'waiting-cli' || showManualToken) && (
           <div className="px-8 pb-4">
-            <div className="border-t border-[#1e1e30] pt-4">
+            <div className="border-t border-aegis-border pt-4">
               {!showManualToken ? (
                 <button
                   onClick={() => setShowManualToken(true)}
@@ -372,7 +372,7 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
                 </button>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-xs text-gray-400 text-center">
+                  <p className="text-xs text-aegis-text-muted text-center">
                     {t('pairing.enterTokenDesc')}
                   </p>
                   <input
@@ -380,7 +380,7 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
                     value={manualToken}
                     onChange={(e) => setManualToken(e.target.value)}
                     placeholder={t('pairing.pasteToken')}
-                    className="w-full px-3 py-2 rounded-lg bg-[#0a0a14] border border-[#2a2a3e] text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-aegis-primary"
+                    className="w-full px-3 py-2 rounded-lg bg-aegis-bg-solid border border-aegis-border text-sm text-aegis-text placeholder:text-aegis-text-dim focus:outline-none focus:border-aegis-primary"
                     dir="ltr"
                   />
                   <button
@@ -393,7 +393,7 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
                       setTimeout(() => onPaired(manualToken.trim()), 800);
                     }}
                     disabled={!manualToken.trim()}
-                    className="w-full py-2 rounded-xl bg-aegis-primary hover:bg-[#3db89f] text-black font-semibold text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full py-2 rounded-xl bg-aegis-primary hover:bg-[rgb(var(--aegis-primary-hover))] text-aegis-btn-primary-text font-semibold text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {t('pairing.connect')}
                   </button>
@@ -405,7 +405,7 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
 
         {/* Bottom info */}
         <div className="px-8 pb-6">
-          <div className="text-[10px] text-gray-600 text-center leading-relaxed">
+          <div className="text-[10px] text-aegis-text-dim text-center leading-relaxed">
             {t('pairing.tokenExplanation')}
           </div>
         </div>

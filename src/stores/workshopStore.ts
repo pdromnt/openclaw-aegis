@@ -72,7 +72,7 @@ export const useWorkshopStore = create<WorkshopState>()(
       addTask: (partial) => set((state) => {
         const task: Task = {
           ...partial,
-          id: Date.now().toString(),
+          id: crypto.randomUUID(),
           status: 'queue',
           createdAt: new Date().toISOString(),
           tags: partial.tags || [],

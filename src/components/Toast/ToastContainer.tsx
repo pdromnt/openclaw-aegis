@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, CheckCircle2, Info, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNotificationStore, type Toast, type NotificationType } from '@/stores/notificationStore';
-import { themeHex, themeAlpha, overlay } from '@/utils/theme-colors';
+import { themeHex, themeAlpha } from '@/utils/theme-colors';
 import { timeAgo } from '@/utils/format';
 
 // ── Icon + tint config per notification type ──────────────

@@ -125,10 +125,9 @@ function ModelPicker({ currentModel }: { currentModel: string | null }) {
       {/* Dropdown */}
       {open && (
         <div
-          className="absolute top-full left-0 mt-1 z-50 min-w-[160px] max-w-[220px] rounded-xl shadow-xl overflow-hidden"
+          className="absolute top-full left-0 mt-1 z-50 min-w-[160px] max-w-[220px] rounded-xl overflow-hidden bg-aegis-menu-bg border border-aegis-menu-border"
           style={{
-            background: 'rgb(var(--aegis-surface))',
-            border: '1px solid rgb(var(--aegis-overlay) / 0.12)',
+            boxShadow: 'var(--aegis-menu-shadow)',
           }}
         >
           {/* Scrollable model list — max 7 rows visible */}
@@ -233,10 +232,9 @@ function ThinkingPicker({ currentThinking }: { currentThinking: string | null })
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 min-w-[150px] rounded-xl overflow-hidden shadow-xl"
+        <div className="absolute top-full left-0 mt-1 z-50 min-w-[150px] rounded-xl overflow-hidden bg-aegis-menu-bg border border-aegis-menu-border"
           style={{
-            background: 'rgb(var(--aegis-surface))',
-            border: '1px solid rgb(var(--aegis-overlay) / 0.12)',
+            boxShadow: 'var(--aegis-menu-shadow)',
           }}
         >
           {THINKING_LEVELS.map((t) => {

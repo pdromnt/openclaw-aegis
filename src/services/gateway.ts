@@ -240,7 +240,7 @@ class GatewayService {
 
   // ── Heartbeat (activity-based dead connection detection) ──
   private heartbeatTimer: ReturnType<typeof setTimeout> | null = null;
-  private readonly HEARTBEAT_DEAD_MS = 45_000; // No traffic for 45s = dead
+  private readonly HEARTBEAT_DEAD_MS = 90_000; // No traffic for 90s = dead
 
   // ── Message Queue (buffer while disconnected) ──
   private messageQueue: Array<{ message: string; attachments?: any[]; sessionKey?: string }> = [];
@@ -269,6 +269,8 @@ class GatewayService {
   private stopHeartbeat() {
     if (this.heartbeatTimer) { clearTimeout(this.heartbeatTimer); this.heartbeatTimer = null; }
   }
+
+  
 
   // ── Message Queue Management ──
 
@@ -345,6 +347,7 @@ class GatewayService {
   connect(url: string, token: string) {
     this.url = url;
     this.token = token;
+    this.reconnectAttempt = 0;
 
     if (this.ws && (this.connected || this.connecting)) return;
     if (this.ws) {
@@ -713,7 +716,7 @@ class GatewayService {
     // Any incoming message = connection alive — reset heartbeat timer
     this.resetHeartbeat();
 
-    // Intercept connect.challenge — extract nonce and trigger handshake
+        // Intercept connect.challenge — extract nonce and trigger handshake
     if (msg.type === 'event' && msg.event === 'connect.challenge') {
       const nonce = msg.payload?.nonce;
       if (nonce && typeof nonce === 'string') {
@@ -1068,10 +1071,11 @@ class GatewayService {
       }
 
       case 'aborted': {
+        const finalContent = this.currentStreamContent;
         this.currentStreamContent = '';
         this.currentRunId = null;
         useChatStore.getState().clearThinking();
-        this.callbacks?.onStreamEnd(mId, this.currentStreamContent || `⏹️ ${i18n.t('chat.stopped', 'Stopped')}`);
+        this.callbacks?.onStreamEnd(mId, finalContent || `⏹️ ${i18n.t('chat.stopped', 'Stopped')}`);
         break;
       }
 

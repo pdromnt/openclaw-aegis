@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Settings, Bell, BellOff, Globe, Volume2, VolumeX,
-  Wifi, WifiOff, Palette, Cpu, CheckCircle, Loader2, Keyboard, Copy
+  Wifi, WifiOff, Cpu, CheckCircle, Loader2, Keyboard, Copy, Sun, Moon
 } from 'lucide-react';
 import { APP_VERSION } from '@/hooks/useAppVersion';
 import { GlassCard } from '@/components/shared/GlassCard';
@@ -23,8 +23,8 @@ import clsx from 'clsx';
 export function SettingsPageFull() {
   const { t } = useTranslation();
   const {
-    language, setLanguage,
     theme, setTheme,
+    language, setLanguage,
     notificationsEnabled, setNotificationsEnabled,
     soundEnabled, setSoundEnabled,
     dndMode, setDndMode,
@@ -152,7 +152,7 @@ export function SettingsPageFull() {
       <div className={clsx(
         'absolute top-[2px] w-[18px] h-[18px] rounded-full transition-all duration-300',
         enabled
-          ? 'left-[21px] bg-aegis-primary shadow-[0_0_8px_rgba(78,201,176,0.5)]'
+          ? 'left-[21px] bg-aegis-primary shadow-[0_0_8px_rgb(var(--aegis-primary)/0.5)]'
           : 'left-[2px] bg-[rgb(var(--aegis-overlay)/0.3)]'
       )} />
     </button>
@@ -166,38 +166,6 @@ export function SettingsPageFull() {
           {t('settings.title')}
         </h1>
       </div>
-
-      {/* Theme */}
-      <GlassCard delay={0}>
-        <h3 className="text-[14px] font-semibold text-aegis-text mb-4 flex items-center gap-2">
-          <Palette size={16} className="text-aegis-primary" />
-          {t('settingsExtra.theme')}
-        </h3>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => { setTheme('dark'); document.documentElement.classList.remove('light'); }}
-            className={clsx(
-              'flex-1 py-3 rounded-xl text-[14px] font-medium border transition-colors',
-              theme === 'dark'
-                ? 'bg-aegis-primary/15 border-aegis-primary/30 text-aegis-primary'
-                : 'border-aegis-border text-aegis-text-dim hover:border-aegis-border-hover'
-            )}
-          >
-            {t('settingsTheme.dark')}
-          </button>
-          <button
-            onClick={() => { setTheme('light'); document.documentElement.classList.add('light'); }}
-            className={clsx(
-              'flex-1 py-3 rounded-xl text-[14px] font-medium border transition-colors',
-              theme === 'light'
-                ? 'bg-aegis-primary/15 border-aegis-primary/30 text-aegis-primary'
-                : 'border-aegis-border text-aegis-text-dim hover:border-aegis-border-hover'
-            )}
-          >
-            {t('settingsTheme.light')}
-          </button>
-        </div>
-      </GlassCard>
 
       {/* Language */}
       <GlassCard delay={0.05}>
@@ -227,6 +195,40 @@ export function SettingsPageFull() {
             )}
           >
             English
+          </button>
+        </div>
+      </GlassCard>
+
+      {/* Theme */}
+      <GlassCard delay={0.08}>
+        <h3 className="text-[14px] font-semibold text-aegis-text mb-4 flex items-center gap-2">
+          <Moon size={16} className="text-aegis-primary" />
+          {t('settings.theme')}
+        </h3>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setTheme('aegis-dark')}
+            className={clsx(
+              'flex-1 py-3 rounded-xl text-[14px] font-medium border transition-colors flex items-center justify-center gap-2',
+              (theme || 'aegis-dark') === 'aegis-dark'
+                ? 'bg-aegis-primary text-aegis-btn-primary-text border-transparent'
+                : 'bg-aegis-glass text-aegis-text-secondary border border-aegis-border'
+            )}
+          >
+            <Moon size={15} />
+            {t('settings.themeDark')}
+          </button>
+          <button
+            onClick={() => setTheme('aegis-light')}
+            className={clsx(
+              'flex-1 py-3 rounded-xl text-[14px] font-medium border transition-colors flex items-center justify-center gap-2',
+              (theme || 'aegis-dark') === 'aegis-light'
+                ? 'bg-aegis-primary text-aegis-btn-primary-text border-transparent'
+                : 'bg-aegis-glass text-aegis-text-secondary border border-aegis-border'
+            )}
+          >
+            <Sun size={15} />
+            {t('settings.themeLight')}
           </button>
         </div>
       </GlassCard>
@@ -571,7 +573,7 @@ export function SettingsPageFull() {
       {/* About + System Info */}
       <GlassCard delay={0.3}>
         <div className="text-center py-4 mb-4">
-          <div className="text-3xl mb-2">🛡️</div>
+          <div className="text-3xl mb-2">Æ</div>
           <div className="text-[14px] font-bold text-aegis-text">AEGIS Desktop</div>
           <div className="text-[12px] text-aegis-text-dim mt-1">v{APP_VERSION} — Mission Control</div>
           <div className="text-[11px] text-aegis-text-dim mt-0.5">Advanced Executive General Intelligence System</div>

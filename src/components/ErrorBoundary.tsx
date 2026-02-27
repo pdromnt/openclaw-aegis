@@ -38,7 +38,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
           </pre>
           <button
             onClick={() => this.setState({ hasError: false, error: null })}
-            className="px-6 py-2 bg-aegis-primary text-white rounded-xl hover:bg-aegis-primary-hover"
+            className="px-6 py-2 bg-aegis-primary text-aegis-btn-primary-text rounded-xl hover:bg-aegis-primary-hover"
           >
             {i18n.t('errors.retry')}
           </button>

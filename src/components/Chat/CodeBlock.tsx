@@ -74,8 +74,8 @@ export function CodeBlock({ language, code }: CodeBlockProps) {
         >
           {copied ? (
             <>
-              <Check size={11} className="text-emerald-400" />
-              <span className="text-emerald-400">{t('code.copied')}</span>
+              <Check size={11} className="text-aegis-success" />
+              <span className="text-aegis-success">{t('code.copied')}</span>
             </>
           ) : (
             <>

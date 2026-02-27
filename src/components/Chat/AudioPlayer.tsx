@@ -241,7 +241,7 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
         className={clsx(
           'w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all',
           playing
-            ? 'bg-aegis-primary text-white shadow-md shadow-aegis-primary/30'
+            ? 'bg-aegis-primary text-aegis-btn-primary-text shadow-md shadow-aegis-primary/30'
             : 'bg-aegis-primary/20 text-aegis-primary hover:bg-aegis-primary/30',
           loading && 'opacity-50 animate-pulse'
         )}

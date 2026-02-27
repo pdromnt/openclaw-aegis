@@ -1,191 +1,11 @@
+@import './primitives.css';
+@import './terminal.css';
+@import './themes/aegis-dark.css';
+@import './themes/aegis-light.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* ═══════════════════════════════════════════════════════════
-   AEGIS Desktop v5 — Dual Theme (Dark + Light)
-   CSS Variables → referenced by Tailwind config
-   ═══════════════════════════════════════════════════════════ */
-
-/* ── Theme: Dark (default) ─────────────────────────────── */
-:root {
-  /* Backgrounds */
-  --aegis-bg:             #0c1015;
-  --aegis-surface:        rgba(255,255,255,0.02);
-  --aegis-elevated:       rgba(255,255,255,0.035);
-  --aegis-card:           rgba(255,255,255,0.025);
-  --aegis-bg-solid:       #0c1015;
-  --aegis-surface-solid:  #111921;
-  --aegis-elevated-solid: #161f2b;
-  --aegis-card-solid:     #131a24;
-  --aegis-chrome:         rgba(255,255,255,0.025);
-
-  /* Borders */
-  --aegis-border:         rgba(255,255,255,0.05);
-  --aegis-border-hover:   rgba(255,255,255,0.1);
-  --aegis-border-active:  rgba(255,255,255,0.15);
-
-  /* Text (space-separated RGB for alpha support) */
-  --aegis-text:           230 237 243;
-  --aegis-text-secondary: 177 186 196;
-  --aegis-text-muted:     139 148 158;
-  --aegis-text-dim:       90 99 112;
-
-  /* Primary — Teal (AEGIS identity) */
-  --aegis-primary:        78 201 176;
-  --aegis-primary-hover:  61 184 159;
-  --aegis-primary-deep:   44 167 142;
-  --aegis-primary-glow:   rgba(78,201,176,0.16);
-  --aegis-primary-surface:rgba(78,201,176,0.08);
-
-  /* Accent — Blue */
-  --aegis-accent:         108 159 255;
-  --aegis-accent-hover:   90 143 255;
-  --aegis-accent-glow:    rgba(108,159,255,0.14);
-
-  /* Status */
-  --aegis-danger:         244 112 103;
-  --aegis-danger-surface: rgba(244,112,103,0.10);
-  --aegis-warning:        232 184 78;
-  --aegis-warning-surface:rgba(232,184,78,0.10);
-  --aegis-success:        63 185 80;
-  --aegis-success-surface:rgba(63,185,80,0.10);
-
-  /* Messages */
-  --aegis-user-bubble:    rgba(78,201,176,0.12);
-  --aegis-user-border:    rgba(78,201,176,0.20);
-  --aegis-bot-bubble:     rgba(255,255,255,0.03);
-  --aegis-bot-border:     rgba(255,255,255,0.05);
-
-  /* Glass */
-  --aegis-glass:          rgba(255,255,255,0.03);
-  --aegis-glass-border:   rgba(255,255,255,0.05);
-  --aegis-glass-hover:    rgba(255,255,255,0.06);
-
-  /* Overlay (white in dark, black in light — for subtle overlays) */
-  --aegis-overlay:        255 255 255;
-
-  /* Scrollbar */
-  --aegis-scrollbar:      rgba(255,255,255,0.08);
-  --aegis-scrollbar-hover:rgba(255,255,255,0.15);
-
-  /* Selection */
-  --aegis-selection:      rgba(78,201,176,0.28);
-  --aegis-selection-text:  #e6edf3;
-
-  /* Body BG */
-  --aegis-body:           #0c1015;
-
-  /* Frosted backgrounds — headers, tooltips, modals with blur */
-  --aegis-bg-frosted:     rgba(12, 16, 21, 0.95);
-  --aegis-bg-frosted-60:  rgba(12, 16, 21, 0.6);
-
-  /* Code blocks */
-  --aegis-code-bg:      #0d1117;
-  --aegis-code-header:  #161b22;
-
-  /* Data visualization palette */
-  --aegis-data-1:  #4EC9B0;
-  --aegis-data-2:  #6C9FFF;
-  --aegis-data-3:  #FFD740;
-  --aegis-data-4:  #B388FF;
-  --aegis-data-5:  #FF6E40;
-  --aegis-data-6:  #69F0AE;
-  --aegis-data-7:  #40C4FF;
-  --aegis-data-8:  #F48FB1;
-  --aegis-data-9:  #CE93D8;
-  --aegis-data-10: #80DEEA;
-}
-
-/* ── Theme: Light ──────────────────────────────────────── */
-:root.light {
-  /* Backgrounds — cool gray palette */
-  --aegis-bg:             #edeef2;
-  --aegis-surface:        rgba(0,0,0,0.018);
-  --aegis-elevated:       rgba(0,0,0,0.025);
-  --aegis-card:           rgba(0,0,0,0.015);
-  --aegis-bg-solid:       #edeef2;
-  --aegis-surface-solid:  #f5f6f8;
-  --aegis-elevated-solid: #e9eaee;
-  --aegis-card-solid:     #ffffff;
-  --aegis-chrome:         rgba(0,0,0,0.025);
-
-  /* Borders */
-  --aegis-border:         rgba(0,0,0,0.10);
-  --aegis-border-hover:   rgba(0,0,0,0.15);
-  --aegis-border-active:  rgba(0,0,0,0.22);
-
-  /* Text — high contrast */
-  --aegis-text:           20 20 25;
-  --aegis-text-secondary: 50 50 60;
-  --aegis-text-muted:     80 82 95;
-  --aegis-text-dim:       130 132 145;
-
-  /* Primary — deep teal */
-  --aegis-primary:        5 128 100;
-  --aegis-primary-hover:  3 108 84;
-  --aegis-primary-deep:   2 90 70;
-  --aegis-primary-glow:   rgba(5,128,100,0.12);
-  --aegis-primary-surface:rgba(5,128,100,0.06);
-
-  /* Accent — deep blue */
-  --aegis-accent:         40 82 185;
-  --aegis-accent-hover:   32 68 160;
-  --aegis-accent-glow:    rgba(40,82,185,0.10);
-
-  /* Status */
-  --aegis-danger:         200 30 30;
-  --aegis-danger-surface: rgba(200,30,30,0.08);
-  --aegis-warning:        170 115 0;
-  --aegis-warning-surface:rgba(170,115,0,0.08);
-  --aegis-success:        16 140 60;
-  --aegis-success-surface:rgba(16,140,60,0.08);
-
-  /* Messages */
-  --aegis-user-bubble:    rgba(5,128,100,0.08);
-  --aegis-user-border:    rgba(5,128,100,0.18);
-  --aegis-bot-bubble:     rgba(0,0,0,0.02);
-  --aegis-bot-border:     rgba(0,0,0,0.06);
-
-  /* Glass (light = frosted white) */
-  --aegis-glass:          rgba(255,255,255,0.70);
-  --aegis-glass-border:   rgba(0,0,0,0.06);
-  --aegis-glass-hover:    rgba(255,255,255,0.85);
-
-  /* Overlay */
-  --aegis-overlay:        0 0 0;
-
-  /* Scrollbar */
-  --aegis-scrollbar:      rgba(0,0,0,0.12);
-  --aegis-scrollbar-hover:rgba(0,0,0,0.20);
-
-  /* Selection */
-  --aegis-selection:      rgba(5,128,100,0.22);
-  --aegis-selection-text:  #141419;
-
-  /* Body BG */
-  --aegis-body:           #edeef2;
-
-  /* Frosted backgrounds */
-  --aegis-bg-frosted:     rgba(237,238,242,0.95);
-  --aegis-bg-frosted-60:  rgba(237,238,242,0.70);
-
-  /* Code blocks */
-  --aegis-code-bg:      #e4e6ec;
-  --aegis-code-header:  #d8dae2;
-
-  /* Data palette — saturated for readability on gray */
-  --aegis-data-1:  #058064;
-  --aegis-data-2:  #2852B9;
-  --aegis-data-3:  #AA7300;
-  --aegis-data-4:  #823CC8;
-  --aegis-data-5:  #C81E1E;
-  --aegis-data-6:  #0C9150;
-  --aegis-data-7:  #B45028;
-  --aegis-data-8:  #1978AA;
-  --aegis-data-9:  #8C3278;
-  --aegis-data-10: #464655;
-}
 
 @layer base {
   /* ── Scrollbar ── */
@@ -196,6 +16,19 @@
 
   /* ── Selection ── */
   ::selection { background: var(--aegis-selection); color: var(--aegis-selection-text); }
+
+  /* ── Select / Option — native dropdown styling ── */
+  select {
+    background-color: var(--aegis-menu-bg);
+    color: var(--aegis-menu-text);
+  }
+  option {
+    background-color: var(--aegis-menu-bg);
+    color: var(--aegis-menu-text);
+  }
+  option:checked {
+    background-color: var(--aegis-menu-active);
+  }
 
   /* ── Focus ── */
   :focus:not(:focus-visible) { outline: none; }
@@ -243,17 +76,6 @@
     background: var(--aegis-chrome);
   }
 
-  /* ── Light mode glass override (solid white + shadow) ── */
-  :root.light .glass {
-    background: rgba(255,255,255,0.75);
-    border: 1px solid rgba(0,0,0,0.06);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-  }
-  :root.light .glass-hover:hover {
-    background: rgba(255,255,255,0.9);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-  }
-
   /* ── Title Bar ── */
   .drag-region { -webkit-app-region: drag; app-region: drag; }
   .no-drag { -webkit-app-region: no-drag; app-region: no-drag; }
@@ -264,7 +86,7 @@
     content: '';
     position: absolute; inset: -1px;
     border-radius: inherit;
-    background: linear-gradient(135deg, rgba(78, 201, 176, 0.2), rgba(108, 159, 255, 0.1));
+    background: linear-gradient(135deg, rgb(var(--color-teal-400) / 0.2), rgb(var(--color-blue-400) / 0.1));
     z-index: -1; opacity: 0;
     transition: opacity 0.3s;
   }
@@ -273,31 +95,31 @@
   /* ── Divider ── */
   .divider-gradient {
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(78, 201, 176, 0.2), transparent);
+    background: linear-gradient(90deg, transparent, rgb(var(--color-teal-400) / 0.2), transparent);
   }
 
   /* ── Status Dot Glow (active green dots glow) ── */
   .status-glow-green {
-    box-shadow: 0 0 8px rgba(63, 185, 80, 0.5);
+    box-shadow: 0 0 8px rgb(var(--color-green-400) / 0.5);
   }
   .status-glow-teal {
-    box-shadow: 0 0 8px rgba(78, 201, 176, 0.5);
+    box-shadow: 0 0 8px rgb(var(--color-teal-400) / 0.5);
   }
   .status-glow-red {
-    box-shadow: 0 0 8px rgba(244, 112, 103, 0.5);
+    box-shadow: 0 0 8px rgb(var(--color-red-400) / 0.5);
   }
 
   /* ── Background Ambient Glow (from conceptual JSX) ── */
   .ambient-glow-teal {
     position: fixed; top: -200px; right: -200px;
     width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(78,201,176,0.04) 0%, transparent 70%);
+    background: radial-gradient(circle, rgb(var(--color-teal-400) / 0.04) 0%, transparent 70%);
     pointer-events: none; z-index: 0;
   }
   .ambient-glow-purple {
     position: fixed; bottom: -300px; left: -100px;
     width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(213,0,249,0.03) 0%, transparent 70%);
+    background: radial-gradient(circle, rgb(var(--color-blue-400) / 0.03) 0%, transparent 70%);
     pointer-events: none; z-index: 0;
   }
 
@@ -366,7 +188,7 @@
 
   /* Text gradient */
   .text-gradient {
-    background: linear-gradient(135deg, #4EC9B0 0%, #6C9FFF 100%);
+    background: linear-gradient(135deg, rgb(var(--color-teal-400)) 0%, rgb(var(--color-blue-400)) 100%);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
 }
@@ -389,8 +211,8 @@
 
 /* Glow pulse — for connected indicators */
 @keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 6px rgba(63, 185, 80, 0.3); }
-  50% { box-shadow: 0 0 14px rgba(63, 185, 80, 0.6); }
+  0%, 100% { box-shadow: 0 0 6px rgb(var(--color-green-400) / 0.3); }
+  50% { box-shadow: 0 0 14px rgb(var(--color-green-400) / 0.6); }
 }
 
 /* FAB rotate — chat widget toggle */
@@ -423,14 +245,14 @@
 
 /* Icon glow halo — for active nav/stat icons */
 .icon-halo-teal {
-  filter: drop-shadow(0 0 4px rgba(78, 201, 176, 0.4));
+  filter: drop-shadow(0 0 4px rgb(var(--color-teal-400) / 0.4));
   animation: iconGlow 2.5s ease-in-out infinite;
 }
 .icon-halo-green {
-  filter: drop-shadow(0 0 4px rgba(63, 185, 80, 0.4));
+  filter: drop-shadow(0 0 4px rgb(var(--color-green-400) / 0.4));
 }
 .icon-halo-accent {
-  filter: drop-shadow(0 0 4px rgba(108, 159, 255, 0.4));
+  filter: drop-shadow(0 0 4px rgb(var(--color-blue-400) / 0.4));
 }
 
 /* Active dot beacon — radiating ring pulse */
@@ -461,9 +283,9 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(78, 201, 176, 0.0) 20%,
-    rgba(78, 201, 176, 0.15) 50%,
-    rgba(78, 201, 176, 0.0) 80%,
+    rgb(var(--color-teal-400) / 0.0) 20%,
+    rgb(var(--color-teal-400) / 0.15) 50%,
+    rgb(var(--color-teal-400) / 0.0) 80%,
     transparent 100%
   );
   background-size: 200% 100%;
@@ -472,7 +294,7 @@
 
 /* Toggle knob glow (conceptual: active toggles glow) */
 .toggle-glow-teal {
-  box-shadow: 0 0 8px rgba(78, 201, 176, 0.5), 0 0 16px rgba(78, 201, 176, 0.2);
+  box-shadow: 0 0 8px rgb(var(--color-teal-400) / 0.5), 0 0 16px rgb(var(--color-teal-400) / 0.2);
 }
 .toggle-glow-off {
   box-shadow: none;
@@ -480,44 +302,44 @@
 
 /* FAB beacon — floating action button pulsing glow */
 .fab-glow {
-  box-shadow: 0 8px 30px rgba(78, 201, 176, 0.25);
+  box-shadow: 0 8px 30px rgb(var(--color-teal-400) / 0.25);
   animation: fabBeacon 2.5s ease-in-out infinite;
 }
 @keyframes fabBeacon {
-  0%, 100% { box-shadow: 0 8px 30px rgba(78, 201, 176, 0.2); }
-  50% { box-shadow: 0 8px 40px rgba(78, 201, 176, 0.4), 0 0 20px rgba(78, 201, 176, 0.15); }
+  0%, 100% { box-shadow: 0 8px 30px rgb(var(--color-teal-400) / 0.2); }
+  50% { box-shadow: 0 8px 40px rgb(var(--color-teal-400) / 0.4), 0 0 20px rgb(var(--color-teal-400) / 0.15); }
 }
 
 /* Agent avatar glow ring — active agents have pulsing border */
 .agent-glow-ring {
-  box-shadow: 0 0 0 2px rgba(78, 201, 176, 0.15), 0 0 12px rgba(78, 201, 176, 0.1);
+  box-shadow: 0 0 0 2px rgb(var(--color-teal-400) / 0.15), 0 0 12px rgb(var(--color-teal-400) / 0.1);
   animation: agentGlow 3s ease-in-out infinite;
 }
 @keyframes agentGlow {
-  0%, 100% { box-shadow: 0 0 0 2px rgba(78, 201, 176, 0.1), 0 0 8px rgba(78, 201, 176, 0.05); }
-  50% { box-shadow: 0 0 0 3px rgba(78, 201, 176, 0.2), 0 0 16px rgba(78, 201, 176, 0.15); }
+  0%, 100% { box-shadow: 0 0 0 2px rgb(var(--color-teal-400) / 0.1), 0 0 8px rgb(var(--color-teal-400) / 0.05); }
+  50% { box-shadow: 0 0 0 3px rgb(var(--color-teal-400) / 0.2), 0 0 16px rgb(var(--color-teal-400) / 0.15); }
 }
 
 /* Progress bar glow shadow */
 .progress-glow-teal {
-  box-shadow: 0 0 8px rgba(78, 201, 176, 0.3);
+  box-shadow: 0 0 8px rgb(var(--color-teal-400) / 0.3);
 }
 .progress-glow-warning {
-  box-shadow: 0 0 8px rgba(232, 184, 78, 0.3);
+  box-shadow: 0 0 8px rgb(var(--color-amber-400) / 0.3);
 }
 .progress-glow-danger {
-  box-shadow: 0 0 8px rgba(244, 112, 103, 0.3);
+  box-shadow: 0 0 8px rgb(var(--color-red-400) / 0.3);
 }
 
 /* Stat number glow text */
 .text-glow-teal {
-  text-shadow: 0 0 12px rgba(78, 201, 176, 0.3);
+  text-shadow: 0 0 12px rgb(var(--color-teal-400) / 0.3);
 }
 .text-glow-green {
-  text-shadow: 0 0 12px rgba(63, 185, 80, 0.3);
+  text-shadow: 0 0 12px rgb(var(--color-green-400) / 0.3);
 }
 .text-glow-accent {
-  text-shadow: 0 0 12px rgba(108, 159, 255, 0.3);
+  text-shadow: 0 0 12px rgb(var(--color-blue-400) / 0.3);
 }
 
 /* Connected status enhanced glow */
@@ -526,19 +348,19 @@
 }
 @keyframes connectedPulse {
   0%, 100% {
-    box-shadow: 0 0 4px rgba(63, 185, 80, 0.4);
+    box-shadow: 0 0 4px rgb(var(--color-green-400) / 0.4);
     opacity: 1;
   }
   50% {
-    box-shadow: 0 0 10px rgba(63, 185, 80, 0.7), 0 0 20px rgba(63, 185, 80, 0.2);
+    box-shadow: 0 0 10px rgb(var(--color-green-400) / 0.7), 0 0 20px rgb(var(--color-green-400) / 0.2);
     opacity: 0.7;
   }
 }
 
 /* Nav active icon background glow */
 .nav-icon-active-glow {
-  background: rgba(78, 201, 176, 0.08);
-  box-shadow: inset 0 0 12px rgba(78, 201, 176, 0.06), 0 0 8px rgba(78, 201, 176, 0.08);
+  background: rgb(var(--color-teal-400) / 0.08);
+  box-shadow: inset 0 0 12px rgb(var(--color-teal-400) / 0.06), 0 0 8px rgb(var(--color-teal-400) / 0.08);
 }
 
 /* Sparkline endpoint pulse */

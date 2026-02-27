@@ -192,14 +192,14 @@ export function ScreenshotPicker({ open, onClose, onCapture }: ScreenshotPickerP
                       />
                       {capturing === w.id && (
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                          <Loader2 size={24} className="animate-spin text-white" />
+                          <Loader2 size={24} className="animate-spin text-aegis-text" />
                         </div>
                       )}
                       {/* Hover overlay */}
                       <div className="absolute inset-0 bg-aegis-primary/0 group-hover:bg-aegis-primary/10 transition-colors flex items-center justify-center">
                         <Camera
                           size={28}
-                          className="text-white opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg"
+                          className="text-aegis-text opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg"
                         />
                       </div>
                     </div>

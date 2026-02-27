@@ -199,7 +199,7 @@ function MemoryModal({ memory, onSave, onClose }: {
             content, category, importance,
             tags: tagsStr.split(',').map((t) => t.trim()).filter(Boolean),
           })} disabled={!content.trim()}
-            className="px-4 py-2 rounded-xl bg-aegis-primary text-white text-[13px] font-medium hover:bg-aegis-primary/80 disabled:opacity-40">
+            className="px-4 py-2 rounded-xl bg-aegis-primary text-aegis-btn-primary-text text-[13px] font-medium hover:bg-aegis-primary/80 disabled:opacity-40">
             Save
           </button>
         </div>
@@ -257,7 +257,8 @@ function MemoryDisabledView() {
 // Graph View — Neural network visualization
 // ═══════════════════════════════════════════════════════════
 
-function GraphView({ memories, onSelect }: { memories: Memory[]; onSelect: (m: Memory) => void }) {
+function GraphView({ memories, onSelect }: { memories: Memory[]; onSelect: (m: Memory) => void; }) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ w: 800, h: 500 });
 
@@ -290,7 +291,7 @@ function GraphView({ memories, onSelect }: { memories: Memory[]; onSelect: (m: M
 
   return (
     <div ref={containerRef} className="flex-1 relative overflow-hidden" style={{
-      background: 'radial-gradient(circle at 30% 40%, rgba(108,159,255,0.03) 0%, transparent 50%), radial-gradient(circle at 70% 60%, rgba(179,136,255,0.03) 0%, transparent 50%)',
+      background: 'radial-gradient(circle at 30% 40%, rgb(var(--aegis-accent) / 0.03) 0%, transparent 50%), radial-gradient(circle at 70% 60%, rgba(179,136,255,0.03) 0%, transparent 50%)',
     }}>
       {/* SVG connections + animated pulses */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
@@ -403,6 +404,7 @@ function GraphView({ memories, onSelect }: { memories: Memory[]; onSelect: (m: M
 // ═══════════════════════════════════════════════════════════
 
 function TimelineView({ memories, onSelect }: { memories: Memory[]; onSelect: (m: Memory) => void }) {
+  const { t } = useTranslation();
   const groups = useMemo(() => groupByDate(memories), [memories]);
 
   if (memories.length === 0) {
@@ -476,6 +478,7 @@ function TimelineView({ memories, onSelect }: { memories: Memory[]; onSelect: (m
 // ═══════════════════════════════════════════════════════════
 
 function CardsView({ memories, onSelect }: { memories: Memory[]; onSelect: (m: Memory) => void }) {
+  const { t } = useTranslation();
   if (memories.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center text-aegis-text-dim text-[13px]">
@@ -558,6 +561,7 @@ function DetailPanel({ memory, onClose, onEdit, onDelete, apiUrl, isLocal }: {
   apiUrl: string;
   isLocal: boolean;
 }) {
+  const { t } = useTranslation();
   const [related, setRelated] = useState<Memory[]>([]);
   const [confirmDel, setConfirmDel] = useState(false);
 
@@ -908,7 +912,7 @@ export function MemoryExplorerPage() {
             {/* Add button */}
             {!isLocal && (
               <button onClick={() => { setEditingMemory(null); setModalOpen(true); }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-aegis-primary text-white text-[11px] font-semibold hover:bg-aegis-primary/80 transition-colors">
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-aegis-primary text-aegis-btn-primary-text text-[11px] font-semibold hover:bg-aegis-primary/80 transition-colors">
                 <Plus size={14} /> Add
               </button>
             )}

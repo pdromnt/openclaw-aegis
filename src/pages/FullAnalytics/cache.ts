@@ -8,7 +8,6 @@
 
 export const CACHE_KEY_FULL_COST  = 'aegis:fullAnalytics:costData';
 export const CACHE_KEY_FULL_USAGE = 'aegis:fullAnalytics:usageData';
-export const CACHE_TTL_MS = 5 * 60_000; // 5 minutes
 
 /** Read a cached entry. Returns null if the key is missing or JSON is invalid. */
 export function cacheGet<T>(key: string): { data: T; ts: number } | null {
@@ -30,12 +29,3 @@ export function cacheSet(key: string, data: unknown): void {
   }
 }
 
-/**
- * Check whether a cached entry is still within the TTL window.
- * Returns false if the key is missing or the data is stale.
- */
-export function cacheIsFresh(key: string): boolean {
-  const entry = cacheGet<unknown>(key);
-  if (!entry) return false;
-  return Date.now() - entry.ts < CACHE_TTL_MS;
-}

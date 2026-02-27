@@ -45,7 +45,7 @@ const PROGRESS_PRESETS = [25, 50, 75, 100];
 // ── Agent emoji mapping ──────────────────────────────────
 
 const AGENT_EMOJIS: Record<string, string> = {
-  aegis: '🛡️', main: '🛡️',
+  aegis: 'Æ', main: 'Æ',
   hilali: '⚽', pipeline: '📦', researcher: '🔍',
   consultant: '💡', coder: '💻',
 };
@@ -80,7 +80,7 @@ function StatsRow({ tasks }: { tasks: Task[] }) {
   const done = tasks.filter((t) => t.status === 'done').length;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 
-  const cards = [
+  const cards: { emoji: string; value: number; label: string; color: 'primary' | 'accent' | 'danger' | 'warning' | 'success'; extra?: string }[] = [
     { emoji: '📋', value: total,  label: t('workshopExtra.totalTasks'),  color: 'accent'  },
     { emoji: '⏳', value: queue,  label: t('workshopExtra.inQueue'),     color: 'warning' },
     { emoji: '⚡', value: active, label: t('workshopExtra.inProgress'),  color: 'primary' },
@@ -429,7 +429,7 @@ function AddTaskModal({ open, onClose, onAdd }: {
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+          style={{ background: 'var(--aegis-bg-frosted-60)', backdropFilter: 'blur(4px)' }}
           onClick={onClose}
         >
           <motion.div
@@ -711,11 +711,6 @@ export function WorkshopPage() {
             </div>
           );
         })}
-      </div>
-
-      {/* ═══ Activity Timeline ═══ */}
-      <div className="shrink-0">
-        <ActivityTimeline activities={activities} />
       </div>
 
       {/* ═══ Add Task Modal ═══ */}

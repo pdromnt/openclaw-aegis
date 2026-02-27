@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
-  darkMode: 'class',
+  // darkMode removed — single theme system
   theme: {
     extend: {
       colors: {
@@ -60,6 +60,17 @@ module.exports = {
           glass:           'var(--aegis-glass)',
           'glass-border':  'var(--aegis-glass-border)',
           'glass-hover':   'var(--aegis-glass-hover)',
+
+          // ── Menus & Dropdowns ──
+          'menu-bg':         'var(--aegis-menu-bg)',
+          'menu-hover':      'var(--aegis-menu-hover)',
+          'menu-active':     'var(--aegis-menu-active)',
+          'menu-border':     'var(--aegis-menu-border)',
+          'menu-text':       'var(--aegis-menu-text)',
+          'menu-text-muted': 'var(--aegis-menu-text-muted)',
+
+          // ── Button text ──
+          'btn-primary-text':'var(--aegis-btn-primary-text)',
         },
       },
       fontFamily: {

@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
   LayoutDashboard, MessageCircle, Kanban, DollarSign,
-  Clock, Bot, Settings, Brain, Activity, User, Puzzle,
+  Clock, Bot, Settings, Settings2, Brain, Puzzle,
   Terminal,
 } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -32,7 +32,7 @@ const navItems: NavItem[] = [
   { to: '/skills', icon: Puzzle, labelKey: 'nav.skills' },
   { to: '/terminal', icon: Terminal, labelKey: 'nav.terminal' },
   { to: '/memory', icon: Brain, labelKey: 'nav.memory', badge: '🧪' },
-  { to: '/settings', icon: Settings, labelKey: 'nav.settings' },
+  { to: '/config', icon: Settings2, labelKey: 'nav.config' },
 ];
 
 export function NavSidebar() {
@@ -80,7 +80,7 @@ export function NavSidebar() {
                     'absolute top-1/2 -translate-y-1/2',
                     'w-[3px] h-[20px] rounded-full',
                     'bg-aegis-primary',
-                    'shadow-[0_0_12px_rgba(78,201,176,0.4)]',
+                    'shadow-[0_0_12px_rgb(var(--aegis-primary)/0.4)]',
                     isRTL ? '-right-[12px]' : '-left-[12px]'
                   )}
                   transition={{
@@ -113,17 +113,44 @@ export function NavSidebar() {
         })}
       </nav>
 
-      {/* Bottom: User Avatar */}
+      {/* Bottom: Settings */}
       <div className="pt-3">
-        <div className={clsx(
-          'w-[36px] h-[36px] rounded-xl',
-          'bg-gradient-to-br from-aegis-primary/20 to-[rgba(213,0,249,0.15)]',
-          'border border-[rgb(var(--aegis-overlay)/0.08)]',
-          'flex items-center justify-center',
-          'text-aegis-primary'
-        )}>
-          <User size={16} />
-        </div>
+        <NavLink
+          to="/settings"
+          aria-current={location.pathname === '/settings' ? 'page' : undefined}
+          className={clsx(
+            'relative w-[44px] h-[44px] rounded-xl',
+            'flex items-center justify-center',
+            'transition-all duration-300 group',
+            location.pathname === '/settings'
+              ? 'nav-icon-active-glow text-aegis-primary'
+              : 'text-aegis-text-muted hover:text-aegis-text-secondary hover:bg-[rgb(var(--aegis-overlay)/0.04)]'
+          )}
+        >
+          {location.pathname === '/settings' && (
+            <motion.div
+              layoutId="nav-active-bar"
+              className={clsx(
+                'absolute top-1/2 -translate-y-1/2',
+                'w-[3px] h-[20px] rounded-full',
+                'bg-aegis-primary',
+                'shadow-[0_0_12px_rgb(var(--aegis-primary)/0.4)]',
+                isRTL ? '-right-[12px]' : '-left-[12px]'
+              )}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            />
+          )}
+          <Settings size={18} className={clsx(location.pathname === '/settings' && 'icon-halo-teal')} />
+          <div className={clsx(
+            'absolute top-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-lg',
+            'bg-aegis-elevated-solid border border-aegis-border shadow-lg',
+            'text-aegis-text text-[11px] font-medium whitespace-nowrap',
+            'opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50',
+            isRTL ? 'right-full mr-3' : 'left-full ml-3'
+          )}>
+            {t('nav.settings')}
+          </div>
+        </NavLink>
       </div>
     </div>
   );

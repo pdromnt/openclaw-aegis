@@ -16,7 +16,7 @@ import { useChatStore } from '@/stores/chatStore';
 import { useGatewayDataStore, refreshAll, refreshGroup } from '@/stores/gatewayDataStore';
 import { gateway } from '@/services/gateway';
 import clsx from 'clsx';
-import { themeHex, themeAlpha, overlay, dataColor } from '@/utils/theme-colors';
+import { themeHex, themeAlpha, dataColor } from '@/utils/theme-colors';
 
 // ═══════════════════════════════════════════════════════════
 // Types
@@ -40,6 +40,7 @@ interface AgentInfo {
   configured: boolean;
   model?: string;
   workspace?: string;
+  [k: string]: unknown;
 }
 
 type ViewMode = 'tree' | 'grid' | 'activity';
@@ -224,7 +225,7 @@ function TreeView({ mainSession, registeredAgents, workers, agents, onAgentClick
             <div className="flex items-center gap-3">
               <div className="w-[52px] h-[52px] rounded-[14px] flex items-center justify-center text-[24px] border relative"
                 style={{ background: `linear-gradient(135deg, ${mainColor()}20, ${mainColor()}05)`, borderColor: `${mainColor()}30` }}>
-                🛡️
+                Æ
                 <div className="absolute -bottom-[2px] -end-[2px]">
                   <StatusDot status={mainSession?.running ? 'active' : 'idle'} size={12} glow beacon={mainSession?.running} />
                 </div>
@@ -450,7 +451,7 @@ function ActivityFeed({ sessions, agents }: { sessions: SessionInfo[]; agents: A
       .slice(0, 20)
       .map(s => {
         const agentName = agents.find(a => a.id === s.agentId)?.name || s.agentId;
-        const cfg = s.agentId === 'main' ? { icon: '🛡️', color: mainColor() } : getTreeNodeConfig(s.agentId);
+        const cfg = s.agentId === 'main' ? { icon: 'Æ', color: mainColor() } : getTreeNodeConfig(s.agentId);
         const workerMeta = getWorkerMeta(s.label, s.type);
 
         let text = '';
@@ -757,7 +758,7 @@ export function AgentHubPage() {
                     <div className="flex items-center gap-5">
                       <div className="w-[64px] h-[64px] rounded-2xl flex items-center justify-center shrink-0 text-[26px] font-extrabold border-2 relative"
                         style={{ background: `linear-gradient(135deg, ${mainColor()}25, ${mainColor()}08)`, borderColor: `${mainColor()}35`, color: mainColor() }}>
-                        🛡️
+                        Æ
                         <div className="absolute -bottom-[3px] -right-[3px]"><StatusDot status="active" size={14} glow beacon={mainSession.running} /></div>
                       </div>
                       <div className="flex-1 min-w-0">
@@ -772,7 +773,7 @@ export function AgentHubPage() {
                           <div className="text-[10px] text-aegis-text-dim">/ {formatTokens(mainSession.contextTokens)} tokens</div>
                         </div>
                       </div>
-                      <div className="px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shrink-0 bg-[rgba(78,201,176,0.1)] text-aegis-primary border-[rgba(78,201,176,0.25)]">
+                      <div className="px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shrink-0 bg-aegis-primary/10 text-aegis-primary border-aegis-primary/25">
                         {mainSession.running ? 'ACTIVE' : 'ONLINE'}
                       </div>
                     </div>
@@ -782,7 +783,7 @@ export function AgentHubPage() {
                     <div className="flex items-center gap-5">
                       <div className="w-[64px] h-[64px] rounded-2xl flex items-center justify-center shrink-0 text-[26px] font-extrabold border-2 relative"
                         style={{ background: `linear-gradient(135deg, ${mainColor()}10, ${mainColor()}04)`, borderColor: `${mainColor()}15`, color: `${mainColor()}50` }}>
-                        🛡️<div className="absolute -bottom-[3px] -right-[3px]"><StatusDot status="sleeping" size={14} /></div>
+                        Æ<div className="absolute -bottom-[3px] -right-[3px]"><StatusDot status="sleeping" size={14} /></div>
                       </div>
                       <div className="flex-1"><div className="text-[18px] font-extrabold text-aegis-text-muted">{enrichedAgents.find(a => a.id === 'main')?.name || 'Main Agent'}</div><div className="text-[11px] text-aegis-text-dim mt-0.5">{t('agents.notConnected', 'Not connected')}</div></div>
                       <div className="px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border bg-[rgb(var(--aegis-overlay)/0.04)] text-aegis-text-muted border-[rgb(var(--aegis-overlay)/0.08)]">OFFLINE</div>

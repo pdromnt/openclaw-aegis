@@ -376,13 +376,13 @@ export function SkillsPage() {
                   value={sortMode}
                   onChange={e => setSortMode(e.target.value as SortMode)}
                   className="px-3 py-1.5 rounded-lg text-[11.5px] font-medium
-                    bg-[rgb(var(--aegis-overlay)/0.02)] border border-[rgb(var(--aegis-overlay)/0.06)]
+                    bg-aegis-menu-bg border border-aegis-menu-border
                     text-aegis-text-secondary outline-none cursor-pointer
                     focus:border-aegis-primary/30"
                 >
-                  <option value="downloads">⬇️ {t('skills.mostDownloaded')}</option>
-                  <option value="stars">⭐ {t('skills.mostStars')}</option>
-                  <option value="trending">🔥 {t('skills.trending')}</option>
+                  <option className="bg-aegis-bg text-aegis-text" value="downloads">⬇️ {t('skills.mostDownloaded')}</option>
+                  <option className="bg-aegis-bg text-aegis-text" value="stars">⭐ {t('skills.mostStars')}</option>
+                  <option className="bg-aegis-bg text-aegis-text" value="trending">🔥 {t('skills.trending')}</option>
                 </select>
 
                 <div className="w-px h-5 bg-[rgb(var(--aegis-overlay)/0.06)] shrink-0" />

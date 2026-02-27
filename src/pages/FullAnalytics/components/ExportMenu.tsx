@@ -38,11 +38,9 @@ export function ExportMenu({ onExportCSV, onCopyText }: ExportMenuProps) {
           {/* Backdrop to close menu on outside click */}
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div
-            className="absolute end-0 top-full mt-1 z-50 w-44 rounded-xl border border-[rgb(var(--aegis-overlay)/0.1)] overflow-hidden"
+            className="absolute end-0 top-full mt-1 z-50 w-44 rounded-xl border border-aegis-menu-border overflow-hidden bg-aegis-menu-bg"
             style={{
-              background:       'rgba(13,17,23,0.97)',
-              backdropFilter:   'blur(20px)',
-              boxShadow:        '0 8px 32px rgb(var(--aegis-overlay) / 0.15)',
+              boxShadow: 'var(--aegis-menu-shadow)',
             }}
           >
             <button

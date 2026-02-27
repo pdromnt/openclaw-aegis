@@ -165,7 +165,7 @@ export function ChartsSection({ chartData, donutData, totalCost }: ChartsSection
                       return (
                         <div
                           className="border border-[rgb(var(--aegis-overlay)/0.1)] rounded-lg px-3 py-2 text-[11px]"
-                          style={{ background: 'rgba(10,14,23,0.95)' }}
+                          style={{ background: 'var(--aegis-bg-frosted)' }}
                         >
                           <div className="font-bold" style={{ color: d.color }}>{d.name}</div>
                           <div className="text-aegis-text-muted">

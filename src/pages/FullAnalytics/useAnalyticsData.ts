@@ -161,14 +161,14 @@ export function useAnalyticsData(): AnalyticsData {
         ]);
 
         if (costResult.status === 'fulfilled' && costResult.value) {
-          setCostData(costResult.value);
+          setCostData(costResult.value as unknown as CostSummary);
           cacheSet(CACHE_KEY_FULL_COST, costResult.value);
         } else if (costResult.status === 'rejected') {
           console.error('[Analytics] Cost fetch failed:', costResult.reason);
         }
 
         if (usageResult.status === 'fulfilled' && usageResult.value) {
-          setUsageData(usageResult.value);
+          setUsageData(usageResult.value as unknown as SessionsUsageResponse);
           cacheSet(CACHE_KEY_FULL_USAGE, usageResult.value);
         } else if (usageResult.status === 'rejected') {
           console.error('[Analytics] Usage fetch failed:', usageResult.reason);

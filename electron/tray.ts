@@ -1,6 +1,7 @@
 import { Tray, Menu, nativeImage, BrowserWindow, App, shell } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
+import { t } from './i18n';
 
 export function createTray(mainWindow: BrowserWindow, app: App): Tray {
   const iconPath = path.join(__dirname, '..', 'assets', 'icon.ico');
@@ -16,7 +17,7 @@ export function createTray(mainWindow: BrowserWindow, app: App): Tray {
 
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: '🛡️ فتح AEGIS',
+      label: t('tray.open'),
       click: () => {
         mainWindow.show();
         mainWindow.focus();
@@ -24,7 +25,7 @@ export function createTray(mainWindow: BrowserWindow, app: App): Tray {
     },
     { type: 'separator' },
     {
-      label: '❌ إغلاق',
+      label: t('tray.close'),
       click: () => {
         (app as any).isQuitting = true;
         app.quit();

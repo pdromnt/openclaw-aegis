@@ -26,6 +26,9 @@ interface CronJob {
   lastRun: string | null;
   sessionTarget: string;
   payload: any;
+  // Gateway 2026.2.25+: stagger and exact timing flags
+  stagger?: string;   // e.g. "2m", "5m" — delays run by random duration up to this value
+  exact?: boolean;    // if true, disables auto-spread for top-of-hour jobs
   state?: {
     nextRunAtMs?: number;
     lastRunAtMs?: number;
@@ -363,7 +366,7 @@ function ClockFace({ jobs, colorMap, selectedId, onSelect }: {
 // ═══════════════════════════════════════════════════════════
 
 export function CronMonitorPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { connected } = useChatStore();
   // lang removed — templates now use i18n keys directly
 
@@ -681,6 +684,11 @@ export function CronMonitorPage() {
                           </span>
                         )}
                         {isPaused && <span className="text-aegis-warning/50">{t('cronDetail.paused').toLowerCase()}</span>}
+                        {(job.exact || job.schedule?.exact) && (
+                          <span className="text-[9px] font-bold text-aegis-warning/50 bg-aegis-warning/[0.08] px-1.5 py-0.5 rounded shrink-0">
+                            ⚡ {t('cron.exactTiming')}
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -773,7 +781,36 @@ export function CronMonitorPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-lg font-extrabold truncate">{selectedJob.name || selectedJob.id}</div>
-                    <div className="text-[11px] text-aegis-text-muted">{formatSchedule(selectedJob.schedule)}</div>
+                    <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                      <span className="text-[11px] text-aegis-text-muted">{formatSchedule(selectedJob.schedule)}</span>
+                      {/* Stagger badge — Gateway 2026.2.25+ */}
+                      {(selectedJob.stagger || selectedJob.schedule?.stagger) && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded
+                          bg-aegis-accent/10 border border-aegis-accent/20 text-aegis-accent/70 shrink-0">
+                          ⏱️ {t('cron.stagger')}: {selectedJob.stagger || selectedJob.schedule?.stagger}
+                        </span>
+                      )}
+                      {/* Exact badge — Gateway 2026.2.25+ */}
+                      {(selectedJob.exact || selectedJob.schedule?.exact) && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded
+                          bg-aegis-warning/10 border border-aegis-warning/20 text-aegis-warning/70 shrink-0">
+                          ⚡ {t('cron.exactTiming')}
+                        </span>
+                      )}
+                      {/* Auto-spread note — only for top-of-hour cron jobs without --exact */}
+                      {selectedJob.schedule?.kind === 'cron' &&
+                        /^0 /.test(selectedJob.schedule?.expr || '') &&
+                        !selectedJob.exact && !selectedJob.schedule?.exact && (
+                        <span
+                          className="text-[9px] px-1.5 py-0.5 rounded cursor-help
+                            bg-[rgb(var(--aegis-overlay)/0.04)] border border-[rgb(var(--aegis-overlay)/0.06)]
+                            text-aegis-text-dim shrink-0"
+                          title={t('cron.autoSpreadTitle')}
+                        >
+                          🔄 {t('cron.autoSpread')}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 {/* Status badge */}

@@ -40,7 +40,7 @@ const TOOL_META: Record<string, { icon: string; label: string; color: string }> 
   // Misc
   image:         { icon: '🖼️', label: 'Image',         color: 'var(--aegis-accent)' },
   tts:           { icon: '🔊', label: 'TTS',           color: 'var(--aegis-accent)' },
-  gateway:       { icon: '🛡️', label: 'Gateway',       color: 'var(--aegis-primary)' },
+  gateway:       { icon: 'Æ', label: 'Gateway',       color: 'var(--aegis-primary)' },
   message:       { icon: '💬', label: 'Message',       color: 'var(--aegis-accent)' },
 };
 

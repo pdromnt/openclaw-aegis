@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { gateway } from '@/services/gateway';
 import { useGatewayDataStore } from '@/stores/gatewayDataStore';
-import { themeHex, themeAlpha, dataColor } from '@/utils/theme-colors';
+import { themeHex, themeAlpha } from '@/utils/theme-colors';
 import clsx from 'clsx';
 
 // ═══════════════════════════════════════════════════════════
@@ -83,49 +83,6 @@ interface ConfigGetResponse {
     };
     [k: string]: unknown;
   };
-}
-
-// ═══════════════════════════════════════════════════════════
-// CacheRetentionBadge — reusable badge for agent cards
-// ═══════════════════════════════════════════════════════════
-
-export function CacheRetentionBadge({
-  retention,
-  size = 'sm',
-}: {
-  retention?: string;
-  size?: 'sm' | 'md';
-}) {
-  const { t } = useTranslation();
-
-  const config: Record<string, { color: string; label: string; icon: string }> = {
-    long:  { color: dataColor(4), label: t('agentSettings.cacheLong', 'Long'),  icon: '🟢' },
-    short: { color: dataColor(8), label: t('agentSettings.cacheShort', 'Short'), icon: '🟡' },
-    none:  { color: 'rgb(var(--aegis-overlay) / 0.3)', label: t('agentSettings.cacheNone', 'None'), icon: '⚫' },
-  };
-
-  const key = (retention || 'none').toLowerCase();
-  const cfg = config[key] ?? config.none;
-  const isSm = size === 'sm';
-
-  return (
-    <span
-      className={clsx(
-        'inline-flex items-center gap-0.5 rounded font-bold uppercase tracking-wider border',
-        isSm ? 'px-1.5 py-[1px] text-[8px]' : 'px-2 py-0.5 text-[9px]'
-      )}
-      style={{
-        background: `${cfg.color}15`,
-        color: cfg.color,
-        borderColor: `${cfg.color}25`,
-      }}
-    >
-      <span className={isSm ? 'text-[7px]' : 'text-[8px]'}>{cfg.icon}</span>
-      {isSm
-        ? key === 'none' ? 'N' : key === 'short' ? 'S' : 'L'
-        : cfg.label}
-    </span>
-  );
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -344,10 +301,30 @@ export function AgentSettingsPanel({
     setSaving(true);
     try {
       if (selectedModel && !modelsMatch(selectedModel, origModel)) {
+        // 1. Persist to config file via config.set RPC
+        // First, find agent index in agents.list
+        try {
+          const listResult = await gateway.call('config.get', { path: 'agents.list' });
+          // config.get may return { value: [...] } or the array directly
+          const agentsList = Array.isArray(listResult) ? listResult : (listResult?.value ?? listResult?.result ?? []);
+
+          if (Array.isArray(agentsList)) {
+            const agentIndex = agentsList.findIndex((a: any) => a.id === agent.id);
+            if (agentIndex >= 0) {
+              await gateway.call('config.set', {
+                path: `agents.list[${agentIndex}].model`,
+                value: { primary: selectedModel }
+              });
+            }
+          }
+        } catch (err) {
+          console.warn('[AgentSettings] config.set failed, falling back to runtime-only:', err);
+        }
+
+        // 2. Also update runtime for immediate effect (no restart needed)
         await gateway.updateAgent(agent.id, { model: selectedModel });
 
-        // Update the store immediately so agent cards reflect the new model
-        // (agents.list API doesn't return model — so we patch locally)
+        // 3. Update local store so agent cards reflect the new model
         const store = useGatewayDataStore.getState();
         store.setAgents(
           store.agents.map(a =>
@@ -908,8 +885,8 @@ export function AgentSettingsPanel({
                   color: saved
                     ? successColor
                     : hasChanges
-                      ? '#fff'
-                      : themeHex('text-dim'),
+                      ? `rgb(var(--aegis-btn-primary-text))`
+                      : getComputedStyle(document.documentElement).getPropertyValue('--aegis-text-dim').trim() || '#5a6370',
                   border: `1px solid ${
                     saved
                       ? `${successColor}40`
