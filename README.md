@@ -18,11 +18,13 @@
 
 OpenClaw is powerful — but managing it through a terminal or basic webchat leaves a lot on the table. AEGIS Desktop gives it a proper home:
 
-- 💬 **Chat** — streaming responses, artifacts, images, voice, and multi-tab sessions
+- 💬 **Chat** — streaming responses, artifacts, images, voice, in-chat search, and multi-tab sessions
 - 🔘 **Smart Quick Replies** — clickable buttons when the AI needs your decision
+- 📅 **Calendar** — full calendar with Cron-powered reminders delivered to Telegram, Discord, or WhatsApp
 - 📊 **Analytics** — see exactly what you're spending and where, broken down by model and agent
 - 🤖 **Agent Hub** — manage all your agents from a single panel
 - ⏰ **Cron Monitor** — schedule and control jobs visually
+- ⚙️ **Config Manager** — edit your OpenClaw configuration with Smart Merge (preserves external edits)
 - 🔧 **Skills & Terminal** — browse the marketplace and run shell commands without leaving the app
 - 🌍 **Bilingual** — full Arabic (RTL) and English (LTR) support out of the box
 
@@ -58,15 +60,33 @@ If you run OpenClaw, AEGIS Desktop is the UI it deserves.
 - Streaming markdown with syntax highlighting and theme-aware code blocks
 - Multi-tab sessions with `Ctrl+Tab` switching
 - Smart Quick Reply Buttons — AI presents clickable `[[button:Label]]` chips
+- In-chat search (`Ctrl+F`) with result navigation
 - Image paste/drag/upload, file attachments, video playback, voice messages
 - Artifacts preview — interactive HTML, React, SVG, and Mermaid in a sandboxed window
+- Virtuoso virtualized list for smooth scrolling in long conversations
 - Message queue with auto-send on reconnect
+
+### 📅 Calendar
+- Month, Week, and Day views with hour-by-hour timeline
+- Add, edit, and delete events with color-coded categories (work, personal, health, social, other)
+- Recurring events — daily, weekly, and monthly
+- Cron-powered reminders — each event creates an OpenClaw Cron job for automatic notifications
+- Customizable reminder timing — 5, 10, 15, 30, or 60 minutes before the event
+- Delivery channel selection — receive reminders on Telegram, Discord, or WhatsApp
+- One-shot reminders auto-delete after firing
+- Offline-first — events persist in localStorage, sync with Gateway when connected
+- Full bilingual support (Arabic/English)
 
 ### 📊 Monitoring & Analytics
 - **Dashboard** — cost, tokens, sessions, and active agents at a glance
 - **Full Analytics** — date ranges, model/agent/token breakdowns, daily table, CSV export
 - **Agent Hub** — create/edit/delete agents, monitor sub-agents and workers
-- **Cron Monitor** — schedule, run, pause jobs with run history and templates
+- **Cron Monitor** — schedule, run, pause jobs with per-job activity log and templates
+
+### ⚙️ Configuration
+- **Config Manager** — visual editor for OpenClaw configuration (Providers, Agents, Channels, Advanced)
+- **Smart Merge** — on save, re-reads disk and merges only your changes, preserving CLI/external edits
+- **Secrets Manager** — secrets audit, providers view, and runtime reload
 
 ### 🔧 Tools
 - **Skills Marketplace** — browse and search 3,286+ skills from ClawHub
@@ -76,9 +96,11 @@ If you run OpenClaw, AEGIS Desktop is the UI it deserves.
 
 ### 🎨 Interface
 - Dark and light themes with full CSS variable system (`--aegis-*`)
+- 6 accent colors (teal, blue, purple, rose, amber, emerald)
 - Arabic (RTL) and English (LTR) with logical CSS properties
 - Command Palette (`Ctrl+K`), keyboard shortcuts, global hotkey (`Alt+Space`)
 - Model and reasoning level pickers in the title bar
+- Lazy-loaded pages with code splitting for fast startup
 - Glass morphism design with Framer Motion animations
 - Ed25519 device identity with challenge-response authentication
 
@@ -114,9 +136,11 @@ OpenClaw Gateway (local or remote)
   AEGIS Desktop
   ├── Chat       ← messages + streaming responses
   ├── Dashboard  ← sessions, cost, agent status
+  ├── Calendar   ← events + Cron reminders
   ├── Analytics  ← cost summary + token history
   ├── Agent Hub  ← registered agents + workers
   ├── Cron       ← scheduled jobs
+  ├── Config     ← visual config editor
   ├── Skills     ← ClawHub marketplace
   └── Terminal   ← shell via node-pty
 ```
@@ -164,6 +188,7 @@ npm run package:portable # Portable exe
 | `Ctrl+Tab` | Switch chat tabs |
 | `Ctrl+W` | Close tab |
 | `Ctrl+N` | New chat |
+| `Ctrl+F` | Search in chat |
 | `Ctrl+R` | Refresh |
 | `Alt+Space` | Show/hide window (global) |
 

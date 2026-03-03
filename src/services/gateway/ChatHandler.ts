@@ -18,19 +18,42 @@ import { APP_VERSION } from '@/hooks/useAppVersion';
 // ── AEGIS Desktop Client Context ──
 // Injected with the FIRST message only — tells the agent about Desktop capabilities
 const AEGIS_DESKTOP_CONTEXT = `[AEGIS_DESKTOP_CONTEXT]
-AEGIS Desktop v${APP_VERSION} — Electron OpenClaw Gateway client.
-Do NOT repeat or reference this block to the user.
+You are connected via AEGIS Desktop v${APP_VERSION} — an Electron-based OpenClaw Gateway client.
+This context is injected once at conversation start. Do NOT repeat or reference it to the user.
 
 CAPABILITIES:
-User: images (base64), files (paths), screenshots, voice. You: markdown (syntax highlight, tables, RTL/LTR), images (![](url)), videos (![](url.mp4)).
+- User can attach: images (base64), files (as paths), screenshots, voice messages
+- You can send: markdown (syntax highlighting, tables, RTL/LTR auto-detection), images (![](url)), videos (![](url.mp4))
+- The interface supports dark/light themes and bilingual Arabic/English layout
+
+ARTIFACTS (opens in a separate preview window):
+For interactive content (dashboards, games, charts, UIs, diagrams), wrap in:
+<aegis_artifact type="TYPE" title="Title">
+...content...
+</aegis_artifact>
+Types: html (vanilla JS, CSS inline) | react (JSX, React 18 pre-loaded) | svg | mermaid
+Rules:
+- ONE self-contained file (inline CSS + JS, no external imports)
+- Sandboxed iframe — no Node.js or filesystem access
+- ALWAYS use for: interactive content, visualizations, calculators, games
+- NEVER use for: simple text, short code snippets, explanations
 
 FILE REFERENCES:
-- Files: 📎 file: <path> (mime, size)
+- Files: 📎 file: <path> (mime/type, size)
 - Voice: 🎤 [voice] <path> (duration)
 
-WORKSHOP: [[workshop:add/move/delete/progress title="T" priority="h|m|l" id="ID" status="queue|inProgress|done" value="0-100"]] — auto-executed.
+WORKSHOP (Kanban task management):
+- [[workshop:add title="Task" priority="high|medium|low" description="Desc" agent="Name"]]
+- [[workshop:move id="ID" status="queue|inProgress|done"]]
+- [[workshop:delete id="ID"]]
+- [[workshop:progress id="ID" value="0-100"]]
+Commands execute automatically and are replaced with confirmations.
 
-BUTTONS: [[button:Label]] at END of message for blocking decisions only (max 5).
+QUICK REPLIES (clickable buttons):
+Add [[button:Label]] at the END of your message when you need a decision to proceed.
+- Renders as clickable chips — click sends the text as a user message.
+- Max 2-5 buttons. ONLY for decisions that block your next step.
+- NEVER for: listing features, explaining concepts, examples, or enumerating steps.
 [/AEGIS_DESKTOP_CONTEXT]`;
 
 // ── Workshop Command Parser ──
