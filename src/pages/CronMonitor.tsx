@@ -194,15 +194,7 @@ function formatDuration(ms?: number): string {
   return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`;
 }
 
-/** Cycle progress: how far through current interval (0–100) */
-function cycleProgress(job: CronJob): number {
-  const next = job.state?.nextRunAtMs || (job.nextRun ? new Date(job.nextRun).getTime() : 0);
-  const last = job.state?.lastRunAtMs || (job.lastRun ? new Date(job.lastRun).getTime() : 0);
-  if (!next || !last || next <= last) return 0;
-  const total = next - last;
-  const elapsed = Date.now() - last;
-  return Math.max(0, Math.min(100, Math.round((elapsed / total) * 100)));
-}
+
 
 /** Hour angle (0–360) for placing a cron job on the 24h clock */
 function scheduleAngle(schedule: any): number | null {
@@ -228,20 +220,10 @@ function ClockFace({ jobs, colorMap, selectedId, onSelect }: {
   onSelect: (id: string) => void;
 }) {
   const primaryHex = themeHex('primary');
-  const [nowAngle, setNowAngle] = useState(0);
-  const [timeStr, setTimeStr] = useState('');
-
-  useEffect(() => {
-    const update = () => {
-      const now = new Date();
-      const hours = now.getHours() + now.getMinutes() / 60;
-      setNowAngle((hours / 24) * 360);
-      setTimeStr(`${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
-    };
-    update();
-    const iv = setInterval(update, 30000);
-    return () => clearInterval(iv);
-  }, []);
+  // Compute on every render — parent re-renders every 15s via tick, no need for internal interval
+  const now = new Date();
+  const nowAngle = (now.getHours() + now.getMinutes() / 60) / 24 * 360;
+  const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
   const cx = 200, cy = 200, outerR = 170;
 
@@ -458,7 +440,7 @@ export function CronMonitorPage() {
     setLoadingRuns(true);
     try {
       const all: RunEntry[] = [];
-      const jobList = currentJobs.slice(0, 12);
+      const jobList = currentJobs;
       const BATCH_SIZE = 3;
 
       for (let i = 0; i < jobList.length; i += BATCH_SIZE) {
@@ -502,10 +484,10 @@ export function CronMonitorPage() {
     } catch { /* silent */ }
   }, [connected]);
 
-  // Load once on first mount only
+  // Load once on first mount, or when connected changes (e.g. open page while disconnected → reconnect)
   useEffect(() => {
-    if (jobs.length > 0 && !runsCacheLoaded.current) loadAllRuns();
-  }, [jobs.length]); // eslint-disable-line
+    if (jobs.length > 0 && connected && !runsCacheLoaded.current) loadAllRuns();
+  }, [jobs.length, connected, loadAllRuns]);
 
   // ── Load selected job runs (cache-first, then fetch) ──
   // Fix #3: stale request guard — rapid clicks don't cause race conditions
@@ -564,6 +546,12 @@ export function CronMonitorPage() {
     try {
       await gateway.call('cron.remove', { jobId });
       await refreshGroup('cron');
+      // Clean runsCache so deleted job doesn't appear in Activity log
+      delete runsCache.current[jobId];
+      const all: RunEntry[] = [];
+      Object.values(runsCache.current).forEach(arr => all.push(...arr));
+      all.sort((a, b) => new Date(a.ts || 0).getTime() - new Date(b.ts || 0).getTime());
+      setRecentRuns(all.slice(-30));
       // Clear selection if deleted job was selected
       if (selectedJobId === jobId) setSelectedJobId(null);
       setDeleteConfirm(null);
@@ -585,8 +573,9 @@ export function CronMonitorPage() {
     }
   };
 
-  // Auto-select first job — Fix #10: deps = [jobs.length] not [jobs]
-  useEffect(() => { if (jobs.length > 0 && !selectedJobId) setSelectedJobId(jobs[0].id); }, [jobs.length]); // eslint-disable-line
+  // Auto-select first job (also re-selects after deletion clears selectedJobId)
+  const firstJobId = jobs.length > 0 ? jobs[0].id : null;
+  useEffect(() => { if (firstJobId && !selectedJobId) setSelectedJobId(firstJobId); }, [firstJobId, selectedJobId]);
 
   // ═══ RENDER ═══
   // Activity log shows selected job's runs when a job is selected, otherwise all recent runs
@@ -660,7 +649,7 @@ export function CronMonitorPage() {
                 const isError = status === 'error';
                 const isPaused = status === 'paused';
                 const isSelected = selectedJobId === job.id;
-                // Fix #5: removed dead `progress` variable (cycleProgress result was never used)
+                // cycleProgress was dead code — removed
 
                 return (
                   // Fix #4: layout animation only — no initial/animate that re-fires on poll
