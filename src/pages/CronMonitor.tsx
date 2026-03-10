@@ -43,7 +43,7 @@ interface CronJob {
 }
 
 interface RunEntry {
-  ts: string;
+  ts: number | string;
   status: string;
   summary?: string;
   error?: string;
@@ -544,40 +544,58 @@ export function CronMonitorPage() {
     catch { /* silent */ } finally { setActionLoading(null); }
   };
 
+  // Ref to cancel polling when component unmounts or job changes
+  const runPollAbort = useRef<AbortController | null>(null);
+
   const runJob = async (jobId: string) => {
+    // Cancel any previous polling
+    runPollAbort.current?.abort();
+    const abort = new AbortController();
+    runPollAbort.current = abort;
+
     setActionLoading(`run-${jobId}`);
     setRunResult(p => { const n = { ...p }; delete n[jobId]; return n; });
     try {
-      const res = await gateway.call('cron.run', { id: jobId });
-      // Poll until the job finishes (enqueued → running → done)
-      const runId = (res as Record<string, unknown>)?.runId as string | undefined;
-      const maxPollMs = 300_000; // 5 min max
-      const pollInterval = 3_000;
-      const started = Date.now();
+      const triggerTs = Date.now();
+      await gateway.call('cron.run', { id: jobId });
+
+      // Poll until the job finishes (check every 3s, max 5 min)
+      const MAX_POLL_MS = 300_000;
+      const POLL_INTERVAL = 3_000;
       let finished = false;
-      while (Date.now() - started < maxPollMs) {
-        await new Promise(r => setTimeout(r, pollInterval));
+
+      while (!abort.signal.aborted && Date.now() - triggerTs < MAX_POLL_MS) {
+        await new Promise(r => setTimeout(r, POLL_INTERVAL));
+        if (abort.signal.aborted) break;
+
         try {
           const runsRes = await gateway.call('cron.runs', { jobId }) as { entries?: RunEntry[] };
-          const entries = runsRes?.entries || [];
-          // Check if a run completed after we triggered it
-          const latest = entries[0];
-          if (latest && latest.ts && latest.ts > started - 2000) {
-            finished = true;
-            setRunResult(p => ({ ...p, [jobId]: latest.status === 'ok' ? 'ok' : 'error' }));
-            break;
+          const latest = runsRes?.entries?.[0];
+          if (latest?.ts != null) {
+            // Normalize ts to number for comparison
+            const latestTs = typeof latest.ts === 'string' ? new Date(latest.ts).getTime() : latest.ts;
+            if (latestTs >= triggerTs - 2000) {
+              finished = true;
+              setRunResult(p => ({ ...p, [jobId]: latest.status === 'ok' ? 'ok' : 'error' }));
+              break;
+            }
           }
-        } catch { /* ignore poll errors */ }
-        await refreshGroup('cron');
+        } catch { /* ignore poll errors, retry next interval */ }
+
+        // Refresh job list to update spinners/status in sidebar
+        if (!abort.signal.aborted) await refreshGroup('cron');
       }
-      if (!finished) {
-        // Timed out waiting — show as ok (it's still running)
+
+      if (!finished && !abort.signal.aborted) {
+        // Still running after 5 min — mark as ok (enqueued successfully)
         setRunResult(p => ({ ...p, [jobId]: 'ok' }));
       }
+
       await refreshGroup('cron');
       loadSingleJobRuns(jobId);
-    } catch { setRunResult(p => ({ ...p, [jobId]: 'error' })); }
-    finally {
+    } catch {
+      setRunResult(p => ({ ...p, [jobId]: 'error' }));
+    } finally {
       setActionLoading(null);
       setTimeout(() => setRunResult(p => { const n = { ...p }; delete n[jobId]; return n; }), 3000);
     }
