@@ -548,14 +548,38 @@ export function CronMonitorPage() {
     setActionLoading(`run-${jobId}`);
     setRunResult(p => { const n = { ...p }; delete n[jobId]; return n; });
     try {
-      await gateway.call('cron.run', { id: jobId }); await refreshGroup('cron');
-      setRunResult(p => ({ ...p, [jobId]: 'ok' }));
-      // Only refresh this single job's runs (not all 12)
-      setTimeout(() => loadSingleJobRuns(jobId), 2000);
+      const res = await gateway.call('cron.run', { id: jobId });
+      // Poll until the job finishes (enqueued → running → done)
+      const runId = (res as Record<string, unknown>)?.runId as string | undefined;
+      const maxPollMs = 300_000; // 5 min max
+      const pollInterval = 3_000;
+      const started = Date.now();
+      let finished = false;
+      while (Date.now() - started < maxPollMs) {
+        await new Promise(r => setTimeout(r, pollInterval));
+        try {
+          const runsRes = await gateway.call('cron.runs', { jobId }) as { entries?: RunEntry[] };
+          const entries = runsRes?.entries || [];
+          // Check if a run completed after we triggered it
+          const latest = entries[0];
+          if (latest && latest.ts && latest.ts > started - 2000) {
+            finished = true;
+            setRunResult(p => ({ ...p, [jobId]: latest.status === 'ok' ? 'ok' : 'error' }));
+            break;
+          }
+        } catch { /* ignore poll errors */ }
+        await refreshGroup('cron');
+      }
+      if (!finished) {
+        // Timed out waiting — show as ok (it's still running)
+        setRunResult(p => ({ ...p, [jobId]: 'ok' }));
+      }
+      await refreshGroup('cron');
+      loadSingleJobRuns(jobId);
     } catch { setRunResult(p => ({ ...p, [jobId]: 'error' })); }
     finally {
       setActionLoading(null);
-      setTimeout(() => setRunResult(p => { const n = { ...p }; delete n[jobId]; return n; }), 2500);
+      setTimeout(() => setRunResult(p => { const n = { ...p }; delete n[jobId]; return n; }), 3000);
     }
   };
 
