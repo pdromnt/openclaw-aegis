@@ -588,21 +588,19 @@
         case 'svg':
           var svgDiv = document.createElement('div');
           svgDiv.className = 'svg-container';
-          // Sanitize SVG: parse and strip scripts to prevent XSS
-          var svgParser = new DOMParser();
-          var svgDoc = svgParser.parseFromString(content, 'image/svg+xml');
-          var parseError = svgDoc.querySelector('parsererror');
-          if (parseError) {
+          // Render SVG safely as <img> blob to prevent any XSS vectors
+          var svgBlob = new Blob([content], { type: 'image/svg+xml' });
+          var svgUrl = URL.createObjectURL(svgBlob);
+          var svgImg = document.createElement('img');
+          svgImg.src = svgUrl;
+          svgImg.style.maxWidth = '100%';
+          svgImg.style.height = 'auto';
+          svgImg.onload = function() { URL.revokeObjectURL(svgUrl); };
+          svgImg.onerror = function() {
+            URL.revokeObjectURL(svgUrl);
             svgDiv.textContent = 'Invalid SVG content';
-          } else {
-            svgDoc.querySelectorAll('script, foreignObject').forEach(function(el) { el.remove(); });
-            svgDoc.querySelectorAll('*').forEach(function(el) {
-              Array.from(el.attributes).forEach(function(attr) {
-                if (attr.name.startsWith('on')) el.removeAttribute(attr.name);
-              });
-            });
-            svgDiv.appendChild(document.importNode(svgDoc.documentElement, true));
-          }
+          };
+          svgDiv.appendChild(svgImg);
           container.appendChild(svgDiv);
           break;
 
