@@ -70,6 +70,52 @@ export function VoiceLivePage() {
   const audioGenerationRef = useRef(0);
   const activeGenerationRef = useRef(0);
 
+  // ── Audio level metering loop ──
+  const meterFrameRef = useRef<number>(0);
+  const meterDataRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
+
+  useEffect(() => {
+    function meterLoop() {
+      const capture = captureRef.current;
+      const playback = playbackRef.current;
+      const state = useVoiceLiveStore.getState();
+
+      // Pick the active analyser based on voice state
+      const analyser =
+        state.voiceState === 'speaking'
+          ? playback.analyser
+          : capture.analyser;
+
+      if (analyser) {
+        if (!meterDataRef.current || meterDataRef.current.length !== analyser.frequencyBinCount) {
+          meterDataRef.current = new Uint8Array(analyser.frequencyBinCount);
+        }
+        analyser.getByteFrequencyData(meterDataRef.current);
+
+        // RMS of frequency bins → 0-1
+        let sum = 0;
+        for (let i = 0; i < meterDataRef.current.length; i++) {
+          const v = meterDataRef.current[i] / 255;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / meterDataRef.current.length);
+        const level = Math.min(rms * 2.5, 1); // Scale up for visual impact
+
+        // Only update store if changed significantly (avoid unnecessary renders)
+        if (Math.abs(state.audioLevel - level) > 0.01) {
+          state.setAudioLevel(level);
+        }
+      } else if (state.audioLevel > 0.01) {
+        state.setAudioLevel(0);
+      }
+
+      meterFrameRef.current = requestAnimationFrame(meterLoop);
+    }
+
+    meterFrameRef.current = requestAnimationFrame(meterLoop);
+    return () => cancelAnimationFrame(meterFrameRef.current);
+  }, []);
+
   // ── Timer ──
   const startTimer = useCallback(() => {
     if (timerRef.current) return;
@@ -350,6 +396,13 @@ export function VoiceLivePage() {
           <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
       </button>
+
+      {/* Window controls — visible since VoiceLive covers the TitleBar */}
+      <div className="voice-window-controls">
+        <button onClick={() => window.aegis?.window.minimize()} title="Minimize">─</button>
+        <button onClick={() => window.aegis?.window.maximize()} title="Maximize">□</button>
+        <button onClick={() => window.aegis?.window.close()} className="voice-window-close" title="Close">✕</button>
+      </div>
 
       <VoicePanel
         voiceState={voiceState}

@@ -33,10 +33,11 @@ export function SettingsPageFull() {
     memoryApiUrl, setMemoryApiUrl,
     memoryLocalPath, setMemoryLocalPath,
     context1mEnabled, setContext1mEnabled,
-    toolIntentEnabled, setToolIntentEnabled,
+
     gatewayUrl, setGatewayUrl,
     gatewayToken, setGatewayToken,
     accentColor, setAccentColor,
+    uiRoundness, setUiRoundness,
   } = useSettingsStore();
   const { connected, connecting } = useChatStore();
   const sessions = useGatewayDataStore((s) => s.sessions);
@@ -231,6 +232,18 @@ export function SettingsPageFull() {
             <Sun size={15} />
             {t('settings.themeLight')}
           </button>
+          <button
+            onClick={() => setTheme('aegis-knot')}
+            className={clsx(
+              'flex-1 py-3 rounded-xl text-[14px] font-medium border transition-colors flex items-center justify-center gap-2',
+              (theme || 'aegis-dark') === 'aegis-knot'
+                ? 'bg-aegis-primary text-aegis-btn-primary-text border-transparent'
+                : 'bg-aegis-glass text-aegis-text-secondary border border-aegis-border'
+            )}
+          >
+            <span className="text-[15px] leading-none">🔴</span>
+            {t('settings.themeKnot', 'Knot')}
+          </button>
         </div>
       </GlassCard>
 
@@ -263,6 +276,31 @@ export function SettingsPageFull() {
               }}
               title={color.charAt(0).toUpperCase() + color.slice(1)}
             />
+          ))}
+        </div>
+      </GlassCard>
+
+      {/* Roundness */}
+      <GlassCard delay={0.10}>
+        <h3 className="text-[14px] font-semibold text-aegis-text mb-4 flex items-center gap-2">
+          <span className="text-aegis-primary">◼</span>
+          {t('settings.roundness', 'Roundness')}
+        </h3>
+        <div className="flex gap-2">
+          {(['sharp', 'soft', 'round'] as const).map((r) => (
+            <button
+              key={r}
+              onClick={() => setUiRoundness(r)}
+              className={clsx(
+                'px-4 py-2 text-[12px] font-medium transition-all border',
+                uiRoundness === r
+                  ? 'border-aegis-primary/40 bg-aegis-primary/10 text-aegis-text'
+                  : 'border-[rgb(var(--aegis-overlay)/0.1)] bg-[rgb(var(--aegis-overlay)/0.03)] text-aegis-text-dim hover:border-aegis-primary/25'
+              )}
+              style={{ borderRadius: { sharp: '2px', soft: '6px', round: '12px' }[r] }}
+            >
+              {r.charAt(0).toUpperCase() + r.slice(1)}
+            </button>
           ))}
         </div>
       </GlassCard>
@@ -501,20 +539,6 @@ export function SettingsPageFull() {
             enabled={context1mEnabled}
             onChange={(v) => handleContext1mToggle(v)}
             disabled={context1mSaving}
-          />
-        </div>
-
-        {/* Tool Intent View Toggle */}
-        <div className="flex items-center justify-between py-3 border-b border-aegis-border/10">
-          <div>
-            <div className="text-[13px] text-aegis-text font-medium">{t('settingsExtra.toolIntentLabel')}</div>
-            <div className="text-[11px] text-aegis-text-dim/60 mt-0.5">
-              {t('settingsExtra.toolIntentDesc')}
-            </div>
-          </div>
-          <Toggle
-            enabled={toolIntentEnabled}
-            onChange={(v) => setToolIntentEnabled(v)}
           />
         </div>
 

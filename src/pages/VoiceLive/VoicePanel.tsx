@@ -21,6 +21,9 @@ import {
   PhoneOff,
 } from 'lucide-react';
 import { AuraVisualizer } from '../../components/VoiceLive/AuraVisualizer';
+import { NebulaCoreVisualizer } from '../../components/VoiceLive/NebulaCoreVisualizer';
+import { RaphaelVisualizer } from '../../components/VoiceLive/RaphaelVisualizer';
+import { useSettingsStore } from '../../stores/settingsStore';
 import type { VoiceState } from '../../services/voiceLive/types';
 
 interface VoicePanelProps {
@@ -75,6 +78,7 @@ export function VoicePanel({
   onOpenSettings,
 }: VoicePanelProps) {
   const { t } = useTranslation();
+  const visualizerStyle = useSettingsStore((s) => s.voiceVisualizerStyle);
 
   const micState = getMicState(voiceState, isMicActive, isConnected);
 
@@ -118,9 +122,15 @@ export function VoicePanel({
         </div>
       </div>
 
-      {/* ── Aura Visualizer ── */}
+      {/* ── Visualizer (larger) ── */}
       <div className="voice-aura-container">
-        <AuraVisualizer state={voiceState} size={220} />
+        {visualizerStyle === 'nebula' ? (
+          <NebulaCoreVisualizer state={voiceState} size={380} />
+        ) : visualizerStyle === 'raphael' ? (
+          <RaphaelVisualizer state={voiceState} size={380} />
+        ) : (
+          <AuraVisualizer state={voiceState} size={380} />
+        )}
       </div>
 
       {/* ── Status ── */}
@@ -134,42 +144,42 @@ export function VoicePanel({
         <div className="voice-error">{error}</div>
       )}
 
-      {/* ── Mic Button ── */}
-      <div className="voice-mic-section">
-        <button
-          className={`voice-btn-mic voice-btn-mic-${micState}`}
-          onClick={onToggleMic}
-          title={
-            micState === 'off'
-              ? t('voiceLive.startMic')
-              : micState === 'active'
-                ? t('voiceLive.stopMic')
-                : t('voiceLive.interrupt')
-          }
-        >
-          {micState === 'active' ? (
-            <Mic size={28} />
-          ) : (
-            <MicOff size={28} />
-          )}
-          {/* Pulsing ring for active state */}
-          {micState === 'active' && <span className="voice-mic-ring" />}
-        </button>
-        <span className="voice-mic-hint">{hintText}</span>
-      </div>
-
-      {/* ── Bottom Controls ── */}
-      <div className="voice-controls">
+      {/* ── Controls Row: New + Mic + Close — all inline ── */}
+      <div className="voice-controls-row">
         <button className="voice-btn-new" onClick={onNewSession}>
           <Plus size={14} />
           <span>{t('voiceLive.newChat')}</span>
         </button>
+
+        <div className="voice-mic-section">
+          <button
+            className={`voice-btn-mic voice-btn-mic-${micState}`}
+            onClick={onToggleMic}
+            title={
+              micState === 'off'
+                ? t('voiceLive.startMic')
+                : micState === 'active'
+                  ? t('voiceLive.stopMic')
+                  : t('voiceLive.interrupt')
+            }
+          >
+            {micState === 'active' ? (
+              <Mic size={22} />
+            ) : (
+              <MicOff size={22} />
+            )}
+            {micState === 'active' && <span className="voice-mic-ring" />}
+          </button>
+        </div>
 
         <button className="voice-btn-end" onClick={onClose}>
           <PhoneOff size={14} />
           <span>{t('voiceLive.close')}</span>
         </button>
       </div>
+
+      {/* ── Hint text ── */}
+      <span className="voice-mic-hint">{hintText}</span>
 
       {/* ── Footer ── */}
       {isConnected && (

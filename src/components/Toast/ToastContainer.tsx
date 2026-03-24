@@ -104,9 +104,10 @@ function ToastItem({ toast }: { toast: Toast }) {
         background: 'var(--aegis-bg-frosted)',
         border: `1px solid ${themeAlpha('primary', 0.25)}`,
         boxShadow: `0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 ${themeAlpha('primary', 0.08)}`,
+        borderRadius: 'var(--aegis-radius)',
       }}
       className="
-        relative flex items-start gap-3 rounded-xl p-4
+        relative flex items-start gap-3 p-4
         backdrop-blur-xl shadow-2xl cursor-pointer select-none
         hover:brightness-110 transition-[filter] duration-150
       "

@@ -9,7 +9,7 @@ import type {
   CompactionBlock, Artifact, ImageRef, InlineButtonRow, MetaItem,
 } from '@/types/RenderBlock';
 import { extractText, stripDirectives, isNoise, stripUserMeta } from './TextCleaner';
-import { autoDetectCode } from '@/utils/autoDetectCode';
+import { autoDetectCode, autoInlineCode } from '@/utils/autoDetectCode';
 
 // ─── Artifact Parser ───
 
@@ -215,10 +215,10 @@ export function parseHistoryMessage(msg: any, toolIntentEnabled: boolean): Rende
   // Strip directives
   markdown = stripDirectives(markdown);
 
-  // Auto-detect code blocks (assistant only)
-  if (role === 'assistant') {
-    markdown = autoDetectCode(markdown);
-  }
+  // Auto-detect code blocks for user and assistant messages
+  markdown = autoDetectCode(markdown);
+  // Auto-detect inline code patterns (file paths, package names, config keys)
+  markdown = autoInlineCode(markdown);
 
   // Parse artifacts
   const { cleanText, artifacts } = parseArtifacts(markdown);
@@ -233,7 +233,16 @@ export function parseHistoryMessage(msg: any, toolIntentEnabled: boolean): Rende
   const meta: MetaItem[] = [];
   if (role === 'assistant') {
     // Thinking/reasoning content
-    const thinking = msg.thinkingContent;
+    // Source 1: dedicated thinkingContent field (from streaming)
+    // Source 2: content[] blocks with type==='thinking' (from chat.history)
+    let thinking = msg.thinkingContent;
+    if (!thinking && Array.isArray(msg.content)) {
+      const thinkingBlocks = msg.content
+        .filter((b: any) => b.type === 'thinking' && (typeof b.thinking === 'string' || typeof b.text === 'string'))
+        .map((b: any) => (b.thinking || b.text || '').trim())
+        .filter(Boolean);
+      if (thinkingBlocks.length > 0) thinking = thinkingBlocks.join('\n');
+    }
     if (thinking && typeof thinking === 'string' && thinking.trim()) {
       const lines = thinking.trim().split('\n').length;
       const chars = thinking.trim().length;

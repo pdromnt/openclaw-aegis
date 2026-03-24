@@ -30,6 +30,7 @@ const api = {
     detect: () => ipcRenderer.invoke('config:detect'),
     read: (filePath?: string) => ipcRenderer.invoke('config:read', filePath),
     write: (filePath: string, data: object) => ipcRenderer.invoke('config:write', { path: filePath, data }),
+    patch: (filePath: string, patch: object) => ipcRenderer.invoke('config:patch', { path: filePath, patch }),
     restart: () => ipcRenderer.invoke('config:restart'),
   },
 
@@ -205,4 +206,4 @@ contextBridge.exposeInMainWorld('aegis', api);
 // Type declaration for renderer
 export type AegisAPI = typeof api;
 
-console.log('Æ AEGIS Preload v5.6.0 ready');
+console.log('Æ AEGIS Preload v5.6.1 ready');

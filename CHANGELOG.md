@@ -6,6 +6,43 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [5.6.1] — 2026-03-24
+
+### Added
+- **Tool Intent View** — tool calls now visible by default with compact pill badges. Toggle button (🔧) in chat header to show/hide. Matches Gateway UI behavior.
+- **Read Aloud** — "🔊 Read aloud" button on assistant messages (>50 chars) using Gateway `talk.speak` API
+- **Context Usage Bar** — color-coded progress bar above input showing context consumption %. Follows accent color. Character counter appears when typing >50 chars.
+- **Roundness Setting** — customize UI corner radius (Sharp/Soft/Round) in Settings. Applied across all main components (cards, bubbles, input, toasts, sidebar).
+- **Knot Theme** — new black & red theme with WCAG AA contrast
+- **Expand-to-Canvas** — expand long assistant messages to full-width view (⛶ button for messages >500 chars)
+- **Per-Agent Thinking Defaults** — set thinking level (Off/Low/Medium/High) per agent in Agent Hub
+- **Scoped Settings per Gateway** — gateway-specific settings (memory, budget, audio) don't leak between different gateway connections
+- **Plugin Management** — enable/disable plugins with toggle switches and status badges
+- **Auto-detect inline code** — file paths, package names, and config keys auto-wrapped in inline code for user messages
+- **Auto-detect code blocks for user messages** — code detection now works on user messages too, not just assistant
+- **Voice Live window controls** — minimize/maximize/close buttons visible when Voice Live covers the title bar
+
+### Fixed
+- **Reasoning/Thinking not showing** — thinking content now extracted from `content[]` blocks (matching Gateway UI), not just the `thinkingContent` field. Shows expanded by default under each reply.
+- **Newlines lost in user messages** — Shift+Enter line breaks now render correctly (added `remark-breaks`)
+- **Command Palette actions not firing** — slash commands from Ctrl+K now execute properly
+- **Secrets Audit Badge** — no longer shows "Clean" incorrectly; checks both stdout and stderr with content-based detection
+- **Config Manager overwrites CLI changes** — now uses smart 3-way merge + patch semantics instead of full overwrite
+- **Config Auto-Backup** — saves last 5 versions before each config save with restore UI
+- **Voice Settings header overlap** — settings panel no longer overlaps the back arrow
+- **Voice Settings visualizer** — changed from card grid to dropdown menu
+
+### Security
+- **CSP Hardening** — removed `unsafe-eval` from Content-Security-Policy, added `frame-src` directive
+
+### Changed
+- **Update Notification** — right-click version badge to open GitHub releases page directly. Tooltip updated with instructions.
+- **Update Toast** — uses notification store directly for reliable in-app toasts
+- **Models Catalog** — fetched dynamically from Gateway `models.list` API (already implemented, verified)
+- **ClawHub Integration** — skill marketplace browse/install (already implemented, verified)
+
+---
+
 ## [5.5.1] — 2026-03-10
 
 ### Added

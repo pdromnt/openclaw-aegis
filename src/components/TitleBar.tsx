@@ -4,6 +4,7 @@ import { useChatStore } from '@/stores/chatStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { gateway } from '@/services/gateway/index';
 import { APP_VERSION } from '@/hooks/useAppVersion';
+import { useNotificationStore } from '@/stores/notificationStore';
 import { ChevronDown, Check, Search, Command, Zap } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -276,17 +277,22 @@ function ThinkingPicker({ currentThinking }: { currentThinking: string | null })
 // showUpdateToast — Simple toast helper for update events
 // ═══════════════════════════════════════════════════════════
 
-// Simple toast helper — uses the ToastContainer's global store if available,
-// otherwise falls back to a simple DOM notification
+// Toast helper — uses the notification store (ToastContainer) directly.
+// Maps variant to NotificationType and falls back to Electron IPC if store unavailable.
 function showUpdateToast(title: string, message: string, variant: 'info' | 'success' | 'warning' = 'info') {
-  // Try global toast API
-  if (typeof window !== 'undefined' && (window as any).__aegisToast) {
-    (window as any).__aegisToast({ title, message, variant });
-    return;
-  }
-  // Fallback: Electron notification
-  if (window.aegis?.notify) {
-    window.aegis.notify(title, message);
+  const typeMap: Record<string, 'info' | 'task_complete' | 'message'> = {
+    info: 'info',
+    success: 'task_complete',
+    warning: 'info',
+  };
+  const type = typeMap[variant] ?? 'info';
+  try {
+    useNotificationStore.getState().addToast(type, title, message);
+  } catch {
+    // Fallback: Electron notification
+    if (window.aegis?.notify) {
+      window.aegis.notify(title, message);
+    }
   }
 }
 
@@ -311,7 +317,7 @@ function useAutoUpdate() {
         setStatus('available');
         showUpdateToast(
           '🔄 Update Available',
-          `Version ${info.version} is ready to download`,
+          `Version ${info.version} is ready to download — click the version badge to install, or right-click for release page`,
           'info'
         );
       }),
@@ -380,6 +386,10 @@ function VersionBadge() {
     );
   }
 
+  const openReleasePage = () => {
+    window.open('https://github.com/rshodoskar-star/openclaw-desktop/releases/latest', '_blank');
+  };
+
   const handleClick = () => {
     if (status === 'idle' || status === 'error') check();
     else if (status === 'available') download();
@@ -405,11 +415,12 @@ function VersionBadge() {
       onClick={isClickable ? handleClick : undefined}
       title={
         status === 'idle'      ? 'Click to check for updates' :
-        status === 'available' ? `Update to v${updateVersion} — click to download` :
+        status === 'available' ? `Update to v${updateVersion} — Click to download • Right-click for release page` :
         status === 'ready'     ? 'Update downloaded — click to restart' :
         status === 'error'     ? 'Update check failed — click to retry' :
         undefined
       }
+      onContextMenu={status === 'available' ? (e) => { e.preventDefault(); openReleasePage(); } : undefined}
       className={clsx(
         'rounded-full px-2 py-0.5 text-[10px] font-semibold font-mono transition-colors duration-300',
         isYellow

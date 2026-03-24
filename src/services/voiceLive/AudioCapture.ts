@@ -95,6 +95,9 @@ export class AudioCapture {
   private sourceNode: MediaStreamAudioSourceNode | null = null;
   private muted = false;
 
+  /** AnalyserNode for real-time audio level metering */
+  analyser: AnalyserNode | null = null;
+
   /** Called for each PCM16 chunk (~150ms, 16kHz, 16-bit LE mono) */
   onChunk: AudioChunkCallback = () => {};
 
@@ -161,13 +164,20 @@ export class AudioCapture {
       }
     };
 
-    // Connect: mic → worklet → silent gain → destination
+    // Connect: mic → analyser → worklet → silent gain → destination
     // Gain is zeroed so the user doesn't hear their own mic.
     // Some browsers require a connected output for the worklet to process.
     this.sourceNode = this.audioContext.createMediaStreamSource(this.stream);
+
+    // AnalyserNode for real-time audio level metering (visualizer)
+    this.analyser = this.audioContext.createAnalyser();
+    this.analyser.fftSize = 256;
+    this.analyser.smoothingTimeConstant = 0.8;
+
     const gainNode = this.audioContext.createGain();
     gainNode.gain.value = 0;
-    this.sourceNode.connect(this.workletNode);
+    this.sourceNode.connect(this.analyser);
+    this.analyser.connect(this.workletNode);
     this.workletNode.connect(gainNode);
     gainNode.connect(this.audioContext.destination);
 

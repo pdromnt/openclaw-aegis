@@ -17,6 +17,7 @@ interface AegisAPI {
     detect: () => Promise<{ path: string; exists: boolean }>;
     read: (path?: string) => Promise<{ data: any; path: string }>;
     write: (path: string, data: any) => Promise<{ success: boolean; backupPath?: string; error?: string }>;
+    patch: (path: string, patch: any) => Promise<{ success: boolean; backupPath?: string; error?: string }>;
     restart: () => Promise<{ success: boolean; error?: string }>;
   };
   settings?: {

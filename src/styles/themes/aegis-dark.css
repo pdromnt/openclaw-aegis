@@ -9,6 +9,9 @@
    ═══════════════════════════════════════════════════════════ */
 
 :root, [data-theme="aegis-dark"] {
+  /* ── Radius ── */
+  --aegis-radius: 12px;
+
   /* ── Backgrounds ── */
   --aegis-bg:             rgb(var(--color-slate-950));
   --aegis-surface:        rgb(var(--color-white) / 0.03);

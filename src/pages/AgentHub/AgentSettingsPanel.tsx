@@ -195,9 +195,11 @@ export function AgentSettingsPanel({
 
   // ── Form values ──
   const [selectedModel, setSelectedModel] = useState('');
+  const [selectedThinking, setSelectedThinking] = useState<'off' | 'low' | 'medium' | 'high'>('high');
 
-  // ── Original model (from config.get) — used for hasChanges ──
+  // ── Original values (from config.get) — used for hasChanges ──
   const [origModel, setOrigModel] = useState('');
+  const [origThinking, setOrigThinking] = useState<'off' | 'low' | 'medium' | 'high'>('high');
 
   // Track which agent we last initialized for — prevents polling
   // refreshes from overwriting unsaved user edits.
@@ -241,8 +243,15 @@ export function AgentSettingsPanel({
         const sessionModel = agentSessions.length > 0 ? agentSessions[0].model : '';
         const resolvedModel = cfgModel || sessionModel || '';
 
+        const cfgThinking = (agentConfig?.thinkingDefault as string | undefined) ?? 'high';
+        const resolvedThinking = (['off', 'low', 'medium', 'high'].includes(cfgThinking)
+          ? cfgThinking
+          : 'high') as 'off' | 'low' | 'medium' | 'high';
+
         setSelectedModel(resolvedModel);
         setOrigModel(resolvedModel);
+        setSelectedThinking(resolvedThinking);
+        setOrigThinking(resolvedThinking);
         setInitializedForId(agent.id);
       })
       .catch((err: unknown) => {
@@ -290,7 +299,7 @@ export function AgentSettingsPanel({
   }, [agent?.id]);
 
   // ── hasChanges: disable Save button when nothing is different ──
-  const hasChanges = !modelsMatch(selectedModel, origModel);
+  const hasChanges = !modelsMatch(selectedModel, origModel) || selectedThinking !== origThinking;
 
   // ── Save handler ──
   // Only model change is supported via agents.update RPC.
@@ -300,21 +309,32 @@ export function AgentSettingsPanel({
     if (!agent) return;
     setSaving(true);
     try {
+      const updates: Record<string, unknown> = {};
       if (selectedModel && !modelsMatch(selectedModel, origModel)) {
+        updates.model = selectedModel;
+      }
+      if (selectedThinking !== origThinking) {
+        updates.thinkingDefault = selectedThinking;
+      }
+
+      if (Object.keys(updates).length > 0) {
         // agents.update persists to config file (writeConfigFile) AND updates runtime
         // No need for config.get/config.set — agents.update handles everything
-        await gateway.updateAgent(agent.id, { model: selectedModel });
+        await gateway.updateAgent(agent.id, updates);
 
         // Update local store so agent cards reflect the new model immediately
-        const store = useGatewayDataStore.getState();
-        store.setAgents(
-          store.agents.map(a =>
-            a.id === agent.id ? { ...a, model: selectedModel } : a
-          )
-        );
+        if (updates.model) {
+          const store = useGatewayDataStore.getState();
+          store.setAgents(
+            store.agents.map(a =>
+              a.id === agent.id ? { ...a, model: selectedModel } : a
+            )
+          );
+        }
       }
 
       setOrigModel(selectedModel);
+      setOrigThinking(selectedThinking);
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
       setInitializedForId(null);
@@ -710,6 +730,33 @@ export function AgentSettingsPanel({
                           </motion.div>
                         )}
                       </AnimatePresence>
+                    </div>
+                  </div>
+
+                  {/* ── Section: Thinking Level ── */}
+                  <div>
+                    <label className="flex items-center gap-1.5 text-[9px] text-aegis-text-muted uppercase tracking-widest font-bold mb-2">
+                      <Zap size={10} />
+                      {t('agentSettings.thinking', 'Thinking Level')}
+                    </label>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {(['off', 'low', 'medium', 'high'] as const).map((level) => {
+                        const isActive = selectedThinking === level;
+                        return (
+                          <button
+                            key={level}
+                            onClick={() => setSelectedThinking(level)}
+                            className={clsx(
+                              'px-2 py-2 rounded-lg text-[10px] font-semibold capitalize transition-all border',
+                              isActive
+                                ? 'border-aegis-primary/40 bg-aegis-primary/10 text-aegis-text'
+                                : 'border-[rgb(var(--aegis-overlay)/0.1)] bg-[rgb(var(--aegis-overlay)/0.03)] text-aegis-text-dim hover:border-aegis-primary/25 hover:text-aegis-text'
+                            )}
+                          >
+                            {level}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 

@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
-import { ArrowDown, Download, Loader2, Search, X, Zap, Pin, PinOff, ChevronDown } from 'lucide-react';
+import { ArrowDown, Download, Loader2, Search, X, Zap, Pin, PinOff, ChevronDown, Wrench } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
@@ -81,6 +81,7 @@ export function ChatView() {
   );
 
   const activeSessionKey = useChatStore((s) => s.activeSessionKey);
+  const tokenUsage = useChatStore((s) => s.tokenUsage);
 
   // Actions (stable references)
   const addMessage = useChatStore((s) => s.addMessage);
@@ -89,6 +90,7 @@ export function ChatView() {
   const loadSessionHistory = useChatStore((s) => s.loadSessionHistory);
 
   const toolIntentEnabled = useSettingsStore((s) => s.toolIntentEnabled);
+  const setToolIntentEnabled = useSettingsStore((s) => s.setToolIntentEnabled);
 
   // ── Search state ──
   const [searchOpen, setSearchOpen] = useState(false);
@@ -355,7 +357,7 @@ export function ChatView() {
     >
       {/* Drag overlay */}
       {dragging && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-aegis-bg/80 backdrop-blur-sm border-2 border-dashed border-aegis-primary/40 rounded-xl m-2 pointer-events-none">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-aegis-bg/80 backdrop-blur-sm border-2 border-dashed border-aegis-primary/40 m-2 pointer-events-none" style={{ borderRadius: 'var(--aegis-radius)' }}>
           <div className="flex flex-col items-center gap-2 text-aegis-primary">
             <Download size={40} className="animate-bounce" />
             <span className="text-[14px] font-semibold">Drop files here</span>
@@ -438,16 +440,29 @@ export function ChatView() {
       <div className="flex-1 min-h-0 relative">
         {/* Export button — floating, shown when there are messages */}
         {renderBlocks.length > 0 && !searchOpen && (
-          <button
-            onClick={() => exportChatMarkdown(renderBlocks, activeSessionKey)}
-            className="absolute top-3 right-3 z-10 p-1.5 rounded-lg
-              bg-[rgb(var(--aegis-overlay)/0.06)] border border-[rgb(var(--aegis-overlay)/0.10)]
-              text-aegis-text-muted hover:text-aegis-text-secondary hover:bg-[rgb(var(--aegis-overlay)/0.12)]
-              transition-colors"
-            title="Export chat as Markdown"
-          >
-            <Download size={14} />
-          </button>
+          <div className="absolute top-3 right-3 z-10 flex items-center gap-1">
+            <button
+              onClick={() => setToolIntentEnabled(!toolIntentEnabled)}
+              className={`p-1.5 rounded-lg border transition-colors ${
+                toolIntentEnabled
+                  ? 'bg-aegis-primary/10 border-aegis-primary/30 text-aegis-primary'
+                  : 'bg-[rgb(var(--aegis-overlay)/0.06)] border-[rgb(var(--aegis-overlay)/0.10)] text-aegis-text-muted hover:text-aegis-text-secondary hover:bg-[rgb(var(--aegis-overlay)/0.12)]'
+              }`}
+              title={toolIntentEnabled ? 'Hide tool calls' : 'Show tool calls'}
+            >
+              <Wrench size={14} />
+            </button>
+            <button
+              onClick={() => exportChatMarkdown(renderBlocks, activeSessionKey)}
+              className="p-1.5 rounded-lg
+                bg-[rgb(var(--aegis-overlay)/0.06)] border border-[rgb(var(--aegis-overlay)/0.10)]
+                text-aegis-text-muted hover:text-aegis-text-secondary hover:bg-[rgb(var(--aegis-overlay)/0.12)]
+                transition-colors"
+              title="Export chat as Markdown"
+            >
+              <Download size={14} />
+            </button>
+          </div>
         )}
 
         {isLoadingHistory ? (
@@ -514,6 +529,25 @@ export function ChatView() {
 
       {/* Exec Approval Requests */}
       <ExecApprovalBar />
+
+      {/* Context Usage Bar */}
+      {tokenUsage && tokenUsage.percentage > 0 && (
+        <div className="shrink-0 px-3 pt-1 pb-0 flex items-center gap-2">
+          <div className="flex-1 h-[3px] rounded-full bg-[rgb(var(--aegis-overlay)/0.08)] overflow-hidden">
+            <div
+              className={clsx(
+                'h-full rounded-full transition-all duration-500',
+                tokenUsage.percentage < 60 ? 'bg-aegis-primary' :
+                tokenUsage.percentage < 85 ? 'bg-aegis-warning' : 'bg-red-500'
+              )}
+              style={{ width: `${Math.min(tokenUsage.percentage, 100)}%` }}
+            />
+          </div>
+          <span className="text-[9px] text-aegis-text-dim shrink-0 tabular-nums">
+            {tokenUsage.percentage}%
+          </span>
+        </div>
+      )}
 
       <MessageInput />
     </div>

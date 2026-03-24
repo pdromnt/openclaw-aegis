@@ -94,74 +94,36 @@ export function ToolCallBubble({ tool }: ToolCallBubbleProps) {
   const hasDetails = !!(tool.input && Object.keys(tool.input).length > 0) || !!tool.output;
 
   return (
-    <div className="px-5 py-0.5">
+    <div className="px-5 py-px">
       <div
         className={clsx(
-          'group rounded-xl overflow-hidden transition-all duration-200',
-          'border border-[rgb(var(--aegis-overlay)/0.06)]',
-          'bg-[rgb(var(--aegis-overlay)/0.025)]',
-          hasDetails && 'cursor-pointer hover:border-[rgb(var(--aegis-overlay)/0.12)]'
+          'group inline-flex items-center gap-1 px-2 py-0.5 transition-all duration-150',
+          'border border-[rgb(var(--aegis-overlay)/0.08)]',
+          'bg-[rgb(var(--aegis-overlay)/0.03)]',
+          'rounded-full text-[10px]',
+          hasDetails && 'cursor-pointer hover:border-[rgb(var(--aegis-overlay)/0.18)] hover:bg-[rgb(var(--aegis-overlay)/0.06)]'
         )}
         onClick={() => hasDetails && setExpanded((v) => !v)}
       >
-        {/* ── Main row ── */}
-        <div className="flex items-center gap-2.5 px-3 py-2">
-          {/* Icon */}
-          <span className="text-[14px] shrink-0">{meta.icon}</span>
-
-          {/* Tool name + summary */}
-          <div className="flex items-center gap-1.5 flex-1 min-w-0">
-            <span className="text-[11px] font-mono font-semibold text-aegis-text-secondary shrink-0"
-              style={{ color: `rgb(${meta.color})` }}>
-              {meta.label}
-            </span>
-            {summary && (
-              <span className="text-[10px] text-aegis-text-dim truncate">{summary}</span>
-            )}
-          </div>
-
-          {/* Status */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            {tool.status === 'running' && (
-              <span className="flex items-center gap-1 text-[9px] text-aegis-warning font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-aegis-warning animate-pulse" />
-                running
-              </span>
-            )}
-            {tool.status === 'done' && (
-              <span className="text-[9px] text-aegis-success/60 font-mono">✓ done</span>
-            )}
-            {tool.status === 'error' && (
-              <span className="text-[9px] text-aegis-danger/60 font-mono">✗ error</span>
-            )}
-            {tool.durationMs !== undefined && tool.status === 'done' && (
-              <span className="text-[9px] text-aegis-text-dim font-mono">
-                {tool.durationMs < 1000
-                  ? `${tool.durationMs}ms`
-                  : `${(tool.durationMs / 1000).toFixed(1)}s`}
-              </span>
-            )}
-            {hasDetails && (
-              expanded
-                ? <ChevronDown size={10} className="text-aegis-text-dim" />
-                : <ChevronRight size={10} className="text-aegis-text-dim" />
-            )}
-          </div>
-        </div>
-
-        {/* ── Output preview (collapsed) ── */}
-        {!expanded && outputPreview && (
-          <div className="px-3 pb-1.5">
-            <span className="text-[10px] text-aegis-text-dim/50 font-mono truncate block"
-              dir="ltr">
-              {outputPreview}
-            </span>
-          </div>
+        <span className="text-[10px]">{meta.icon}</span>
+        <span className="font-mono font-semibold" style={{ color: `rgb(${meta.color})` }}>
+          {meta.label}
+        </span>
+        {summary && <span className="text-aegis-text-dim truncate max-w-[200px] text-[9px]">{summary}</span>}
+        {tool.status === 'running' && <span className="w-1 h-1 rounded-full bg-aegis-warning animate-pulse" />}
+        {tool.status === 'done' && <span className="text-aegis-success/60">✓</span>}
+        {tool.status === 'error' && <span className="text-aegis-danger/60">✗</span>}
+        {tool.durationMs !== undefined && tool.status === 'done' && (
+          <span className="text-[8px] text-aegis-text-dim font-mono">
+            {tool.durationMs < 1000 ? `${tool.durationMs}ms` : `${(tool.durationMs / 1000).toFixed(1)}s`}
+          </span>
         )}
+        {hasDetails && (expanded ? <ChevronDown size={8} className="text-aegis-text-dim" /> : <ChevronRight size={8} className="text-aegis-text-dim" />)}
+      </div>
 
-        {/* ── Expanded details ── */}
-        {expanded && hasDetails && (
-          <div className="border-t border-[rgb(var(--aegis-overlay)/0.06)] px-3 py-2 space-y-2">
+      {/* ── Expanded details ── */}
+      {expanded && hasDetails && (
+        <div className="mt-1 ml-2 border-l-2 border-[rgb(var(--aegis-overlay)/0.08)] pl-3 pb-1 space-y-1.5 max-w-[80%]">
             {/* Input */}
             {tool.input && Object.keys(tool.input).length > 0 && (
               <div>
@@ -186,9 +148,8 @@ export function ToolCallBubble({ tool }: ToolCallBubbleProps) {
                 </pre>
               </div>
             )}
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

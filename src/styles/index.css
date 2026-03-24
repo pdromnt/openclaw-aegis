@@ -3,6 +3,7 @@
 @import './voice-live.css';
 @import './themes/aegis-dark.css';
 @import './themes/aegis-light.css';
+@import './themes/aegis-knot.css';
 
 @tailwind base;
 @tailwind components;
@@ -125,7 +126,7 @@
   }
 
   /* ── Markdown ── */
-  .markdown-body { line-height: 1.75; word-wrap: break-word; letter-spacing: 0.01em; overflow-x: hidden; max-width: 100%; }
+  .markdown-body { line-height: 1.75; word-wrap: break-word; overflow-wrap: anywhere; letter-spacing: 0.01em; overflow-x: hidden; max-width: 100%; }
   .markdown-body p { margin-bottom: 0.6em; }
   .markdown-body p:last-child { margin-bottom: 0; }
   .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
@@ -175,7 +176,7 @@
     font-family: 'JetBrains Mono', 'Fira Code', monospace; color: rgb(var(--aegis-primary));
     word-break: break-all;
   }
-  .markdown-body a { color: rgb(var(--aegis-primary)); text-decoration: none; border-bottom: 1px solid rgb(var(--aegis-primary) / 0.2); transition: all 0.2s; }
+  .markdown-body a { color: rgb(var(--aegis-primary)); text-decoration: none; border-bottom: 1px solid rgb(var(--aegis-primary) / 0.2); transition: all 0.2s; word-break: break-all; overflow-wrap: anywhere; }
   .markdown-body a:hover { color: rgb(var(--aegis-primary-hover)); border-bottom-color: rgb(var(--aegis-primary) / 0.5); }
   .markdown-body img { max-width: 100%; border-radius: 10px; margin: 0.5em 0; border: 1px solid var(--aegis-border); }
   .markdown-body hr { border: none; height: 1px; background: linear-gradient(90deg, transparent, rgb(var(--aegis-primary) / 0.2), transparent); margin: 1.2em 0; }

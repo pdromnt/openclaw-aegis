@@ -72,6 +72,9 @@ export const gateway = {
   async getHistory(sessionKey: string, limit = 200) { return connection.request('chat.history', { sessionKey, limit }); },
   async abortChat(sessionKey = 'agent:main:main') { return connection.request('chat.abort', { sessionKey }); },
 
+  // TTS via Gateway
+  async speak(text: string) { return connection.request('talk.speak', { text }); },
+
   // Session Settings
   async setSessionModel(model: string, sessionKey = 'agent:main:main') {
     return connection.request('sessions.patch', { key: sessionKey, model });

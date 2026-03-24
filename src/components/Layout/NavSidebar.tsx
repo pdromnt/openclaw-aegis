@@ -75,13 +75,14 @@ export function NavSidebar() {
               onMouseEnter={() => PREFETCH_MAP[item.to]?.()}
               aria-current={isActive ? 'page' : undefined}
               className={clsx(
-                'relative w-[44px] h-[44px] rounded-xl',
+                'relative w-[44px] h-[44px]',
                 'flex items-center justify-center',
                 'transition-all duration-300 group',
                 isActive
                   ? 'nav-icon-active-glow text-aegis-primary'
                   : 'text-aegis-text-muted hover:text-aegis-text-secondary hover:bg-[rgb(var(--aegis-overlay)/0.04)]'
               )}
+              style={{ borderRadius: 'var(--aegis-radius)' }}
             >
               {/* Active indicator bar — animated slide */}
               {isActive && (
@@ -130,13 +131,14 @@ export function NavSidebar() {
           to="/settings"
           aria-current={location.pathname === '/settings' ? 'page' : undefined}
           className={clsx(
-            'relative w-[44px] h-[44px] rounded-xl',
+            'relative w-[44px] h-[44px]',
             'flex items-center justify-center',
             'transition-all duration-300 group',
             location.pathname === '/settings'
               ? 'nav-icon-active-glow text-aegis-primary'
               : 'text-aegis-text-muted hover:text-aegis-text-secondary hover:bg-[rgb(var(--aegis-overlay)/0.04)]'
           )}
+          style={{ borderRadius: 'var(--aegis-radius)' }}
         >
           {location.pathname === '/settings' && (
             <motion.div

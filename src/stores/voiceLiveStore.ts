@@ -32,6 +32,9 @@ interface VoiceLiveState {
   geminiVoice: string;
   responseModel: string;
 
+  // ── Audio Analysis (0-1, updated per frame) ──
+  audioLevel: number;
+
   // ── UI State ──
   settingsOpen: boolean;
   error: string | null;
@@ -46,6 +49,7 @@ interface VoiceLiveState {
   setSessionKey: (key: string) => void;
   newSession: () => void;
 
+  setAudioLevel: (level: number) => void;
   setSettingsOpen: (open: boolean) => void;
   setError: (error: string | null) => void;
 
@@ -76,6 +80,8 @@ export const useVoiceLiveStore = create<VoiceLiveState>()(
       geminiVoice: DEFAULT_GEMINI_VOICE,
       responseModel: '',
 
+      audioLevel: 0,
+
       settingsOpen: false,
       error: null,
 
@@ -86,6 +92,7 @@ export const useVoiceLiveStore = create<VoiceLiveState>()(
       setElapsedSeconds: (elapsedSeconds) => set({ elapsedSeconds }),
       incrementElapsed: () => set((s) => ({ elapsedSeconds: s.elapsedSeconds + 1 })),
 
+      setAudioLevel: (audioLevel) => set({ audioLevel }),
       setSessionKey: (sessionKey) => set({ sessionKey }),
       newSession: () => {
         const counter = get().sessionCounter + 1;

@@ -35,7 +35,7 @@ export const GlassCard = React.memo(function GlassCard({
       whileHover={hover ? { y: -2, transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] } } : undefined}
       onClick={onClick}
       className={clsx(
-        'relative overflow-hidden rounded-2xl',
+        'relative overflow-hidden',
         'border border-aegis-border',
         'bg-aegis-card',
         'backdrop-blur-xl',
@@ -46,6 +46,7 @@ export const GlassCard = React.memo(function GlassCard({
         shimmer && 'card-shimmer-edge',
         className
       )}
+      style={{ borderRadius: 'var(--aegis-radius)' }}
     >
       {/* Top light edge — subtle glass reflection */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />

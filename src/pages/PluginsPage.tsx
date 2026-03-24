@@ -11,7 +11,7 @@ import {
   Gamepad2, Users, ScrollText, Radio,
   FolderOpen, Code2, Wrench,
   ArrowRight, ArrowLeft, Puzzle, Brain,
-  LucideIcon,
+  LucideIcon, ToggleLeft, ToggleRight,
 } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { getDirection } from '@/i18n';
@@ -49,6 +49,28 @@ const pluginComponents: Record<string, React.LazyExoticComponent<() => JSX.Eleme
     import('@/pages/MemoryExplorer').then((m) => ({ default: m.MemoryExplorerPage }))
   ),
 };
+
+// ── Plugin status helpers ──────────────────────────────────
+const DISABLED_PLUGINS_KEY = 'aegis-disabled-plugins';
+
+function getDisabledPlugins(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DISABLED_PLUGINS_KEY);
+    return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function setPluginEnabled(id: string, enabled: boolean): void {
+  const disabled = getDisabledPlugins();
+  if (enabled) {
+    disabled.delete(id);
+  } else {
+    disabled.add(id);
+  }
+  localStorage.setItem(DISABLED_PLUGINS_KEY, JSON.stringify([...disabled]));
+}
 
 // ── Plugin definition ──────────────────────────────────────
 interface Plugin {
@@ -139,11 +161,14 @@ const cardVariants = {
 // ── PluginCard component ───────────────────────────────────
 interface PluginCardProps {
   plugin: Plugin;
+  enabled: boolean;
   onOpen: (id: string) => void;
+  onToggle: (id: string, enabled: boolean) => void;
 }
 
-function PluginCard({ plugin, onOpen }: PluginCardProps) {
+function PluginCard({ plugin, enabled, onOpen, onToggle }: PluginCardProps) {
   const Icon = plugin.icon;
+  const ToggleIcon = enabled ? ToggleRight : ToggleLeft;
 
   return (
     <motion.div
@@ -152,20 +177,45 @@ function PluginCard({ plugin, onOpen }: PluginCardProps) {
         'group relative flex flex-col gap-4 p-5 rounded-2xl',
         'bg-aegis-elevated-solid border border-aegis-border',
         'transition-all duration-200',
-        'hover:border-aegis-primary/40 hover:shadow-[0_0_20px_rgb(var(--aegis-primary)/0.08)]',
-        'hover:-translate-y-0.5',
+        enabled
+          ? 'hover:border-aegis-primary/40 hover:shadow-[0_0_20px_rgb(var(--aegis-primary)/0.08)] hover:-translate-y-0.5'
+          : 'opacity-60',
       )}
     >
-      {/* Icon area */}
-      <div
-        className={clsx(
-          'w-12 h-12 rounded-xl flex items-center justify-center',
-          'bg-[rgb(var(--aegis-primary)/0.1)] border border-[rgb(var(--aegis-primary)/0.15)]',
-          'transition-colors duration-200',
-          'group-hover:bg-[rgb(var(--aegis-primary)/0.15)]',
-        )}
-      >
-        <Icon size={22} className="text-aegis-primary" />
+      {/* Icon area + status badge row */}
+      <div className="flex items-start justify-between">
+        <div
+          className={clsx(
+            'w-12 h-12 rounded-xl flex items-center justify-center',
+            'border transition-colors duration-200',
+            enabled
+              ? 'bg-[rgb(var(--aegis-primary)/0.1)] border-[rgb(var(--aegis-primary)/0.15)] group-hover:bg-[rgb(var(--aegis-primary)/0.15)]'
+              : 'bg-aegis-overlay/5 border-aegis-border',
+          )}
+        >
+          <Icon size={22} className={enabled ? 'text-aegis-primary' : 'text-aegis-text-muted'} />
+        </div>
+
+        {/* Status badge + toggle */}
+        <div className="flex items-center gap-2">
+          <span
+            className={clsx(
+              'text-[10px] font-bold px-2 py-0.5 rounded-full border',
+              enabled
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
+                : 'bg-aegis-overlay/5 text-aegis-text-dim border-aegis-border',
+            )}
+          >
+            {enabled ? 'enabled' : 'disabled'}
+          </span>
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggle(plugin.id, !enabled); }}
+            title={enabled ? 'Disable plugin' : 'Enable plugin'}
+            className="text-aegis-text-muted hover:text-aegis-primary transition-colors"
+          >
+            <ToggleIcon size={22} className={enabled ? 'text-aegis-primary' : undefined} />
+          </button>
+        </div>
       </div>
 
       {/* Text content */}
@@ -178,15 +228,16 @@ function PluginCard({ plugin, onOpen }: PluginCardProps) {
         </p>
       </div>
 
-      {/* Open button — passes plugin id, not route */}
+      {/* Open button — only when enabled */}
       <button
-        onClick={() => onOpen(plugin.id)}
+        onClick={() => enabled && onOpen(plugin.id)}
+        disabled={!enabled}
         className={clsx(
           'mt-auto w-full py-2 rounded-xl text-[12px] font-medium',
-          'border border-aegis-primary/30 text-aegis-primary',
-          'transition-all duration-200',
-          'hover:bg-aegis-primary hover:text-white hover:border-aegis-primary',
-          'active:scale-[0.98]',
+          'border transition-all duration-200',
+          enabled
+            ? 'border-aegis-primary/30 text-aegis-primary hover:bg-aegis-primary hover:text-white hover:border-aegis-primary active:scale-[0.98]'
+            : 'border-aegis-border text-aegis-text-dim cursor-not-allowed',
         )}
       >
         Open
@@ -220,6 +271,9 @@ export function PluginsPage() {
     localStorage.getItem('aegis-active-plugin')
   );
 
+  // Track which plugins are disabled (stored in localStorage)
+  const [disabledPlugins, setDisabledPlugins] = useState<Set<string>>(() => getDisabledPlugins());
+
   // Persist active plugin to localStorage whenever it changes
   useEffect(() => {
     if (activePlugin) {
@@ -235,6 +289,15 @@ export function PluginsPage() {
 
   const handleBack = () => {
     setActivePlugin(null);
+  };
+
+  const handleToggle = (id: string, enabled: boolean) => {
+    setPluginEnabled(id, enabled);
+    setDisabledPlugins(getDisabledPlugins());
+    // If currently viewing a plugin that gets disabled, go back to grid
+    if (!enabled && activePlugin === id) {
+      setActivePlugin(null);
+    }
   };
 
   // ── Active plugin view ─────────────────────────────────
@@ -314,7 +377,9 @@ export function PluginsPage() {
             <PluginCard
               key={plugin.id}
               plugin={plugin}
+              enabled={!disabledPlugins.has(plugin.id)}
               onOpen={handleOpen}
+              onToggle={handleToggle}
             />
           ))}
         </motion.div>

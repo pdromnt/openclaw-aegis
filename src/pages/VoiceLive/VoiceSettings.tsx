@@ -24,6 +24,7 @@ import {
 import { GoogleGenAI } from '@google/genai';
 import { useVoiceLiveStore } from '../../stores/voiceLiveStore';
 import { useChatStore } from '../../stores/chatStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 import { gateway } from '../../services/gateway/index';
 
 /** Known Gemini voices */
@@ -49,6 +50,9 @@ export function VoiceSettings({ onClose }: VoiceSettingsProps) {
   const { t } = useTranslation();
   const store = useVoiceLiveStore();
   const { availableModels } = useChatStore();
+
+  const visualizerStyle = useSettingsStore((s) => s.voiceVisualizerStyle);
+  const setVisualizerStyle = useSettingsStore((s) => s.setVoiceVisualizerStyle);
 
   // Local form state (editable, saved on "Save")
   const [apiKey, setApiKey] = useState(store.geminiApiKey);
@@ -181,6 +185,24 @@ export function VoiceSettings({ onClose }: VoiceSettingsProps) {
           <div className="voice-field-hint">
             {t('voiceLive.responseModelHint')}
           </div>
+        </div>
+
+        {/* Visualizer Style */}
+        <div className="voice-field-group">
+          <label className="voice-field-label">
+            <Eye size={14} />
+            <span>{t('voiceLive.visualizerStyle', 'Visualizer Style')}</span>
+          </label>
+          <select
+            value={visualizerStyle}
+            onChange={(e) => setVisualizerStyle(e.target.value as 'aura' | 'nebula' | 'raphael')}
+            className="w-full px-3 py-2 rounded-lg bg-[rgb(var(--aegis-overlay)/0.06)] border border-aegis-border text-aegis-text text-[13px] outline-none focus:border-aegis-primary/40 transition-colors cursor-pointer"
+            style={{ borderRadius: 'var(--aegis-radius)' }}
+          >
+            <option value="aura">🌊 Aura</option>
+            <option value="nebula">🌌 Nebula</option>
+            <option value="raphael">✦ Raphael</option>
+          </select>
         </div>
 
         <div className="voice-divider" />

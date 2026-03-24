@@ -172,6 +172,43 @@ function scoreLine(line: string): number {
   return score;
 }
 
+// ── Inline Code Detection ─────────────────────────────────
+
+/**
+ * Wraps recognizable inline code patterns in backticks if they
+ * aren't already inside a code block or backtick spans.
+ * Detects: file paths, package names, dotted config keys.
+ */
+export function autoInlineCode(text: string): string {
+  const lines = text.split('\n');
+  let inCodeBlock = false;
+  return lines.map(line => {
+    if (line.trimStart().startsWith('```')) {
+      inCodeBlock = !inCodeBlock;
+      return line;
+    }
+    if (inCodeBlock) return line;
+    // Skip lines that are already fully code
+    if (line.trim().startsWith('`')) return line;
+
+    // Detect file paths (unix & windows)
+    line = line.replace(/(?<![`\w])([\/~][\w\-\.\/]+\.\w{1,10})(?![`\w])/g, '`$1`');
+    line = line.replace(/(?<![`\w])([A-Z]:\\[\w\\\-\.]+)(?![`\w])/g, '`$1`');
+
+    // Detect dotted config keys (min 2 dots like channels.telegram.enabled)
+    line = line.replace(/(?<![`\w])([\w]+\.[\w]+\.[\w]+[\w\.]*)(?![`\w])/g, '`$1`');
+
+    // Detect package names with hyphens (react-markdown, remark-breaks) but not regular hyphenated words
+    line = line.replace(/(?<![`\w])([a-z][\w]*(?:-[a-z][\w]*){1,5})(?![`\w\-])/g, (match) => {
+      // Only wrap if it looks like a package (short enough, not common English phrases)
+      if (match.length < 4 || /^(up-to|out-of|day-to|end-to|how-to|step-by|one-to)/.test(match)) return match;
+      return '`' + match + '`';
+    });
+
+    return line;
+  }).join('\n');
+}
+
 // ── Main Export ───────────────────────────────────────────
 
 /**

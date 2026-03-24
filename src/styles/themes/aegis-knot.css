@@ -1,0 +1,111 @@
+/* ═══════════════════════════════════════════════════════════
+   Theme: AEGIS Knot
+
+   Black background + red accents. WCAG AA compliant.
+   Based on aegis-dark.css — swaps slate-950 bg → pure black,
+   teal primary → red-500, blue accent → rose-400.
+   ═══════════════════════════════════════════════════════════ */
+
+[data-theme="aegis-knot"] {
+  /* ── Radius ── */
+  --aegis-radius: 12px;
+
+  /* ── Backgrounds ── */
+  --aegis-bg:             rgb(0 0 0);
+  --aegis-surface:        rgb(255 255 255 / 0.04);
+  --aegis-elevated:       rgb(255 255 255 / 0.06);
+  --aegis-card:           rgb(255 255 255 / 0.035);
+  --aegis-bg-solid:       rgb(0 0 0);
+  --aegis-surface-solid:  rgb(10 10 10);
+  --aegis-elevated-solid: rgb(22 22 22);
+  --aegis-card-solid:     rgb(14 14 14);
+  --aegis-chrome:         rgb(255 255 255 / 0.03);
+
+  /* ── Borders ── */
+  --aegis-border:         rgb(255 255 255 / 0.08);
+  --aegis-border-hover:   rgb(255 255 255 / 0.14);
+  --aegis-border-active:  rgb(255 255 255 / 0.20);
+
+  /* ── Text (space-separated RGB for Tailwind alpha) ── */
+  --aegis-text:           var(--color-slate-100);
+  --aegis-text-secondary: var(--color-slate-300);
+  --aegis-text-muted:     var(--color-slate-400);
+  --aegis-text-dim:       var(--color-slate-500);
+
+  /* ── Primary — Red ── */
+  --aegis-primary:        var(--color-red-500);
+  --aegis-primary-hover:  var(--color-red-600);
+  --aegis-primary-deep:   var(--color-red-700);
+  --aegis-primary-glow:   rgb(var(--color-red-500) / 0.16);
+  --aegis-primary-surface:rgb(var(--color-red-500) / 0.08);
+
+  /* ── Accent — Rose ── */
+  --aegis-accent:         var(--color-rose-400);
+  --aegis-accent-hover:   var(--color-rose-500);
+  --aegis-accent-glow:    rgb(var(--color-rose-400) / 0.14);
+
+  /* ── Status ── */
+  --aegis-danger:         var(--color-red-400);
+  --aegis-danger-surface: rgb(var(--color-red-400) / 0.10);
+  --aegis-warning:        var(--color-amber-400);
+  --aegis-warning-surface:rgb(var(--color-amber-400) / 0.10);
+  --aegis-success:        var(--color-green-400);
+  --aegis-success-surface:rgb(var(--color-green-400) / 0.10);
+
+  /* ── Messages ── */
+  --aegis-user-bubble:    rgb(var(--color-red-500) / 0.12);
+  --aegis-user-border:    rgb(var(--color-red-500) / 0.20);
+  --aegis-bot-bubble:     rgb(255 255 255 / 0.04);
+  --aegis-bot-border:     rgb(255 255 255 / 0.07);
+
+  /* ── Glass ── */
+  --aegis-glass:          rgb(255 255 255 / 0.04);
+  --aegis-glass-border:   rgb(255 255 255 / 0.08);
+  --aegis-glass-hover:    rgb(255 255 255 / 0.08);
+
+  /* ── Overlay ── */
+  --aegis-overlay:        var(--color-white);
+
+  /* ── Scrollbar ── */
+  --aegis-scrollbar:      rgb(255 255 255 / 0.08);
+  --aegis-scrollbar-hover:rgb(255 255 255 / 0.15);
+
+  /* ── Selection ── */
+  --aegis-selection:      rgb(var(--color-red-500) / 0.28);
+  --aegis-selection-text: rgb(var(--color-slate-100));
+
+  /* ── Body ── */
+  --aegis-body:           rgb(0 0 0);
+
+  /* ── Frosted ── */
+  --aegis-bg-frosted:     rgb(0 0 0 / 0.95);
+  --aegis-bg-frosted-60:  rgb(0 0 0 / 0.6);
+
+  /* ── Code ── */
+  --aegis-code-bg:        rgb(0 0 0);
+  --aegis-code-header:    rgb(10 10 10);
+
+  /* ── Data Visualization ── */
+  --aegis-data-1:  var(--color-data-1);
+  --aegis-data-2:  var(--color-data-2);
+  --aegis-data-3:  var(--color-data-3);
+  --aegis-data-4:  var(--color-data-4);
+  --aegis-data-5:  var(--color-data-5);
+  --aegis-data-6:  var(--color-data-6);
+  --aegis-data-7:  var(--color-data-7);
+  --aegis-data-8:  var(--color-data-8);
+  --aegis-data-9:  var(--color-data-9);
+  --aegis-data-10: var(--color-data-10);
+
+  /* ── Menus & Dropdowns ── */
+  --aegis-menu-bg:         rgb(14 14 14);
+  --aegis-menu-hover:      rgb(255 255 255 / 0.08);
+  --aegis-menu-active:     rgb(var(--color-red-500) / 0.15);
+  --aegis-menu-border:     rgb(255 255 255 / 0.10);
+  --aegis-menu-shadow:     0 8px 24px rgb(0 0 0 / 0.7);
+  --aegis-menu-text:       rgb(var(--color-slate-100));
+  --aegis-menu-text-muted: rgb(var(--color-slate-500));
+
+  /* ── Button text (white on red — WCAG AA) ── */
+  --aegis-btn-primary-text: rgb(var(--color-slate-100));
+}

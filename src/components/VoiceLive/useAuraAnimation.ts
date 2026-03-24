@@ -9,6 +9,7 @@ import { useRef } from 'react';
 import type { VoiceState } from '../../services/voiceLive/types';
 import type { ShaderUniform } from './ReactShaderToy';
 import { useSettingsStore } from '../../stores/settingsStore';
+import { useVoiceLiveStore } from '../../stores/voiceLiveStore';
 
 /** Shader uniform preset for a given voice state */
 interface AuraPreset {
@@ -119,6 +120,7 @@ function lerpArray(a: number[], b: number[], t: number): number[] {
 export function useAuraAnimation(state: VoiceState): Record<string, ShaderUniform> {
   const { theme } = useSettingsStore();
   const isDark = theme === 'aegis-dark';
+  const audioLevel = useVoiceLiveStore((s) => s.audioLevel);
 
   // Track current interpolated values
   const currentRef = useRef<AuraPreset | null>(null);
@@ -169,14 +171,16 @@ export function useAuraAnimation(state: VoiceState): Record<string, ShaderUnifor
     currentRef.current = { ...interpolated };
   }
 
-  // Build final uniforms object (deps intentionally empty — values come from refs)
+  // Apply real-time audio level to amplitude and mix for organic reactivity
+  const audioBoost = audioLevel * 1.5;
+
   return {
     ...STATIC_UNIFORMS,
-    uSpeed: { type: '1f' as const, value: interpolated.uSpeed },
-    uScale: { type: '1f' as const, value: interpolated.uScale },
-    uFrequency: { type: '1f' as const, value: interpolated.uFrequency },
-    uAmplitude: { type: '1f' as const, value: interpolated.uAmplitude },
-    uMix: { type: '1f' as const, value: interpolated.uMix },
+    uSpeed: { type: '1f' as const, value: interpolated.uSpeed * (1 + audioLevel * 2) },
+    uScale: { type: '1f' as const, value: interpolated.uScale * (1 + audioLevel * .3) },
+    uFrequency: { type: '1f' as const, value: interpolated.uFrequency * (1 + audioLevel * .5) },
+    uAmplitude: { type: '1f' as const, value: interpolated.uAmplitude + audioBoost },
+    uMix: { type: '1f' as const, value: interpolated.uMix + audioLevel * .8 },
     uColor: { type: '3fv' as const, value: interpolated.uColor },
   };
 }

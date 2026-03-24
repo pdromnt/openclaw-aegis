@@ -39,6 +39,45 @@
   -webkit-app-region: no-drag;
 }
 
+/* ── Window controls (minimize/maximize/close) ── */
+.voice-window-controls {
+  position: absolute;
+  top: 12px;
+  right: 56px;
+  z-index: 60;
+  display: flex;
+  gap: 6px;
+  -webkit-app-region: no-drag;
+}
+
+.voice-window-controls button {
+  width: 32px;
+  height: 22px;
+  border-radius: 11px;
+  border: 1px solid rgb(var(--aegis-border, 255 255 255) / 0.08);
+  background: rgb(var(--aegis-elevated, 255 255 255) / 0.04);
+  color: rgb(var(--aegis-text-dim, 148 163 184));
+  font-size: 12px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.voice-window-controls button:hover {
+  background: rgb(var(--aegis-elevated, 255 255 255) / 0.08);
+  border-color: rgb(var(--aegis-border, 255 255 255) / 0.15);
+  color: rgb(var(--aegis-text-secondary, 203 213 225));
+}
+
+.voice-window-controls .voice-window-close:hover {
+  background: rgb(var(--aegis-danger, 248 113 113) / 0.2);
+  border-color: rgb(var(--aegis-danger, 248 113 113) / 0.3);
+  color: rgb(var(--aegis-danger, 248 113 113));
+}
+
 .voice-back-btn:hover {
   background: rgb(var(--aegis-elevated, 255 255 255) / 0.15);
   color: rgb(var(--aegis-text, 226 232 240));
@@ -117,9 +156,9 @@
 /* ── Aura container ── */
 .voice-aura-container {
   position: relative;
-  width: 220px;
-  height: 220px;
-  margin-bottom: 24px;
+  width: 380px;
+  height: 380px;
+  margin-bottom: 12px;
 }
 
 /* ── Status indicator ── */
@@ -182,14 +221,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 32px;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .voice-btn-mic {
   position: relative;
-  width: 72px;
-  height: 72px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   border: 2px solid transparent;
   cursor: pointer;
@@ -273,7 +312,16 @@
   transition: color 0.2s, opacity 0.2s;
 }
 
-/* ── Controls ── */
+/* ── Controls Row — all buttons inline, mic in center ── */
+.voice-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+/* Legacy controls (hidden — replaced by controls-row) */
 .voice-controls {
   display: flex;
   align-items: center;
@@ -375,6 +423,7 @@
   backdrop-filter: blur(24px) saturate(1.3);
   z-index: 20;
   padding: 24px;
+  padding-top: 48px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -563,4 +612,52 @@
 .voice-btn-cancel:hover {
   background: var(--aegis-elevated);
   color: rgb(var(--aegis-text));
+}
+
+/* ── Visualizer Style Picker ── */
+.voice-style-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.voice-style-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--aegis-border);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.voice-style-card:hover {
+  background: var(--aegis-elevated);
+  border-color: rgba(var(--aegis-text-muted), 0.3);
+}
+
+.voice-style-card-active {
+  background: var(--aegis-elevated);
+  border-color: rgb(var(--aegis-primary));
+  box-shadow: 0 0 12px rgba(var(--aegis-primary), 0.15);
+}
+
+.voice-style-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.voice-style-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgb(var(--aegis-text-muted));
+  letter-spacing: 0.5px;
+}
+
+.voice-style-card-active .voice-style-name {
+  color: rgb(var(--aegis-primary));
 }

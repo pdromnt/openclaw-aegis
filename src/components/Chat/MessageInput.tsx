@@ -115,6 +115,18 @@ export function MessageInput() {
     return () => window.removeEventListener('aegis:file-drop', handler);
   }, []);
 
+  // Listen for quick-action events from CommandPalette / Dashboard
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.message) {
+        gateway.sendMessage(detail.message, undefined, activeSessionKey);
+      }
+    };
+    window.addEventListener('aegis:quick-action', handler);
+    return () => window.removeEventListener('aegis:quick-action', handler);
+  }, [activeSessionKey]);
+
   // ── Slash menu logic ──
   const slashQuery = text.startsWith('/') ? text.split(' ')[0].toLowerCase() : '';
   const filteredSlash = slashQuery
@@ -411,7 +423,7 @@ export function MessageInput() {
 
       {/* Slash Command Autocomplete */}
       {slashMenuOpen && filteredSlash.length > 0 && (
-        <div className="mx-3 mb-1 rounded-xl border border-aegis-border/15 bg-aegis-surface/95 backdrop-blur-xl shadow-float overflow-hidden max-h-[280px] overflow-y-auto scrollbar-thin">
+        <div className="mx-3 mb-1 border border-aegis-border/15 bg-aegis-surface/95 backdrop-blur-xl shadow-float overflow-hidden max-h-[280px] overflow-y-auto scrollbar-thin" style={{ borderRadius: 'var(--aegis-radius)' }}>
           {filteredSlash.map((cmd, i) => {
             const Icon = cmd.icon;
             return (
@@ -443,13 +455,14 @@ export function MessageInput() {
         <div className="flex items-end gap-2 p-3" dir={dir}>
           {/* Input Wrapper (matches mockup) */}
           <div className={clsx(
-            'flex items-center gap-2 px-3 py-2 rounded-2xl flex-1',
+            'flex items-center gap-2 px-3 py-2 flex-1',
             'bg-aegis-surface border border-[rgb(var(--aegis-overlay)/0.06)]',
             'transition-all duration-200',
             'focus-within:border-aegis-primary/30',
             'focus-within:shadow-[0_0_0_3px_rgb(var(--aegis-primary)/0.06),0_0_16px_rgb(var(--aegis-primary)/0.08)]',
             !connected && 'opacity-40'
-          )}>
+          )}
+          style={{ borderRadius: 'var(--aegis-radius)' }}>
             {/* Action Buttons */}
             <EmojiPicker
               onSelect={(emoji) => { setText((prev) => prev + emoji); textareaRef.current?.focus(); }}
@@ -495,7 +508,7 @@ export function MessageInput() {
 
               {/* Voice mode picker dropdown */}
               {voiceMenuOpen && (
-                <div className="absolute bottom-full mb-2 ltr:left-0 rtl:right-0 w-48 rounded-xl border border-aegis-border/20 bg-aegis-bg-solid shadow-float overflow-hidden z-50">
+                <div className="absolute bottom-full mb-2 ltr:left-0 rtl:right-0 w-48 border border-aegis-border/20 bg-aegis-bg-solid shadow-float overflow-hidden z-50" style={{ borderRadius: 'var(--aegis-radius)' }}>
                   <button
                     onClick={() => { setVoiceMenuOpen(false); setVoiceMode('stt'); }}
                     className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[12px] text-aegis-text hover:bg-[rgb(var(--aegis-overlay)/0.06)] transition-colors"
@@ -522,17 +535,24 @@ export function MessageInput() {
             </div>
 
             {/* Text Input */}
-            <textarea ref={textareaRef} data-input="message" value={text} onChange={(e) => setText(e.target.value)}
-              onKeyDown={handleKeyDown} onPaste={handlePaste}
-              placeholder={connected ? t('input.placeholder') : t('input.placeholderDisconnected')}
-              disabled={!connected}
-              className={clsx(
-                'flex-1 resize-none bg-transparent border-none text-[14px]',
-                'text-aegis-text placeholder:text-aegis-text-muted',
-                'focus:outline-none py-1.5 px-1',
-                'max-h-[180px] scrollbar-hidden'
+            <div className="relative flex-1">
+              <textarea ref={textareaRef} data-input="message" value={text} onChange={(e) => setText(e.target.value)}
+                onKeyDown={handleKeyDown} onPaste={handlePaste}
+                placeholder={connected ? t('input.placeholder') : t('input.placeholderDisconnected')}
+                disabled={!connected}
+                className={clsx(
+                  'w-full resize-none bg-transparent border-none text-[14px]',
+                  'text-aegis-text placeholder:text-aegis-text-muted',
+                  'focus:outline-none py-1.5 px-1',
+                  'max-h-[180px] scrollbar-hidden'
+                )}
+                dir={dir} rows={1} />
+              {text.length > 50 && (
+                <span className="absolute bottom-0 right-1 text-[9px] text-aegis-text-dim pointer-events-none select-none tabular-nums">
+                  {text.length}
+                </span>
               )}
-              dir={dir} rows={1} />
+            </div>
 
             {/* Send / Stop Button */}
             {isTyping || isSending ? (

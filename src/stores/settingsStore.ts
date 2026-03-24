@@ -1,11 +1,12 @@
 import { create } from 'zustand';
+import { scopedGet, scopedSet } from '@/utils/scopedStorage';
 
 // ═══════════════════════════════════════════════════════════
 // Settings Store
 // ═══════════════════════════════════════════════════════════
 
 interface SettingsState {
-  theme: 'aegis-dark' | 'aegis-light';
+  theme: 'aegis-dark' | 'aegis-light' | 'aegis-knot';
   fontSize: number;
   sidebarOpen: boolean;
   sidebarWidth: number;
@@ -51,6 +52,10 @@ interface SettingsState {
   setGatewayToken: (token: string) => void;
   accentColor: string;
   setAccentColor: (color: string) => void;
+  voiceVisualizerStyle: 'aura' | 'nebula' | 'raphael';
+  setVoiceVisualizerStyle: (style: 'aura' | 'nebula' | 'raphael') => void;
+  uiRoundness: 'sharp' | 'soft' | 'round';
+  setUiRoundness: (r: 'sharp' | 'soft' | 'round') => void;
 }
 
 const ACCENT_SHADES: Record<string, { 400: string; 500: string; 600: string; raw400: string }> = {
@@ -73,7 +78,7 @@ const detectLang = (): 'ar' | 'en' => {
 const savedLang = detectLang();
 
 export const useSettingsStore = create<SettingsState>((set) => ({
-  theme: (localStorage.getItem('aegis-theme') || 'aegis-dark') as 'aegis-dark' | 'aegis-light',
+  theme: (localStorage.getItem('aegis-theme') || 'aegis-dark') as 'aegis-dark' | 'aegis-light' | 'aegis-knot',
   fontSize: 14,
   sidebarOpen: true,
   sidebarWidth: 280,
@@ -82,23 +87,23 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   notificationsEnabled: localStorage.getItem('aegis-notifications') !== 'false',
   soundEnabled: localStorage.getItem('aegis-sound') !== 'false',
   dndMode: false,
-  budgetLimit: parseFloat(localStorage.getItem('aegis-budget-limit') || '0') || 0,
+  budgetLimit: parseFloat(scopedGet('aegis-budget-limit') || '0') || 0,
   commandPaletteOpen: false,
   focusMode: false,
-  memoryExplorerEnabled: localStorage.getItem('aegis-memory-explorer') === 'true',
-  memoryMode: (localStorage.getItem('aegis-memory-mode') || 'local') as 'api' | 'local',
-  memoryApiUrl: localStorage.getItem('aegis-memory-api-url') || 'http://localhost:3040',
-  memoryLocalPath: localStorage.getItem('aegis-memory-local-path') || '',
-  context1mEnabled: localStorage.getItem('aegis-context1m') === 'true',
-  toolIntentEnabled: localStorage.getItem('aegis-tool-intent') === 'true',
-  audioAutoPlay: localStorage.getItem('aegis-audio-autoplay') === 'true',
+  memoryExplorerEnabled: scopedGet('aegis-memory-explorer') === 'true',
+  memoryMode: (scopedGet('aegis-memory-mode') || 'local') as 'api' | 'local',
+  memoryApiUrl: scopedGet('aegis-memory-api-url') || 'http://localhost:3040',
+  memoryLocalPath: scopedGet('aegis-memory-local-path') || '',
+  context1mEnabled: scopedGet('aegis-context1m') === 'true',
+  toolIntentEnabled: scopedGet('aegis-tool-intent') !== 'false',
+  audioAutoPlay: scopedGet('aegis-audio-autoplay') === 'true',
   gatewayUrl: localStorage.getItem('aegis-gateway-url') || '',
   gatewayToken: localStorage.getItem('aegis-gateway-token') || '',
   accentColor: localStorage.getItem('aegis-accent-color') || 'teal',
 
   setTheme: (theme) => {
     localStorage.setItem('aegis-theme', theme);
-    set({ theme: theme as 'aegis-dark' | 'aegis-light' });
+    set({ theme: theme as 'aegis-dark' | 'aegis-light' | 'aegis-knot' });
     window.aegis?.settings?.save?.('theme', theme).catch?.(() => {});
   },
   setFontSize: (size) => {
@@ -113,16 +118,16 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setNotificationsEnabled: (enabled) => { localStorage.setItem('aegis-notifications', String(enabled)); set({ notificationsEnabled: enabled }); },
   setSoundEnabled: (enabled) => { localStorage.setItem('aegis-sound', String(enabled)); set({ soundEnabled: enabled }); },
   setDndMode: (dnd) => set({ dndMode: dnd }),
-  setBudgetLimit: (n) => { localStorage.setItem('aegis-budget-limit', String(n)); set({ budgetLimit: n }); },
+  setBudgetLimit: (n) => { scopedSet('aegis-budget-limit', String(n)); set({ budgetLimit: n }); },
   setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
-  setMemoryExplorerEnabled: (enabled) => { localStorage.setItem('aegis-memory-explorer', String(enabled)); set({ memoryExplorerEnabled: enabled }); },
-  setMemoryMode: (mode) => { localStorage.setItem('aegis-memory-mode', mode); set({ memoryMode: mode }); },
-  setMemoryApiUrl: (url) => { localStorage.setItem('aegis-memory-api-url', url); set({ memoryApiUrl: url }); },
-  setMemoryLocalPath: (path) => { localStorage.setItem('aegis-memory-local-path', path); set({ memoryLocalPath: path }); },
-  setContext1mEnabled: (enabled) => { localStorage.setItem('aegis-context1m', String(enabled)); set({ context1mEnabled: enabled }); },
-  setToolIntentEnabled: (enabled) => { localStorage.setItem('aegis-tool-intent', String(enabled)); set({ toolIntentEnabled: enabled }); },
-  setAudioAutoPlay: (enabled) => { localStorage.setItem('aegis-audio-autoplay', String(enabled)); set({ audioAutoPlay: enabled }); },
+  setMemoryExplorerEnabled: (enabled) => { scopedSet('aegis-memory-explorer', String(enabled)); set({ memoryExplorerEnabled: enabled }); },
+  setMemoryMode: (mode) => { scopedSet('aegis-memory-mode', mode); set({ memoryMode: mode }); },
+  setMemoryApiUrl: (url) => { scopedSet('aegis-memory-api-url', url); set({ memoryApiUrl: url }); },
+  setMemoryLocalPath: (path) => { scopedSet('aegis-memory-local-path', path); set({ memoryLocalPath: path }); },
+  setContext1mEnabled: (enabled) => { scopedSet('aegis-context1m', String(enabled)); set({ context1mEnabled: enabled }); },
+  setToolIntentEnabled: (enabled) => { scopedSet('aegis-tool-intent', String(enabled)); set({ toolIntentEnabled: enabled }); },
+  setAudioAutoPlay: (enabled) => { scopedSet('aegis-audio-autoplay', String(enabled)); set({ audioAutoPlay: enabled }); },
   setGatewayUrl: (url) => {
     localStorage.setItem('aegis-gateway-url', url);
     set({ gatewayUrl: url });
@@ -147,10 +152,30 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       root.style.setProperty('--aegis-primary-surface', `rgb(${shades.raw400} / 0.08)`);
     }
   },
+  voiceVisualizerStyle: (localStorage.getItem('aegis-voice-visualizer') || 'aura') as 'aura' | 'nebula' | 'raphael',
+  setVoiceVisualizerStyle: (style) => {
+    localStorage.setItem('aegis-voice-visualizer', style);
+    set({ voiceVisualizerStyle: style });
+  },
+  uiRoundness: (localStorage.getItem('aegis-ui-roundness') || 'round') as 'sharp' | 'soft' | 'round',
+  setUiRoundness: (r) => {
+    localStorage.setItem('aegis-ui-roundness', r);
+    set({ uiRoundness: r });
+    // Apply CSS variable
+    const map = { sharp: '2px', soft: '6px', round: '12px' };
+    document.documentElement.style.setProperty('--aegis-radius', map[r]);
+  },
 }));
 
 // Apply saved accent on load
 const savedAccent = localStorage.getItem('aegis-accent-color');
 if (savedAccent && savedAccent !== 'teal') {
   useSettingsStore.getState().setAccentColor(savedAccent);
+}
+
+// Apply saved roundness on load
+const savedRoundness = localStorage.getItem('aegis-ui-roundness');
+if (savedRoundness) {
+  const map: Record<string, string> = { sharp: '2px', soft: '6px', round: '12px' };
+  document.documentElement.style.setProperty('--aegis-radius', map[savedRoundness] || '12px');
 }

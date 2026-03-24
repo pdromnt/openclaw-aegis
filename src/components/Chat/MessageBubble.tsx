@@ -1,7 +1,9 @@
 import { memo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Copy, Check, User, RotateCcw, Eye, Code2, RefreshCw, Pencil, ChevronDown, ChevronRight, Pin, PinOff } from 'lucide-react';
+import remarkBreaks from 'remark-breaks';
+import { Copy, Check, User, RotateCcw, Eye, Code2, RefreshCw, Pencil, ChevronDown, ChevronRight, Pin, PinOff, Maximize2, Minimize2, Volume2 } from 'lucide-react';
+import { gateway } from '@/services/gateway';
 import { useTranslation } from 'react-i18next';
 import { getDirection } from '@/i18n';
 import { CodeBlock } from './CodeBlock';
@@ -78,7 +80,7 @@ function ArtifactCard({ artifact }: { artifact: Artifact }) {
   };
 
   return (
-    <div className="my-3 rounded-xl border border-aegis-primary/20 bg-aegis-primary/[0.04] overflow-hidden">
+    <div className="my-3 border border-aegis-primary/20 bg-aegis-primary/[0.04] overflow-hidden" style={{ borderRadius: 'var(--aegis-radius)' }}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-aegis-primary/10">
         <div className="flex items-center gap-2.5">
@@ -120,7 +122,9 @@ function ArtifactCard({ artifact }: { artifact: Artifact }) {
 
 // ── Collapsed Meta — thinking, workshop, system under reply ──
 function CollapsedMeta({ items }: { items: MetaItem[] }) {
-  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+  // Thinking starts expanded by default (matches Gateway UI behavior)
+  const thinkingIdx = items.findIndex(i => i.kind === 'thinking');
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(thinkingIdx >= 0 ? thinkingIdx : null);
 
   return (
     <div className="mt-2 pt-2 border-t border-[rgb(var(--aegis-overlay)/0.06)]">
@@ -260,6 +264,8 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
   const [showActions, setShowActions] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState('');
+  const [expanded, setExpanded] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const isUser = block.role === 'user';
   const dir = getDirection(i18n.language);
 
@@ -270,6 +276,18 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
     await navigator.clipboard.writeText(content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSpeak = async () => {
+    if (isSpeaking) return;
+    setIsSpeaking(true);
+    try {
+      await gateway.speak(content);
+    } catch (err) {
+      console.error('[MessageBubble] speak error:', err);
+    } finally {
+      setIsSpeaking(false);
+    }
   };
 
   const timeStr = (() => {
@@ -286,7 +304,7 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
   return (
     <div
       className={clsx(
-        'group flex items-start gap-3 px-5 py-1.5 transition-colors',
+        'group flex items-start gap-3 px-5 py-1.5 transition-colors overflow-hidden',
         isUser ? 'flex-row-reverse' : '',
         !isUser && 'hover:bg-[rgb(var(--aegis-overlay)/0.015)]'
       )}
@@ -304,16 +322,17 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
       )}
 
       {/* Message Content */}
-      <div className={clsx('flex flex-col max-w-[80%] min-w-0', isUser && 'items-end')}>
+      <div className={clsx('flex flex-col min-w-0', isUser ? 'items-end max-w-[80%]' : expanded ? 'max-w-full w-full mx-0' : 'max-w-[80%]')}>
         {/* Bubble */}
         <div
           className={clsx(
-            'rounded-2xl px-4 py-2.5 relative',
+            'px-4 py-2.5 relative overflow-hidden',
             isUser
               ? 'rounded-tl-md bg-aegis-primary/[0.12] border border-aegis-primary/20'
               : 'rounded-tr-md bg-[rgb(var(--aegis-overlay)/0.04)] border border-[rgb(var(--aegis-overlay)/0.06)]',
             block.isStreaming && 'border-aegis-primary/30'
           )}
+          style={{ borderRadius: 'var(--aegis-radius)' }}
         >
           {/* Streaming shimmer */}
           {block.isStreaming && (
@@ -383,7 +402,7 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
           ) : (
             <div className="markdown-body text-[14px] leading-relaxed text-aegis-text">
               {content && (
-                <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={markdownComponents}>
                   {content}
                 </ReactMarkdown>
               )}
@@ -418,6 +437,17 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
                   <Copy size={11} className="text-aegis-text-muted hover:text-aegis-text-secondary" />
                 )}
               </button>
+              {/* Read Aloud — assistant only, text > 50 chars */}
+              {block.role === 'assistant' && content.length > 50 && (
+                <button
+                  onClick={handleSpeak}
+                  disabled={isSpeaking}
+                  className="p-1 rounded-md hover:bg-[rgb(var(--aegis-overlay)/0.06)] transition-colors disabled:opacity-50"
+                  title={t('chat.readAloud', 'Read aloud')}
+                >
+                  <Volume2 size={11} className={isSpeaking ? 'text-aegis-primary animate-pulse' : 'text-aegis-text-muted hover:text-aegis-text-secondary'} />
+                </button>
+              )}
               {/* Pin/Unpin */}
               <PinButton messageId={block.id || ''} text={block.markdown} />
               {block.role === 'user' && onResend && (
@@ -437,6 +467,19 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
                   title={t('chat.regenerate', 'Regenerate')}
                 >
                   <RefreshCw size={11} className="text-aegis-text-muted hover:text-aegis-text-secondary" />
+                </button>
+              )}
+              {/* Expand — assistant only, for long messages */}
+              {block.role === 'assistant' && content.length > 500 && (
+                <button
+                  onClick={() => setExpanded(v => !v)}
+                  className="p-1 rounded-md hover:bg-[rgb(var(--aegis-overlay)/0.06)] transition-colors"
+                  title={expanded ? t('chat.collapse', 'Collapse') : t('chat.expand', 'Expand')}
+                >
+                  {expanded
+                    ? <Minimize2 size={11} className="text-aegis-text-muted hover:text-aegis-text-secondary" />
+                    : <Maximize2 size={11} className="text-aegis-text-muted hover:text-aegis-text-secondary" />
+                  }
                 </button>
               )}
               {/* Edit — user only */}

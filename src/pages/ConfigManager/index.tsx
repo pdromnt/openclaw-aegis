@@ -163,7 +163,9 @@ export function ConfigManagerPage() {
       // 1. Re-read the latest version from disk to capture any external edits
       const { data: diskConfig } = await window.aegis.config.read(configPath);
 
-      // 2. Apply only the user's changes on top of the fresh disk version
+      // 2. Build a patch: only keys the user actually changed vs original
+      //    smartMerge gives us the merged result; we use config.patch so the
+      //    IPC layer applies it on top of the live file (handles any final-ms edits).
       const merged = smartMerge(diskConfig, originalConfig, config);
 
       // Auto-backup: save last 5 versions before overwriting
@@ -180,12 +182,17 @@ export function ConfigManagerPage() {
         console.warn('[Config] Backup failed:', backupErr);
       }
 
-      // 3. Write the merged result
-      await window.aegis.config.write(configPath, merged);
+      // 3. Use patch semantics — sends only changed keys, preserves any CLI edits
+      //    made between the time we read diskConfig and now.
+      const patchResult = await window.aegis.config.patch(configPath, merged);
+      if (!patchResult.success) throw new Error(patchResult.error || 'Patch failed');
 
-      // 4. Sync both states to the merged version
-      setConfig(structuredClone(merged));
-      setOriginalConfig(structuredClone(merged));
+      // Re-read the final patched config so our in-memory state matches disk exactly
+      const { data: finalConfig } = await window.aegis.config.read(configPath);
+
+      // 4. Sync both states to the final on-disk version
+      setConfig(structuredClone(finalConfig));
+      setOriginalConfig(structuredClone(finalConfig));
 
       // Restart gateway after successful save
       try {

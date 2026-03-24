@@ -29,6 +29,10 @@ export class AudioPlayback {
 
   // ── Track ALL scheduled sources so stop() can kill them all ──
   private activeSources: AudioBufferSourceNode[] = [];
+  private analyserNode: AnalyserNode | null = null;
+
+  /** AnalyserNode for real-time output audio level metering */
+  get analyser(): AnalyserNode | null { return this.analyserNode; }
 
   /** Called when all queued audio has finished playing */
   onPlaybackEnd: () => void = () => {};
@@ -44,6 +48,11 @@ export class AudioPlayback {
   private ensureContext(): AudioContext {
     if (!this.audioContext || this.audioContext.state === 'closed') {
       this.audioContext = new AudioContext({ sampleRate: PLAYBACK_SAMPLE_RATE });
+      // Create analyser for output level metering
+      this.analyserNode = this.audioContext.createAnalyser();
+      this.analyserNode.fftSize = 256;
+      this.analyserNode.smoothingTimeConstant = 0.8;
+      this.analyserNode.connect(this.audioContext.destination);
     }
     return this.audioContext;
   }
@@ -137,7 +146,8 @@ export class AudioPlayback {
 
     const source = ctx.createBufferSource();
     source.buffer = buffer;
-    source.connect(ctx.destination);
+    // Route through analyser for level metering, then to speakers
+    source.connect(this.analyserNode || ctx.destination);
 
     // Schedule at exact time for gapless playback
     const startTime = Math.max(this.nextStartTime, ctx.currentTime);
