@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -99,7 +99,7 @@ function buildTheme(base: Record<string, any>) {
 const COLLAPSE_THRESHOLD = 30; // Lines before auto-collapse
 const PREVIEW_LINES = 10;     // Lines shown when collapsed
 
-export function CodeBlock({ language, code }: CodeBlockProps) {
+export const CodeBlock = memo(function CodeBlock({ language, code }: CodeBlockProps) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
@@ -135,7 +135,7 @@ export function CodeBlock({ language, code }: CodeBlockProps) {
         <span className="text-[10px] font-mono font-medium text-aegis-text-muted uppercase tracking-widest">
           {displayLang}
           {isLong && (
-            <span className="ml-2 opacity-60">{totalLines} lines</span>
+            <span className="ml-2 opacity-60">{t('code.lines', { count: totalLines })}</span>
           )}
         </span>
         <button
@@ -190,16 +190,16 @@ export function CodeBlock({ language, code }: CodeBlockProps) {
           {collapsed ? (
             <>
               <ChevronDown size={13} />
-              Show all ({totalLines} lines)
+              {t('code.showAll', { lines: totalLines })}
             </>
           ) : (
             <>
               <ChevronUp size={13} />
-              Collapse
+              {t('code.collapseCode')}
             </>
           )}
         </button>
       )}
     </div>
   );
-}
+});

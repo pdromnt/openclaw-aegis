@@ -1,13 +1,24 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Send, Paperclip, Camera, Mic, X, Loader2, Square, FilePlus, RotateCcw, StopCircle, RefreshCw, Layers, Zap, Lightbulb, Eraser, Maximize, Terminal, BarChart3, Info, Download, MessageSquare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useChatStore } from '@/stores/chatStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { gateway } from '@/services/gateway/index';
-import { ScreenshotPicker } from './ScreenshotPicker';
-import { VoiceRecorder } from './VoiceRecorder';
-import { SpeechToText, isSpeechRecognitionSupported } from './SpeechToText';
 import { EmojiPicker } from './EmojiPicker';
+
+// Lazy-load heavy modals (only needed on user action)
+const ScreenshotPicker = lazy(() => import('./ScreenshotPicker').then(m => ({ default: m.ScreenshotPicker })));
+const VoiceRecorder = lazy(() => import('./VoiceRecorder').then(m => ({ default: m.VoiceRecorder })));
+const SpeechToText = lazy(() => import('./SpeechToText').then(m => ({ default: m.SpeechToText })));
+
+// Import isSpeechRecognitionSupported separately (lightweight check)
+let _sttSupported: boolean | null = null;
+function isSpeechRecognitionSupported(): boolean {
+  if (_sttSupported === null) {
+    _sttSupported = !!(window as any).SpeechRecognition || !!(window as any).webkitSpeechRecognition;
+  }
+  return _sttSupported;
+}
 import { getDirection } from '@/i18n';
 import clsx from 'clsx';
 
@@ -448,9 +459,13 @@ export function MessageInput() {
 
       {/* Input Area */}
       {voiceMode === 'record' ? (
-        <VoiceRecorder onSendVoice={handleVoiceSend} onCancel={() => setVoiceMode(false)} disabled={!connected} />
+        <Suspense fallback={<div className="p-4 text-center text-aegis-text-dim text-[12px]">...</div>}>
+          <VoiceRecorder onSendVoice={handleVoiceSend} onCancel={() => setVoiceMode(false)} disabled={!connected} />
+        </Suspense>
       ) : voiceMode === 'stt' ? (
-        <SpeechToText onResult={handleSTTResult} onCancel={() => setVoiceMode(false)} />
+        <Suspense fallback={<div className="p-4 text-center text-aegis-text-dim text-[12px]">...</div>}>
+          <SpeechToText onResult={handleSTTResult} onCancel={() => setVoiceMode(false)} />
+        </Suspense>
       ) : (
         <div className="flex items-end gap-2 p-3" dir={dir}>
           {/* Input Wrapper (matches mockup) */}
@@ -515,8 +530,8 @@ export function MessageInput() {
                   >
                     <MessageSquare size={14} className="text-aegis-primary" />
                     <div className="text-start">
-                      <div className="font-medium">Speech to Text</div>
-                      <div className="text-[10px] text-aegis-text-dim">Real-time · Free · Client-side</div>
+                      <div className="font-medium">{t('input.speechToText')}</div>
+                      <div className="text-[10px] text-aegis-text-dim">{t('input.sttSubtitle')}</div>
                     </div>
                   </button>
                   <div className="mx-2 border-t border-aegis-border/10" />
@@ -526,8 +541,8 @@ export function MessageInput() {
                   >
                     <Mic size={14} className="text-amber-400" />
                     <div className="text-start">
-                      <div className="font-medium">Voice Recording</div>
-                      <div className="text-[10px] text-aegis-text-dim">Audio file · Server transcription</div>
+                      <div className="font-medium">{t('input.voiceRecording')}</div>
+                      <div className="text-[10px] text-aegis-text-dim">{t('input.voiceSubtitle')}</div>
                     </div>
                   </button>
                 </div>
@@ -575,14 +590,18 @@ export function MessageInput() {
                   'disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none'
                 )}
                 title={t('input.send')}>
-                <Send size={16} className={dir === 'rtl' ? 'rotate-180' : ''} />
+                <Send size={16} />
               </button>
             )}
           </div>
         </div>
       )}
 
-      <ScreenshotPicker open={screenshotOpen} onClose={() => setScreenshotOpen(false)} onCapture={handleScreenshotCapture} />
+      {screenshotOpen && (
+        <Suspense fallback={null}>
+          <ScreenshotPicker open={screenshotOpen} onClose={() => setScreenshotOpen(false)} onCapture={handleScreenshotCapture} />
+        </Suspense>
+      )}
     </div>
   );
 }

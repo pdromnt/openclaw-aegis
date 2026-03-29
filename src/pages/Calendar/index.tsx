@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════
-// Calendar — Professional calendar with Cron-powered reminders
-// Month/Week/Day views • Full i18n • RTL-aware • Offline-first
+// Calendar — Professional calendar with Hijri/Chinese support
+// Month/Week/Day views • 3 calendar systems • Full i18n • RTL
 // ═══════════════════════════════════════════════════════════
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
@@ -10,6 +10,9 @@ import clsx from 'clsx';
 import { PageTransition } from '@/components/shared/PageTransition';
 import { useCalendarStore } from '@/stores/calendarStore';
 import { getMonthName, toDateStr } from './calendarUtils';
+import { toHijri, toChinese, SYSTEM_COLORS } from './calendarConversions';
+import { CalendarSystemTabs } from './CalendarSystemTabs';
+import { TodayCard } from './TodayCard';
 import { MonthView } from './MonthView';
 import { WeekView } from './WeekView';
 import { DayView } from './DayView';
@@ -24,8 +27,8 @@ export default function CalendarPage() {
   const isRtl = i18n.dir() === 'rtl' || locale.startsWith('ar');
 
   const {
-    events, loading, error, selectedDate, view,
-    setView, setSelectedDate, navigate, goToToday,
+    events, loading, error, selectedDate, view, calendarSystem,
+    setView, setSelectedDate, setCalendarSystem, navigate, goToToday,
     loadEvents, syncPendingReminders,
   } = useCalendarStore();
 
@@ -90,19 +93,36 @@ export default function CalendarPage() {
         case 'w': case 'W': setView('week'); break;
         case 'd': case 'D': setView('day'); break;
         case 'n': case 'N': handleAddEvent(); break;
+        case '1': setCalendarSystem('gregorian'); break;
+        case '2': setCalendarSystem('hijri'); break;
+        case '3': setCalendarSystem('chinese'); break;
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [showModal, isRtl, navigate, goToToday, setView, handleAddEvent]);
+  }, [showModal, isRtl, navigate, goToToday, setView, handleAddEvent, setCalendarSystem]);
 
-  // ── View title ──
+  // ── Dynamic view title based on calendar system ──
   const viewTitle = useMemo(() => {
+    if (calendarSystem === 'hijri') {
+      const h = toHijri(selectedDate);
+      if (view === 'month') return h.monthYearAr;
+      if (view === 'week') return h.monthYearAr;
+      return h.fullAr;
+    }
+    if (calendarSystem === 'chinese') {
+      const c = toChinese(selectedDate);
+      if (view === 'month') return `${c.zodiacEmoji} ${c.stemBranch}年 ${c.monthName}`;
+      if (view === 'week') return `${c.zodiacEmoji} ${c.stemBranch}年 ${c.monthName}`;
+      return `${c.zodiacEmoji} ${c.fullZh}`;
+    }
+    // Gregorian — app language
     if (view === 'month') return `${getMonthName(month, locale)} ${year}`;
     if (view === 'week') return `${getMonthName(selectedDate.getMonth(), locale)} ${selectedDate.getFullYear()}`;
-    // Day: full localized date
     return selectedDate.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
-  }, [view, month, year, selectedDate, locale]);
+  }, [view, calendarSystem, month, year, selectedDate, locale]);
+
+  const colors = SYSTEM_COLORS[calendarSystem];
 
   return (
     <PageTransition className="h-full flex">
@@ -123,7 +143,9 @@ export default function CalendarPage() {
               className="p-1.5 rounded-lg bg-aegis-elevated border border-aegis-border text-aegis-text-muted hover:text-aegis-primary hover:border-[rgb(var(--color-teal-400)/0.3)] transition-colors">
               {isRtl ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
             </button>
-            <h1 className="text-[20px] font-bold text-aegis-text ms-2">{viewTitle}</h1>
+            <h1 className="text-[20px] font-bold ms-2" style={{ color: colors.primary }}>
+              {viewTitle}
+            </h1>
             <span className="text-[13px] text-aegis-text-dim">— {t('calendar.eventCount', { count: monthEventCount })}</span>
           </div>
 
@@ -142,6 +164,13 @@ export default function CalendarPage() {
             ))}
           </div>
         </div>
+
+        {/* Calendar System Tabs */}
+        <CalendarSystemTabs
+          activeSystem={calendarSystem}
+          onSystemChange={setCalendarSystem}
+          selectedDate={selectedDate}
+        />
 
         {/* Error banner */}
         {error && (
@@ -171,6 +200,9 @@ export default function CalendarPage() {
           className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-aegis-primary text-aegis-btn-primary-text font-semibold text-[14px] hover:bg-aegis-primary-hover transition-colors shadow-md shadow-[rgb(var(--color-teal-400)/0.2)]">
           <Plus size={18} /> {t('calendar.addEvent')}
         </button>
+
+        {/* Today in 3 calendar systems */}
+        <TodayCard />
 
         <MiniCalendar onSelectDate={(d) => { setSelectedDate(d); setView('day'); }} />
 

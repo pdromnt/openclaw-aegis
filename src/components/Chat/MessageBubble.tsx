@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo, useState, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
@@ -16,6 +16,7 @@ import clsx from 'clsx';
 
 // ── Pin Button ──
 function PinButton({ messageId, text }: { messageId: string; text: string }) {
+  const { t } = useTranslation();
   const isPinned = useChatStore((s) => s.pinnedMessages.some(p => p.id === messageId));
   const pinMessage = useChatStore((s) => s.pinMessage);
   const unpinMessage = useChatStore((s) => s.unpinMessage);
@@ -26,7 +27,7 @@ function PinButton({ messageId, text }: { messageId: string; text: string }) {
     <button
       onClick={() => isPinned ? unpinMessage(messageId) : pinMessage(messageId, text)}
       className="p-1 rounded-md hover:bg-[rgb(var(--aegis-overlay)/0.06)] transition-colors"
-      title={isPinned ? 'Unpin' : 'Pin'}
+      title={isPinned ? t('chat.unpin') : t('chat.pin')}
     >
       {isPinned ? (
         <PinOff size={11} className="text-amber-400" />
@@ -42,13 +43,15 @@ function AgentAvatar() {
   const avatarUrl = useChatStore((s) => s.agentAvatarUrl);
   const agentName = useChatStore((s) => s.agentName);
   const initial = (agentName || 'A').charAt(0).toUpperCase();
+  const [imgError, setImgError] = useState(false);
 
-  if (avatarUrl) {
+  if (avatarUrl && !imgError) {
     return (
       <img
         src={avatarUrl}
         alt={agentName || 'Agent'}
         className="w-8 h-8 rounded-xl shrink-0 mt-0.5 shadow-glow-sm object-cover"
+        onError={() => setImgError(true)}
       />
     );
   }
@@ -62,6 +65,7 @@ function AgentAvatar() {
 
 // ── Artifact Card Component ──
 function ArtifactCard({ artifact }: { artifact: Artifact }) {
+  const { t } = useTranslation();
   const [opening, setOpening] = useState(false);
 
   const typeIcons: Record<string, string> = {
@@ -101,14 +105,14 @@ function ArtifactCard({ artifact }: { artifact: Artifact }) {
           )}
         >
           <Eye size={13} />
-          Preview
+          {t('chat.preview')}
         </button>
       </div>
       {/* Code preview (collapsed) */}
       <details className="group">
         <summary className="px-4 py-1.5 text-[11px] text-aegis-text-dim cursor-pointer hover:text-aegis-text-muted flex items-center gap-1.5 select-none">
           <Code2 size={11} />
-          View source ({artifact.content.length} chars)
+          {t('chat.viewSource', { chars: artifact.content.length })}
         </summary>
         <div className="px-4 pb-3 max-h-[200px] overflow-auto">
           <pre className="text-[11px] text-aegis-text-dim font-mono whitespace-pre-wrap bg-[rgb(var(--aegis-overlay)/0.08)] rounded-lg p-3">
@@ -122,9 +126,8 @@ function ArtifactCard({ artifact }: { artifact: Artifact }) {
 
 // ── Collapsed Meta — thinking, workshop, system under reply ──
 function CollapsedMeta({ items }: { items: MetaItem[] }) {
-  // Thinking starts expanded by default (matches Gateway UI behavior)
-  const thinkingIdx = items.findIndex(i => i.kind === 'thinking');
-  const [expandedIdx, setExpandedIdx] = useState<number | null>(thinkingIdx >= 0 ? thinkingIdx : null);
+  // All meta items start collapsed — user opens manually
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
   return (
     <div className="mt-2 pt-2 border-t border-[rgb(var(--aegis-overlay)/0.06)]">
@@ -190,7 +193,88 @@ function FileCard({ path, meta }: { path: string; meta?: string }) {
   );
 }
 
-// ── Shared Markdown Components ──
+// ── Check if message is recent (< 3 seconds old) for animation ──
+function isRecent(timestamp: string): boolean {
+  try {
+    return Date.now() - new Date(timestamp).getTime() < 3000;
+  } catch {
+    return false;
+  }
+}
+
+// ── Progressive streaming: close incomplete fenced code blocks ──
+// Without this, ReactMarkdown breaks when streaming partial ```code blocks
+function closeIncompleteCodeBlocks(text: string): string {
+  // Count opening ``` (with optional lang) and closing ```
+  const fencePattern = /^```/gm;
+  const matches = text.match(fencePattern);
+  if (!matches || matches.length % 2 === 0) return text; // balanced or none
+  // Odd number of fences → there's an unclosed block, append closing fence
+  return text + '\n```';
+}
+
+// ── Streaming markdown components — lightweight, no code highlighting ──
+const streamingMarkdownComponents = {
+  table({ children }: any) {
+    return (
+      <div className="table-wrapper">
+        <table>{children}</table>
+      </div>
+    );
+  },
+  code({ className, children, ...props }: any) {
+    const match = /language-(\w+)/.exec(className || '');
+    const codeString = String(children).replace(/\n$/, '');
+    if (match || codeString.includes('\n')) {
+      // During streaming: show styled block WITHOUT syntax highlighting (fast)
+      return (
+        <div className="my-2 rounded-xl overflow-hidden border border-[rgb(var(--aegis-overlay)/0.08)]" dir="ltr"
+          style={{ background: 'var(--aegis-code-bg)' }}>
+          <div className="flex items-center px-3.5 py-1.5 border-b border-[rgb(var(--aegis-overlay)/0.06)]"
+            style={{ background: 'var(--aegis-code-header)' }}>
+            <span className="text-[10px] font-mono font-medium text-aegis-text-muted uppercase tracking-widest">
+              {match?.[1] || 'code'}
+            </span>
+          </div>
+          <pre className="p-4 text-[0.87em] font-mono leading-relaxed text-aegis-text whitespace-pre-wrap break-words overflow-x-auto"
+            style={{ background: 'var(--aegis-code-bg)', margin: 0 }}>
+            <code>{codeString}</code>
+          </pre>
+        </div>
+      );
+    }
+    return (
+      <code
+        className="text-[13px] font-mono px-1.5 py-0.5 rounded"
+        style={{ background: 'rgb(var(--aegis-primary) / 0.12)', color: 'rgb(var(--aegis-primary))' }}
+        {...props}
+      >
+        {children}
+      </code>
+    );
+  },
+  img({ src, alt }: any) {
+    if (!src) return null;
+    const videoExtensions = /\.(mp4|webm|mov|avi|mkv|m4v|ogg)(\?.*)?$/i;
+    if (videoExtensions.test(src)) {
+      return <ChatVideo src={src} alt={alt} maxWidth="100%" maxHeight="400px" />;
+    }
+    return <ChatImage src={src} alt={alt} maxWidth="100%" maxHeight="400px" />;
+  },
+  a({ href, children }: any) {
+    return (
+      <a
+        href={href}
+        onClick={(e) => { e.preventDefault(); if (href) window.open(href, '_blank'); }}
+        className="text-aegis-primary hover:text-aegis-primary/70 underline underline-offset-2"
+      >
+        {children}
+      </a>
+    );
+  },
+};
+
+// ── Shared Markdown Components (final — with full syntax highlighting) ──
 const markdownComponents = {
   table({ children }: any) {
     return (
@@ -305,6 +389,8 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
     <div
       className={clsx(
         'group flex items-start gap-3 px-5 py-1.5 transition-colors overflow-hidden',
+        // Animate only fresh messages (streaming or recent), not history
+        (block.isStreaming || isRecent(block.timestamp)) && 'animate-slide-up',
         isUser ? 'flex-row-reverse' : '',
         !isUser && 'hover:bg-[rgb(var(--aegis-overlay)/0.015)]'
       )}
@@ -395,10 +481,16 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
               </div>
             </div>
           ) : block.isStreaming ? (
-            /* Plain text while streaming — no ReactMarkdown parsing overhead */
-            <pre className="markdown-body text-[14px] leading-relaxed text-aegis-text whitespace-pre-wrap break-words font-[inherit]">
-              {content}
-            </pre>
+            /* Progressive Markdown during streaming — renders headers, code, tables live */
+            <div className="markdown-body text-[14px] leading-relaxed text-aegis-text">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm, remarkBreaks]}
+                components={streamingMarkdownComponents}
+              >
+                {closeIncompleteCodeBlocks(content)}
+              </ReactMarkdown>
+              <span className="inline-block w-[2px] h-[16px] bg-aegis-primary/60 ml-0.5 align-text-bottom animate-pulse" />
+            </div>
           ) : (
             <div className="markdown-body text-[14px] leading-relaxed text-aegis-text">
               {content && (

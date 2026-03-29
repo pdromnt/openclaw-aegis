@@ -354,7 +354,7 @@ function ProfileRow({ profileKey, profile, allModels, primaryModel, onChange }: 
               >
                 {(tmpl?.authModes ?? ['api_key']).map((m) => (
                   <option key={m} value={m}>
-                    {m === 'api_key' ? 'API Key' : m === 'oauth' ? 'OAuth' : 'Token'}
+                    {m === 'api_key' ? t('config.authApiKey') : m === 'oauth' ? t('config.authOAuth') : t('config.authToken')}
                   </option>
                 ))}
               </select>
@@ -607,7 +607,7 @@ function ModelsProviderRow({ unifiedProvider, onChange }: ModelsProviderRowProps
                 'transition-all duration-200'
               )}
             >
-              <Trash2 size={12} /> Remove
+              <Trash2 size={12} /> {t('config.remove')}
             </button>
           </div>
         </div>
@@ -658,7 +658,7 @@ function EnvOnlyRow({ unifiedProvider, onConfigure }: EnvOnlyRowProps) {
             <div className="text-[11px] text-aegis-text-muted truncate">
               {envKeyName && <span className="font-mono">{envKeyName}</span>}
               {envKeyName && ' · '}
-              <span>Add an auth profile for full configuration</span>
+              <span>{t('configExtra.addAuthProfile')}</span>
             </div>
           </div>
         </div>
@@ -680,7 +680,7 @@ function EnvOnlyRow({ unifiedProvider, onConfigure }: EnvOnlyRowProps) {
                 'transition-all duration-200'
               )}
             >
-              <Plus size={11} /> Configure
+              <Plus size={11} /> {t('config.configure')}
             </button>
           )}
         </div>
@@ -910,7 +910,7 @@ function ConfigureStep({ tmpl, onBack, onAdd }: ConfigureStepProps) {
           >
             {tmpl.authModes.map((m) => (
               <option key={m} value={m}>
-                {m === 'api_key' ? 'API Key' : m === 'oauth' ? 'OAuth' : 'Token'}
+                {m === 'api_key' ? t('config.authApiKey') : m === 'oauth' ? t('config.authOAuth') : t('config.authToken')}
               </option>
             ))}
           </select>
@@ -991,7 +991,7 @@ function ConfigureStep({ tmpl, onBack, onAdd }: ConfigureStepProps) {
             'disabled:opacity-40 disabled:cursor-not-allowed'
           )}
         >
-          <Plus size={14} /> Add Provider
+          <Plus size={14} /> {t('config.addProvider')}
         </button>
       </div>
     </div>
@@ -1165,9 +1165,9 @@ export function ProvidersTab({ config, onChange }: ProvidersTabProps) {
         <div className="flex gap-5 p-3.5 bg-aegis-surface border border-aegis-border rounded-xl">
           <StatCard value={uniqueProviderCount} label={t('config.providers')} colorClass="text-aegis-primary" />
           <div className="w-px bg-aegis-border" />
-          <StatCard value={modelCount} label="Models"  colorClass="text-blue-400" />
+          <StatCard value={modelCount} label={t('configExtra.models', 'Models')}  colorClass="text-blue-400" />
           <div className="w-px bg-aegis-border" />
-          <StatCard value={aliasCount} label="Aliases" colorClass="text-purple-400" />
+          <StatCard value={aliasCount} label={t('configExtra.aliases', 'Aliases')} colorClass="text-purple-400" />
         </div>
 
         {/* Primary model banner */}
@@ -1186,7 +1186,7 @@ export function ProvidersTab({ config, onChange }: ProvidersTabProps) {
             </div>
             <div className="text-sm font-bold text-aegis-primary truncate mt-0.5">
               {primaryModel ?? (
-                <span className="text-aegis-text-muted font-normal italic">Not set</span>
+                <span className="text-aegis-text-muted font-normal italic">{t('configExtra.notSet')}</span>
               )}
             </div>
           </div>

@@ -176,7 +176,7 @@ function NoBridgeState() {
         </div>
         <div className="mt-3 px-4 py-2 rounded-lg bg-[rgb(var(--aegis-overlay)/0.04)] border border-[rgb(var(--aegis-overlay)/0.08)] inline-block">
           <code className="text-[11px] text-aegis-text-dim font-mono">
-            File browsing requires IPC bridge — coming soon
+            {t('fileManager.noBridgeCode')}
           </code>
         </div>
       </div>

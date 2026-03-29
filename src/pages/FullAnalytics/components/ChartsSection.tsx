@@ -2,6 +2,7 @@
 // ChartsSection — Daily Cost AreaChart + Agent Donut PieChart
 // ═══════════════════════════════════════════════════════════
 
+import { memo } from 'react';
 import { useTranslation }      from 'react-i18next';
 import { TrendingUp, Package, BarChart3 } from 'lucide-react';
 import {
@@ -34,7 +35,7 @@ interface ChartsSectionProps {
   totalCost: number;
 }
 
-export function ChartsSection({ chartData, donutData, totalCost }: ChartsSectionProps) {
+export const ChartsSection = memo(function ChartsSection({ chartData, donutData, totalCost }: ChartsSectionProps) {
   const { t } = useTranslation();
 
   return (
@@ -48,7 +49,7 @@ export function ChartsSection({ chartData, donutData, totalCost }: ChartsSection
               {t('analytics.dailyCost', 'Daily Cost')}
             </span>
             <span className="text-[9px] text-aegis-text-dim ms-auto font-mono">
-              {chartData.length} data points
+              {t('analytics.dataPoints', { count: chartData.length })}
             </span>
           </div>
 
@@ -88,7 +89,7 @@ export function ChartsSection({ chartData, donutData, totalCost }: ChartsSection
                   <Area
                     type="monotone"
                     dataKey="output"
-                    name="Output Cost"
+                    name={t("analytics.outputCost")}
                     stroke={themeHex('primary')}
                     strokeWidth={1.5}
                     fill="url(#gradOut)"
@@ -98,7 +99,7 @@ export function ChartsSection({ chartData, donutData, totalCost }: ChartsSection
                   <Area
                     type="monotone"
                     dataKey="input"
-                    name="Input Cost"
+                    name={t("analytics.inputCost")}
                     stroke={themeHex('accent')}
                     strokeWidth={1.5}
                     fill="url(#gradFull)"
@@ -119,11 +120,11 @@ export function ChartsSection({ chartData, donutData, totalCost }: ChartsSection
           <div className="flex justify-center gap-4 mt-3">
             <div className="flex items-center gap-1.5 text-[10px] text-aegis-text-muted">
               <div className="w-2 h-2 rounded-sm" style={{ background: 'rgb(var(--aegis-accent))' }} />
-              Input Cost
+              {t('analytics.inputCost')}
             </div>
             <div className="flex items-center gap-1.5 text-[10px] text-aegis-text-muted">
               <div className="w-2 h-2 rounded-sm" style={{ background: 'rgb(var(--aegis-primary))' }} />
-              Output Cost
+              {t('analytics.outputCost')}
             </div>
           </div>
         </GlassCard>
@@ -203,18 +204,18 @@ export function ChartsSection({ chartData, donutData, totalCost }: ChartsSection
                 })}
                 {donutData.length > 6 && (
                   <div className="text-[9px] text-aegis-text-dim text-center">
-                    +{donutData.length - 6} more agents
+                    {t('analytics.moreAgents', { count: donutData.length - 6 })}
                   </div>
                 )}
               </div>
             </>
           ) : (
             <div className="flex items-center justify-center h-[220px] text-aegis-text-dim text-[12px]">
-              No agent data yet
+              {t('analytics.noAgentData')}
             </div>
           )}
         </GlassCard>
       </div>
     </div>
   );
-}
+});

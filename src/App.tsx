@@ -105,10 +105,31 @@ export default function App() {
   }, [setTokenUsage, setCurrentModel, setCurrentThinking, manualModelOverride]);
 
   // ── Load Available Models from Gateway ──
-  // Multi-strategy: config.get → agents.list + session → fallback
+  // Multi-strategy: models.list → config.get → agents.list + session → fallback
   // Labels are formatted in TitleBar via formatModelName(), so we just store IDs.
   const loadAvailableModels = useCallback(async () => {
-    // ── Strategy 1: config.get → agents.defaults.models (most reliable) ──
+    // ── Strategy 1: models.list API (richest data — includes all allowed models) ──
+    try {
+      const res = await gateway.getAvailableModels();
+      const rawModels = Array.isArray(res?.models) ? res.models : [];
+      if (rawModels.length > 0) {
+        const fromApi = rawModels.map((m: any) => ({
+          id: typeof m === 'string' ? m : (m.id || m.model || ''),
+          label: typeof m === 'string' ? m : (m.id || m.model || ''),
+          alias: typeof m === 'object' ? (m.alias || m.name || undefined) : undefined,
+          contextWindow: typeof m === 'object' ? (m.contextWindow || m.context_window || undefined) : undefined,
+          reasoning: typeof m === 'object' ? (m.reasoning || false) : false,
+          provider: typeof m === 'object' ? (m.provider || (m.id || '').split('/')[0] || undefined) : undefined,
+        })).filter((m: any) => m.id);
+        console.log('[Models] Loaded from models.list:', fromApi.length);
+        setAvailableModels(fromApi);
+        return;
+      }
+    } catch (e) {
+      console.warn('[Models] models.list failed, trying config.get:', e);
+    }
+
+    // ── Strategy 2: config.get → agents.defaults.models ──
     try {
       const raw = await gateway.call('config.get', {});
       // Response may be config directly OR wrapped: { config: {...} }
@@ -130,7 +151,7 @@ export default function App() {
       console.warn('[Models] config.get failed, trying agents.list:', e);
     }
 
-    // ── Strategy 2: Collect unique models from agents + session ──
+    // ── Strategy 3: Collect unique models from agents + session ──
     try {
       const modelMap = new Map<string, { id: string; label: string; alias?: string }>();
 
@@ -160,7 +181,7 @@ export default function App() {
       console.warn('[Models] agents.list failed:', e);
     }
 
-    // ── Strategy 3: FALLBACK_MODELS in TitleBar ──
+    // ── Strategy 4: FALLBACK_MODELS in TitleBar ──
     console.warn('[Models] All strategies failed — using hardcoded fallback');
   }, [setAvailableModels]);
 

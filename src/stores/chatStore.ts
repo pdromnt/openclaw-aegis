@@ -105,12 +105,15 @@ interface ChatState {
   execApprovals: Array<{ id: string; command: string; cwd?: string; expiresAt: number }>;
   addExecApproval: (approval: { id: string; command: string; cwd?: string; expiresAt: number }) => void;
   removeExecApproval: (id: string) => void;
+  pluginApprovals: Array<{ id: string; title: string; description: string; severity: string | null; toolName: string | null; pluginId: string | null; expiresAt: number }>;
+  addPluginApproval: (approval: { id: string; title: string; description: string; severity: string | null; toolName: string | null; pluginId: string | null; expiresAt: number }) => void;
+  removePluginApproval: (id: string) => void;
   pinnedMessages: Array<{ id: string; text: string; pinnedAt: number }>;
   pinMessage: (id: string, text: string) => void;
   unpinMessage: (id: string) => void;
 
-  // Available models (fetched from gateway models.list)
-  availableModels: Array<{ id: string; label: string; alias?: string }>;
+  // Available models (fetched from gateway models.list → config.get → agents fallback)
+  availableModels: Array<{ id: string; label: string; alias?: string; contextWindow?: number; reasoning?: boolean; provider?: string }>;
   setAvailableModels: (models: Array<{ id: string; label: string; alias?: string }>) => void;
 
   // Drafts (per-session)
@@ -500,6 +503,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
   })),
   removeExecApproval: (id) => set((s) => ({
     execApprovals: s.execApprovals.filter(a => a.id !== id)
+  })),
+  pluginApprovals: [],
+  addPluginApproval: (approval) => set((s) => ({
+    pluginApprovals: [...s.pluginApprovals.filter(a => a.id !== approval.id && a.expiresAt > Date.now()), approval]
+  })),
+  removePluginApproval: (id) => set((s) => ({
+    pluginApprovals: s.pluginApprovals.filter(a => a.id !== id)
   })),
   pinnedMessages: JSON.parse(localStorage.getItem('aegis-pinned-messages') || '[]'),
   pinMessage: (id, text) => set((s) => {

@@ -6,7 +6,8 @@
 
 ---
 
-![Electron](https://img.shields.io/badge/Electron-34-47848F?logo=electron&logoColor=white)
+![Version](https://img.shields.io/badge/Version-6.0.0-blue)
+![Electron](https://img.shields.io/badge/Electron-35-47848F?logo=electron&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)
 ![OpenClaw](https://img.shields.io/badge/OpenClaw-2026.3.12+-blueviolet)
@@ -26,9 +27,13 @@ OpenClaw is powerful — but managing it through a terminal or basic webchat lea
 - 🤖 **Agent Hub** — manage all your agents from a single panel
 - ⏰ **Cron Monitor** — schedule and control jobs visually
 - ⚙️ **Config Manager** — edit your OpenClaw configuration with Smart Merge (preserves external edits)
-- 🧩 **Plugins** — modular system with 8 built-in plugins, inline rendering, and persistent state
+- 🧩 **Plugins** — modular system with 9 built-in plugins, inline rendering, and persistent state
 - 🔧 **Skills & Terminal** — browse the marketplace and run shell commands without leaving the app
-- 🌍 **Bilingual** — full Arabic (RTL) and English (LTR) support out of the box
+- 🧠 **Memory Explorer** — semantic search and CRUD for agent memories
+- 📋 **Session Manager** — monitor and manage all active sessions
+- 📜 **Logs Viewer** — real-time Gateway logs with filtering
+- 📁 **File Manager** — browse and manage workspace files
+- 🌍 **Multilingual** — Arabic (RTL), English, Spanish, and Chinese out of the box
 
 If you run OpenClaw, AEGIS Desktop is the UI it deserves.
 
@@ -70,20 +75,22 @@ If you run OpenClaw, AEGIS Desktop is the UI it deserves.
 - Smart Quick Reply Buttons — AI presents clickable `[[button:Label]]` chips
 - In-chat search (`Ctrl+F`) with result navigation
 - Image paste/drag/upload, file attachments, video playback, voice messages
+- Emoji picker with search and categories
 - Artifacts preview — interactive HTML, React, SVG, and Mermaid in a sandboxed window
 - Virtuoso virtualized list for smooth scrolling in long conversations
 - Message queue with auto-send on reconnect
 
 ### 📅 Calendar
+- **Three calendar systems** — Gregorian, Hijri (Islamic Umm al-Qura), and Chinese
 - Month, Week, and Day views with hour-by-hour timeline
 - Add, edit, and delete events with color-coded categories (work, personal, health, social, other)
-- Recurring events — daily, weekly, and monthly
-- Cron-powered reminders — each event creates an OpenClaw Cron job for automatic notifications
-- Customizable reminder timing — 5, 10, 15, 30, or 60 minutes before the event
-- Delivery channel selection — receive reminders on Telegram, Discord, or WhatsApp
+- Recurring events — daily, weekly, monthly, and yearly
+- Cron-powered reminders — each event creates an OpenClaw Cron job for automatic notifications (works across all calendar systems)
+- Customizable reminder timing — 5, 15, 30, 60 minutes, 2 hours, 1 day, or 1 week before the event
+- Delivery channel selection — receive reminders on Telegram, Discord, WhatsApp, or last active channel
 - One-shot reminders auto-delete after firing
 - Offline-first — events persist in localStorage, sync with Gateway when connected
-- Full bilingual support (Arabic/English)
+- Full multilingual support (Arabic, English, Spanish, Chinese)
 
 ### 🎤 Voice Chat
 - Real-time voice conversations powered by **Gemini Live API** as a speech relay
@@ -96,7 +103,7 @@ If you run OpenClaw, AEGIS Desktop is the UI it deserves.
 - Session timer with model info display
 
 ### 🧩 Plugins
-- Modular plugin system with **8 built-in plugins**: Pixel Agents, Session Manager, Logs Viewer, Multi-Agent, File Manager, Code Interpreter, MCP Tools, Analytics
+- Modular plugin system with **9 built-in plugins**: Pixel Agents, Session Manager, Logs Viewer, Multi-Agent, File Manager, Code Interpreter, MCP Tools, Skills, Memory Explorer
 - **Responsive grid layout** — 3 columns on desktop, 2 on tablet, 1 on mobile
 - **Inline rendering** — plugins open inside the page without route navigation
 - **Persistent state** — remembers your last opened plugin via localStorage
@@ -122,7 +129,7 @@ If you run OpenClaw, AEGIS Desktop is the UI it deserves.
 ### 🎨 Interface
 - Dark and light themes with full CSS variable system (`--aegis-*`)
 - 6 accent colors (teal, blue, purple, rose, amber, emerald)
-- Arabic (RTL) and English (LTR) with logical CSS properties
+- 4 languages: Arabic (RTL), English (LTR), Spanish, and Chinese — with logical CSS properties
 - Command Palette (`Ctrl+K`), keyboard shortcuts, global hotkey (`Alt+Space`)
 - Model and reasoning level pickers in the title bar
 - Lazy-loaded pages with code splitting for fast startup
@@ -169,7 +176,14 @@ OpenClaw Gateway (local or remote)       Gemini Live API
   ├── Plugins     ← modular extension system
   ├── Config      ← visual config editor
   ├── Skills      ← ClawHub marketplace
-  └── Terminal    ← shell via node-pty
+  ├── Terminal    ← shell via node-pty
+  ├── Sessions    ← active session manager
+  ├── Logs        ← real-time log viewer
+  ├── Memory      ← semantic memory explorer
+  ├── Files       ← workspace file manager
+  ├── Sandbox     ← code interpreter
+  ├── MCP Tools   ← tool management
+  └── Settings    ← app preferences
 ```
 
 ---
@@ -191,16 +205,18 @@ npm run package:portable # Portable exe
 
 | Layer | Technology |
 |-------|-----------|
-| Framework | Electron 34 |
+| Framework | Electron 35 |
 | UI | React 18 + TypeScript 5.7 |
 | Build | Vite 6 |
 | Styling | Tailwind CSS + CSS Variables |
 | Animations | Framer Motion |
-| State | Zustand |
+| State | Zustand 5 |
 | Charts | Recharts |
 | Terminal | xterm.js + node-pty |
 | Icons | Lucide React |
+| Routing | React Router 7 |
 | i18n | react-i18next |
+| Emoji | emoji-mart |
 
 ---
 

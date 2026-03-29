@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { ShieldCheck, RefreshCw, AlertTriangle, KeyRound } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import type { OpenClawConfig } from './types';
 import { ExpandableCard } from './components';
@@ -63,6 +64,7 @@ function Toast({ toast, onDismiss }: { toast: ToastState; onDismiss: () => void 
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function SecretsTab({ config }: SecretsTabProps) {
+  const { t } = useTranslation();
   // Audit state
   const [auditing, setAuditing] = useState(false);
   const [auditResult, setAuditResult] = useState<SecretsAuditResult | null>(null);
@@ -86,7 +88,7 @@ export function SecretsTab({ config }: SecretsTabProps) {
       if (result?.success && result.data) {
         setAuditResult(result.data);
       } else {
-        setAuditError(result?.error ?? 'Audit failed');
+        setAuditError(result?.error ?? t('config.auditFailed'));
       }
     } catch (err: unknown) {
       const e = err as Error;
@@ -102,9 +104,9 @@ export function SecretsTab({ config }: SecretsTabProps) {
     try {
       const result = await window.aegis?.secrets?.reload();
       if (result?.success) {
-        setToast({ kind: 'success', message: 'Secrets reloaded successfully' });
+        setToast({ kind: 'success', message: t('config.secretsReloaded') });
       } else {
-        setToast({ kind: 'error', message: result?.error ?? 'Reload failed' });
+        setToast({ kind: 'error', message: result?.error ?? t('config.reloadFailed') });
       }
     } catch (err: unknown) {
       const e = err as Error;
@@ -120,12 +122,12 @@ export function SecretsTab({ config }: SecretsTabProps) {
     if (!auditResult) return null;
     const { status } = auditResult;
     if (status === 'clean')
-      return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">🟢 Clean — no issues found</span>;
+      return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">{t('config.auditClean')}</span>;
     if (status === 'findings')
-      return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold bg-yellow-400/10 text-yellow-400 border border-yellow-400/20">🟡 Findings — plaintext secrets detected</span>;
+      return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold bg-yellow-400/10 text-yellow-400 border border-yellow-400/20">{t('config.auditFindings')}</span>;
     if (status === 'unresolved')
-      return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold bg-red-400/10 text-red-400 border border-red-400/20">🔴 Unresolved — secret refs could not be resolved</span>;
-    return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold bg-zinc-400/10 text-zinc-400 border border-zinc-400/20">⚪ Unknown</span>;
+      return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold bg-red-400/10 text-red-400 border border-red-400/20">{t('config.auditUnresolved')}</span>;
+    return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold bg-zinc-400/10 text-zinc-400 border border-zinc-400/20">{t('config.auditUnknown')}</span>;
   };
 
   return (
@@ -134,8 +136,8 @@ export function SecretsTab({ config }: SecretsTabProps) {
 
       {/* A) Audit Section */}
       <ExpandableCard
-        title="Secrets Audit"
-        subtitle="Scan config for plaintext secrets and unresolved refs"
+        title={t('configExtra.secretsAudit', 'Secrets Audit')}
+        subtitle={t('configExtra.scanSecrets', 'Scan config for plaintext secrets...')}
         icon={<ShieldCheck size={15} />}
         defaultExpanded
       >
@@ -151,7 +153,7 @@ export function SecretsTab({ config }: SecretsTabProps) {
             )}
           >
             <ShieldCheck size={14} className={auditing ? 'animate-pulse' : ''} />
-            {auditing ? 'Running audit...' : 'Run Audit'}
+            {auditing ? t('configManager.runningAudit') : t('configManager.runAudit')}
           </button>
 
           {auditStatusBadge()}
@@ -173,8 +175,8 @@ export function SecretsTab({ config }: SecretsTabProps) {
 
       {/* B) Providers Section */}
       <ExpandableCard
-        title="Secret Providers"
-        subtitle="Configured sources for secret resolution (read-only — edit via Advanced → Raw JSON)"
+        title={t('configExtra.secretProviders', 'Secret Providers')}
+        subtitle={t('config.secretProvidersSubtitle')}
         icon={<KeyRound size={15} />}
         defaultExpanded
         badge={
@@ -188,9 +190,9 @@ export function SecretsTab({ config }: SecretsTabProps) {
         {providerEntries.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-6 gap-2 text-center">
             <KeyRound size={24} className="text-aegis-text-muted" />
-            <p className="text-sm text-aegis-text-muted">No secret providers configured</p>
+            <p className="text-sm text-aegis-text-muted">{t('configExtra.noSecretProviders')}</p>
             <p className="text-xs text-aegis-text-muted">
-              Add providers under <code className="font-mono bg-aegis-elevated px-1 rounded">secrets.providers</code> in the Advanced tab
+              {t('config.addProvidersHint')}
             </p>
           </div>
         ) : (
@@ -223,14 +225,13 @@ export function SecretsTab({ config }: SecretsTabProps) {
 
       {/* C) Reload Section */}
       <ExpandableCard
-        title="Reload Secrets"
-        subtitle="Re-resolves all secret refs and swaps the runtime snapshot"
+        title={t('configExtra.reloadSecrets', 'Reload Secrets')}
+        subtitle={t('configExtra.reloadSecretsDesc')}
         icon={<RefreshCw size={15} />}
         defaultExpanded
       >
         <p className="text-xs text-aegis-text-muted mb-3">
-          Use this after updating secret values in your providers (environment variables, files, etc.)
-          to apply them without restarting the gateway.
+          {t('config.reloadHint')}
         </p>
         <button
           onClick={handleReload}
@@ -244,7 +245,7 @@ export function SecretsTab({ config }: SecretsTabProps) {
           )}
         >
           <RefreshCw size={14} className={reloading ? 'animate-spin' : ''} />
-          {reloading ? 'Reloading...' : 'Reload Secrets'}
+          {reloading ? t('configExtra.reloading', 'Reloading...') : t('configExtra.reloadSecrets')}
         </button>
       </ExpandableCard>
     </div>

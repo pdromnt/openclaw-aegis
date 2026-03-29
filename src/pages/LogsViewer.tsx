@@ -154,8 +154,8 @@ export function LogsViewerPage() {
       // Time range
       if (rangeMs < Infinity && entry.timestamp) {
         try {
-          const t = new Date(entry.timestamp).getTime();
-          if (now - t > rangeMs) return false;
+          const ts = new Date(entry.timestamp).getTime();
+          if (now - ts > rangeMs) return false;
         } catch { /* keep */ }
       }
 
@@ -167,11 +167,11 @@ export function LogsViewerPage() {
   }, [logs, levelFilter, timeRange, search]);
 
   const levels: LogLevel[] = ['all', 'error', 'warn', 'info', 'debug'];
-  const timeRanges: { key: TimeRange; label: string }[] = [
-    { key: '1h', label: 'Last 1h' },
-    { key: '6h', label: 'Last 6h' },
-    { key: '24h', label: 'Last 24h' },
-    { key: 'all', label: 'All' },
+  const timeRanges: { key: TimeRange; labelKey: string }[] = [
+    { key: '1h', labelKey: 'logs.last1h' },
+    { key: '6h', labelKey: 'logs.last6h' },
+    { key: '24h', labelKey: 'logs.last24h' },
+    { key: 'all', labelKey: 'logs.timeAll' },
   ];
 
   return (
@@ -181,10 +181,10 @@ export function LogsViewerPage() {
         <div className="flex items-center justify-between mb-3">
           <div>
             <h1 className="text-[18px] font-bold text-aegis-text flex items-center gap-2">
-              <ScrollText size={20} /> Gateway Logs
+              <ScrollText size={20} /> {t('logs.title')}
             </h1>
             <p className="text-[12px] text-aegis-text-dim mt-0.5">
-              {filtered.length} entries{logs.length !== filtered.length ? ` (${logs.length} total)` : ''}
+              {t('logs.entriesCount', { count: filtered.length })}{logs.length !== filtered.length ? ` ${t('logs.totalCount', { count: logs.length })}` : ''}
             </p>
           </div>
           <button
@@ -192,7 +192,7 @@ export function LogsViewerPage() {
             disabled={loading}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] text-aegis-text-muted bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.08)] hover:bg-[rgb(var(--aegis-overlay)/0.06)] transition-colors"
           >
-            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} /> Refresh
+            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} /> {t('logs.refresh')}
           </button>
         </div>
 
@@ -205,7 +205,7 @@ export function LogsViewerPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Filter logs..."
+              placeholder={t('logs.filterPlaceholder')}
               className="w-full pl-9 pr-3 py-2 rounded-lg text-[12px] font-mono bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.08)] text-aegis-text placeholder:text-aegis-text-dim/40 outline-none focus:border-aegis-primary/30"
             />
           </div>
@@ -225,7 +225,7 @@ export function LogsViewerPage() {
                     : 'bg-[rgb(var(--aegis-overlay)/0.03)] text-aegis-text-muted border-transparent hover:bg-[rgb(var(--aegis-overlay)/0.06)]'
                 )}
               >
-                {lvl.charAt(0).toUpperCase() + lvl.slice(1)}
+                {t(`logs.level${lvl.charAt(0).toUpperCase() + lvl.slice(1)}`)}
               </button>
             ))}
           </div>
@@ -237,7 +237,7 @@ export function LogsViewerPage() {
             className="px-2.5 py-1.5 rounded-md text-[11px] bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.08)] text-aegis-text-muted outline-none cursor-pointer"
           >
             {timeRanges.map((tr) => (
-              <option key={tr.key} value={tr.key}>{tr.label}</option>
+              <option key={tr.key} value={tr.key}>{t(tr.labelKey)}</option>
             ))}
           </select>
 
@@ -253,7 +253,7 @@ export function LogsViewerPage() {
           >
             {liveTail && <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
             <Radio size={10} />
-            Live Tail
+            {t('logs.liveTail')}
           </button>
         </div>
 
@@ -269,7 +269,7 @@ export function LogsViewerPage() {
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-[200px] text-aegis-text-dim">
               <ScrollText size={28} className="opacity-20 mb-2" />
-              <span className="text-[12px]">No log entries match your filters</span>
+              <span className="text-[12px]">{t('logs.noResults')}</span>
             </div>
           ) : (
             filtered.map((entry, i) => (

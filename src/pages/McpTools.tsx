@@ -67,9 +67,13 @@ export function McpToolsPage() {
     setLoading(true);
     setError(null);
     try {
-      // Try tools.catalog first (new API)
-      const catRes = await gateway.call('tools.catalog', {}).catch(() => null);
       let tools: CatalogTool[] = [];
+
+      // Try tools.catalog first (new API) — may return groups or flat tools
+      const catRes = await gateway.call('tools.catalog', {}).catch((e: any) => {
+        console.warn('[McpTools] tools.catalog failed:', e?.message);
+        return null;
+      });
 
       if (catRes?.tools && Array.isArray(catRes.tools)) {
         tools = catRes.tools.map((t: any) => ({
@@ -80,35 +84,57 @@ export function McpToolsPage() {
           optional: t.optional,
           category: t.category,
         }));
-      } else {
-        // Fallback: use tools.effective which just lists names
-        const effRes = await gateway.call('tools.effective', { sessionKey: 'agent:main:main' }).catch(() => null);
+      } else if (catRes?.groups && Array.isArray(catRes.groups)) {
+        // tools.catalog may return { groups: [{ id, label, source, tools: [...] }] }
+        for (const group of catRes.groups) {
+          const groupSource = group.source || 'core';
+          const groupTools = Array.isArray(group.tools) ? group.tools : [];
+          for (const t of groupTools) {
+            tools.push({
+              name: t.name || t.id,
+              description: t.description || '',
+              source: groupSource,
+              pluginId: group.pluginId || t.pluginId,
+              optional: t.optional,
+              category: group.label || group.id,
+            });
+          }
+        }
+      }
+
+      // Fallback: use tools.effective if catalog returned nothing
+      if (tools.length === 0) {
+        const effRes = await gateway.call('tools.effective', { sessionKey: 'agent:main:main' }).catch((e: any) => {
+          console.warn('[McpTools] tools.effective failed:', e?.message);
+          return null;
+        });
         if (effRes?.tools && Array.isArray(effRes.tools)) {
           tools = effRes.tools.map((t: any) => ({
-            name: typeof t === 'string' ? t : t.name,
-            description: typeof t === 'string' ? '' : t.description || '',
-            source: 'core',
+            name: typeof t === 'string' ? t : (t.name || t.id || ''),
+            description: typeof t === 'string' ? '' : (t.description || ''),
+            source: typeof t === 'string' ? 'core' : (t.source || 'core'),
+            pluginId: typeof t === 'string' ? undefined : t.pluginId,
           }));
         }
       }
 
       setCatalog(tools);
 
-      // Fetch effective tools for the main session
+      // Fetch effective tools for the main session (for active/inactive status)
       try {
         const effRes = await gateway.call('tools.effective', { sessionKey: 'agent:main:main' });
         const map = new Map<string, boolean>();
         const effTools = effRes?.tools || [];
-        for (const t of effTools) {
-          const name = typeof t === 'string' ? t : t.name;
-          map.set(name, true);
+        for (const et of effTools) {
+          const name = typeof et === 'string' ? et : (et.name || et.id || '');
+          if (name) map.set(name, true);
         }
         setEffective(map);
       } catch {
         // tools.effective may not exist — that's OK
       }
     } catch (e: any) {
-      setError(e?.message || 'Failed to load tools');
+      setError(e?.message || t('mcpTools.failedToLoad'));
     }
     setLoading(false);
   };
@@ -158,10 +184,10 @@ export function McpToolsPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-[18px] font-bold text-aegis-text flex items-center gap-2">
-              <Wrench size={20} /> Tools & Integrations
+              <Wrench size={20} /> {t('mcpTools.title')}
             </h1>
             <p className="text-[12px] text-aegis-text-dim mt-0.5">
-              {catalog.length} tools available · {effective.size} active in session
+              {t('mcpTools.toolsAvailable', { count: catalog.length })} · {t('mcpTools.activeInSession', { count: effective.size })}
             </p>
           </div>
           <button
@@ -169,7 +195,7 @@ export function McpToolsPage() {
             disabled={loading}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] text-aegis-text-muted bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.08)] hover:bg-[rgb(var(--aegis-overlay)/0.06)] transition-colors"
           >
-            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} /> Refresh
+            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} /> {t('mcpTools.refresh')}
           </button>
         </div>
 
@@ -181,7 +207,7 @@ export function McpToolsPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search tools..."
+              placeholder={t('mcpTools.searchPlaceholder')}
               className="w-full pl-9 pr-3 py-2 rounded-lg text-[12px] bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.08)] text-aegis-text placeholder:text-aegis-text-dim/40 outline-none focus:border-aegis-primary/30"
             />
           </div>
@@ -197,7 +223,7 @@ export function McpToolsPage() {
                     : 'bg-[rgb(var(--aegis-overlay)/0.03)] text-aegis-text-muted border-transparent hover:bg-[rgb(var(--aegis-overlay)/0.06)]'
                 )}
               >
-                {key.charAt(0).toUpperCase() + key.slice(1)}
+                {t(`mcpTools.filter${key.charAt(0).toUpperCase() + key.slice(1)}`)}
                 <span className="ml-1 opacity-60 text-[9px]">{counts[key as keyof typeof counts] || 0}</span>
               </button>
             ))}
@@ -222,7 +248,7 @@ export function McpToolsPage() {
               <div key={source}>
                 <div className="flex items-center gap-2 mb-3">
                   {sourceIcon(source)}
-                  <span className="text-[13px] font-semibold text-aegis-text capitalize">{source} Tools</span>
+                  <span className="text-[13px] font-semibold text-aegis-text capitalize">{t('mcpTools.sourceTools', { source })}</span>
                   <span className="text-[10px] text-aegis-text-dim">({tools.length})</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -255,10 +281,10 @@ export function McpToolsPage() {
                           <div className="text-[10px] text-aegis-text-dim leading-relaxed line-clamp-2">{tool.description}</div>
                         )}
                         {tool.pluginId && (
-                          <div className="text-[9px] text-purple-400/60 mt-1">Plugin: {tool.pluginId}</div>
+                          <div className="text-[9px] text-purple-400/60 mt-1">{t('mcpTools.plugin')}: {tool.pluginId}</div>
                         )}
                         {tool.optional && (
-                          <div className="text-[9px] text-amber-400/60 mt-0.5">Optional</div>
+                          <div className="text-[9px] text-amber-400/60 mt-0.5">{t('mcpTools.optional')}</div>
                         )}
                       </div>
                     );
@@ -270,7 +296,7 @@ export function McpToolsPage() {
             {filtered.length === 0 && (
               <div className="flex flex-col items-center justify-center h-[150px] text-aegis-text-dim">
                 <Wrench size={28} className="opacity-20 mb-2" />
-                <span className="text-[12px]">No tools match your search</span>
+                <span className="text-[12px]">{t('mcpTools.noResults')}</span>
               </div>
             )}
           </div>

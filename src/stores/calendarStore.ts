@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 import { gateway } from '@/services/gateway/index';
-import type { CalendarEvent, CalendarFilter, CalendarSettings } from '@/pages/Calendar/calendarTypes';
+import type { CalendarEvent, CalendarFilter, CalendarSettings, CalendarSystem } from '@/pages/Calendar/calendarTypes';
 import { DEFAULT_SETTINGS, DEFAULT_FILTER } from '@/pages/Calendar/calendarTypes';
 import { generateEventId, getLocalTimezone } from '@/pages/Calendar/calendarUtils';
 
@@ -141,12 +141,14 @@ interface CalendarState {
   filter: CalendarFilter;
   selectedDate: Date;
   view: 'month' | 'week' | 'day';
+  calendarSystem: CalendarSystem;
   loading: boolean;
   error: string | null;
 
   // Actions — navigation
   setView: (view: 'month' | 'week' | 'day') => void;
   setSelectedDate: (date: Date) => void;
+  setCalendarSystem: (system: CalendarSystem) => void;
   navigate: (delta: number) => void;
   goToToday: () => void;
 
@@ -170,6 +172,7 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
   filter: DEFAULT_FILTER,
   selectedDate: new Date(),
   view: loadPersistedSettings().defaultView,
+  calendarSystem: 'gregorian',
   loading: false,
   error: null,
 
@@ -178,6 +181,8 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
   setView: (view) => set({ view }),
 
   setSelectedDate: (date) => set({ selectedDate: date }),
+
+  setCalendarSystem: (system) => set({ calendarSystem: system }),
 
   navigate: (delta) => {
     const { selectedDate, view } = get();

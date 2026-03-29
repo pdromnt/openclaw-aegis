@@ -3,15 +3,11 @@
 // Sections: Top Bar → Hero Cards → Chart + Agents → Actions
 // ═══════════════════════════════════════════════════════════
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
 // Note: useCallback still needed for handleRefresh/handleQuickAction
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import {
-  AreaChart, Area, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, CartesianGrid,
-} from 'recharts';
 import {
   Heart, Mail, Calendar, RefreshCw, BarChart3, FileText,
   Wifi, WifiOff, Bot, Shield, Activity, Zap, ChevronRight,
@@ -31,6 +27,9 @@ import {
   fmtTokens, fmtCost, fmtCostShort, timeAgo, fmtUptime,
 } from './components';
 
+// Lazy-load recharts (~331K) — only loads when chart is visible
+const DashboardChart = lazy(() => import('./DashboardChart'));
+
 // ── Agent emoji + display name helpers ───────────────────────
 
 const AGENT_EMOJIS: Record<string, string> = {
@@ -45,37 +44,17 @@ const AGENT_EMOJIS: Record<string, string> = {
 const getAgentEmoji = (id: string) =>
   AGENT_EMOJIS[id.toLowerCase()] ?? '🤖';
 
-const getAgentName = (id: string) => {
-  const names: Record<string, string> = {
-    main: 'Main Agent', hilali: 'Hilali', pipeline: 'Pipeline',
-    researcher: 'Researcher', consultant: 'Consultant', coder: 'Coder',
+const getAgentName = (id: string, t: (key: string, fallback?: string) => string) => {
+  const keyMap: Record<string, string> = {
+    main: 'agentNames.mainAgent',
+    researcher: 'agentNames.researcher',
+    consultant: 'agentNames.consultant',
+    coder: 'agentNames.coder',
+    pipeline: 'agentNames.pipeline',
   };
-  return names[id.toLowerCase()] ?? id;
+  const key = keyMap[id.toLowerCase()];
+  return key ? t(key) : id.charAt(0).toUpperCase() + id.slice(1);
 };
-
-// ── Tooltip for recharts ─────────────────────────────────────
-
-function CostTooltip({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null;
-  const input  = payload.find((p: any) => p.dataKey === 'input')?.value  || 0;
-  const output = payload.find((p: any) => p.dataKey === 'output')?.value || 0;
-  return (
-    <div className="bg-aegis-card border border-aegis-border rounded-xl p-2.5 text-[11px] shadow-lg">
-      <div className="text-aegis-text-dim font-mono mb-1.5">{label}</div>
-      <div className="flex items-center gap-1.5 text-aegis-accent">
-        <span className="w-2 h-2 rounded-full bg-aegis-accent" />
-        Input: {fmtCost(input)}
-      </div>
-      <div className="flex items-center gap-1.5 text-aegis-primary">
-        <span className="w-2 h-2 rounded-full bg-aegis-primary" />
-        Output: {fmtCost(output)}
-      </div>
-      <div className="text-aegis-text font-semibold mt-1.5 pt-1.5 border-t border-[rgb(var(--aegis-overlay)/0.06)]">
-        Total: {fmtCost(input + output)}
-      </div>
-    </div>
-  );
-}
 
 // ════════════════════════════════════════════════════════════
 // DashboardPage — Main component
@@ -260,12 +239,12 @@ export function DashboardPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <motion.div
-            animate={{ boxShadow: [
+            animate={agentStatus === 'working' ? { boxShadow: [
               `0 0 10px ${themeAlpha('primary', 0.1)}`,
               `0 0 22px ${themeAlpha('primary', 0.2)}`,
               `0 0 10px ${themeAlpha('primary', 0.1)}`,
-            ]}}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            ]} : {}}
+            transition={agentStatus === 'working' ? { duration: 3, repeat: Infinity, ease: 'easeInOut' } : {}}
             className="w-10 h-10 rounded-xl bg-gradient-to-br from-aegis-primary/15 to-aegis-primary/5 border border-aegis-primary/20 flex items-center justify-center"
           >
             <Shield size={20} className="text-aegis-primary" />
@@ -403,8 +382,8 @@ export function DashboardPage() {
           <div className="flex items-center gap-3 mt-1">
             <ContextRing percentage={usagePct} />
             <div className="text-[10px] text-aegis-text-muted font-mono space-y-1">
-              <div>{fmtTokens(ctxUsed)} used</div>
-              <div className="text-aegis-text-dim">/ {fmtTokens(ctxMax)} max</div>
+              <div>{fmtTokens(ctxUsed)} {t('dashboard.used')}</div>
+              <div className="text-aegis-text-dim">/ {fmtTokens(ctxMax)} {t('dashboard.max')}</div>
             </div>
           </div>
         </GlassCard>
@@ -413,44 +392,21 @@ export function DashboardPage() {
       {/* ════ SECTION 3: MIDDLE ROW (Chart + Agents) ════ */}
       <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-3">
 
-        {/* Daily Cost Chart */}
+        {/* Daily Cost Chart (lazy-loaded) */}
         <GlassCard delay={0.16}>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <TrendingUp size={15} className="text-aegis-primary" />
-              <span className="text-[13px] font-semibold text-aegis-text">{t('dashboard.dailyCostChart')}</span>
-            </div>
-            <div className="flex items-center gap-3 text-[10px] text-aegis-text-muted font-medium">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-aegis-accent" />{t('dashboard.inputCostLabel')}</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-aegis-primary" />{t('dashboard.outputCostLabel')}</span>
-            </div>
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingUp size={15} className="text-aegis-primary" />
           </div>
           {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={160}>
-              <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="gInput" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%"   stopColor={themeHex('accent')} stopOpacity={0.25} />
-                    <stop offset="100%" stopColor={themeHex('accent')} stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="gOutput" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%"   stopColor={themeHex('primary')} stopOpacity={0.25} />
-                    <stop offset="100%" stopColor={themeHex('primary')} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--aegis-overlay) / 0.04)" vertical={false} />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'rgb(var(--aegis-text-dim))' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: 'rgb(var(--aegis-text-dim))' }} axisLine={false} tickLine={false}
-                  tickFormatter={(v) => v === 0 ? '' : `$${v.toFixed(2)}`} />
-                <Tooltip content={<CostTooltip />} cursor={{ stroke: 'rgb(var(--aegis-overlay) / 0.06)' }} />
-                <Area type="monotone" dataKey="input"  stackId="1"
-                  stroke={themeHex('accent')} strokeWidth={1.5} fill="url(#gInput)" />
-                <Area type="monotone" dataKey="output" stackId="1"
-                  stroke={themeHex('primary')} strokeWidth={1.5} fill="url(#gOutput)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            <Suspense fallback={
+              <div className="h-[190px] flex items-center justify-center text-[12px] text-aegis-text-dim">
+                {t('common.loading')}
+              </div>
+            }>
+              <DashboardChart chartData={chartData} />
+            </Suspense>
           ) : (
-            <div className="h-[160px] flex items-center justify-center text-[12px] text-aegis-text-dim">
+            <div className="h-[190px] flex items-center justify-center text-[12px] text-aegis-text-dim">
               {connected ? t('common.loading') : t('dashboard.notConnected')}
             </div>
           )}
@@ -483,7 +439,7 @@ export function DashboardPage() {
                   <AgentItem
                     key={id}
                     emoji={getAgentEmoji(id)}
-                    name={getAgentName(id)}
+                    name={getAgentName(id, t)}
                     model={model}
                     cost={fmtCost(cost)}
                     costToday={cost}
@@ -502,7 +458,7 @@ export function DashboardPage() {
       </div>
 
       {/* ════ SECTION 4: BOTTOM ROW (3 columns) ════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-3">
 
         {/* ── System Health ── */}
         <GlassCard delay={0.18}>
@@ -600,7 +556,7 @@ export function DashboardPage() {
               <span className="text-[13px] font-semibold text-aegis-text">{t('dashboard.activity')}</span>
             </div>
             <span className="text-[8px] font-bold text-aegis-success bg-aegis-success-surface px-2 py-0.5 rounded-md tracking-wider animate-pulse-soft">
-              LIVE
+              {t('dashboard.live')}
             </span>
           </div>
 

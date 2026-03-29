@@ -52,7 +52,7 @@ export function SettingsPageFull() {
   const mainModel = mainSession?.model || '—';
   const contextTokens = mainSession?.contextTokens || 0;
 
-  const handleLanguageChange = (lang: 'ar' | 'en') => {
+  const handleLanguageChange = (lang: 'ar' | 'en' | 'zh' | 'es') => {
     setLanguage(lang);
     changeLanguage(lang);
   };
@@ -197,6 +197,28 @@ export function SettingsPageFull() {
             )}
           >
             English
+          </button>
+          <button
+            onClick={() => handleLanguageChange('zh')}
+            className={clsx(
+              'flex-1 py-3 rounded-xl text-[14px] font-medium border transition-colors',
+              language === 'zh'
+                ? 'bg-aegis-primary/15 border-aegis-primary/30 text-aegis-primary'
+                : 'border-aegis-border/20 text-aegis-text-dim hover:border-aegis-border/40'
+            )}
+          >
+            中文
+          </button>
+          <button
+            onClick={() => handleLanguageChange('es')}
+            className={clsx(
+              'flex-1 py-3 rounded-xl text-[14px] font-medium border transition-colors',
+              language === 'es'
+                ? 'bg-aegis-primary/15 border-aegis-primary/30 text-aegis-primary'
+                : 'border-aegis-border/20 text-aegis-text-dim hover:border-aegis-border/40'
+            )}
+          >
+            Español
           </button>
         </div>
       </GlassCard>
@@ -374,7 +396,7 @@ export function SettingsPageFull() {
           {/* Gateway URL — editable */}
           <div>
             <label className="text-[12px] text-aegis-text-muted font-medium mb-1.5 block">
-              WebSocket URL
+              {t('settings.wsUrl')}
             </label>
             <input
               type="text"
@@ -395,7 +417,7 @@ export function SettingsPageFull() {
           {/* Gateway Token — editable */}
           <div>
             <label className="text-[12px] text-aegis-text-muted font-medium mb-1.5 block">
-              Gateway Token
+              {t('settings.gatewayToken')}
             </label>
             <input
               type="password"
@@ -493,17 +515,17 @@ export function SettingsPageFull() {
         </h3>
         <div className="space-y-2.5">
           {[
-            ['Ctrl+K', 'Command Palette'],
-            ['Ctrl+F', 'Search in Chat'],
-            ['Ctrl+Shift+F', 'Focus Mode'],
-            ['/', 'Slash Commands (in input)'],
+            ['Ctrl+K', t('settings.commandPalette')],
+            ['Ctrl+F', t('settings.searchInChat')],
+            ['Ctrl+Shift+F', t('settings.focusMode')],
+            ['/', t('settings.slashCommands')],
             ['Ctrl+1-8', t('settingsExtra.navigatePages')],
             ['Ctrl+N', t('settingsExtra.newTab')],
             ['Ctrl+W', t('settingsExtra.closeTab')],
             ['Ctrl+Tab', t('settingsExtra.nextTab')],
             ['Ctrl+,', t('settingsExtra.openSettings')],
             ['Ctrl+R', t('settingsExtra.refresh')],
-            ['Escape', t('settingsExtra.closeModal') + ' / Exit Focus Mode'],
+            ['Escape', t('settingsExtra.closeModal') + ' / ' + t('settings.exitFocusMode')],
           ].map(([key, desc]) => (
             <div key={key} className="flex items-center justify-between">
               <span className="text-[12px] text-aegis-text-muted">{desc}</span>
@@ -521,14 +543,14 @@ export function SettingsPageFull() {
         <h3 className="text-[14px] font-semibold text-aegis-text mb-4 flex items-center gap-2">
           <span className="text-aegis-primary">🧪</span>
           {t('settings.experimental', 'Experimental')}
-          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">BETA</span>
+          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">{t('settings.beta')}</span>
         </h3>
 
         {/* 1M Context Toggle */}
         <div className="flex items-center justify-between py-3 border-b border-aegis-border/10">
           <div>
             <div className="text-[13px] text-aegis-text font-medium flex items-center gap-2">
-              1M Context Window
+              {t('settings.context1mTitle')}
               {context1mSaving && <Loader2 size={11} className="animate-spin text-aegis-text-dim" />}
             </div>
             <div className="text-[11px] text-aegis-text-dim/60 mt-0.5">
@@ -641,10 +663,10 @@ export function SettingsPageFull() {
         </div>
         <div className="space-y-2 border-t border-aegis-border/15 pt-3">
           {[
-            ['Platform', typeof navigator !== 'undefined' ? navigator.platform : '—'],
-            ['User Agent', typeof navigator !== 'undefined' ? (navigator.userAgent.match(/Electron\/[\d.]+/)?.[0] || '—') : '—'],
-            ['Gateway', connected ? `${localStorage.getItem('aegis-gateway-http')?.replace('http', 'ws') || 'ws://127.0.0.1:18789'} ✓` : '— ✗'],
-            ['Model', mainModel.split('/').pop() || '—'],
+            [t('settings.platform'), typeof navigator !== 'undefined' ? navigator.platform : '—'],
+            [t('settings.userAgent'), typeof navigator !== 'undefined' ? (navigator.userAgent.match(/Electron\/[\d.]+/)?.[0] || '—') : '—'],
+            [t('settings.gateway'), connected ? `${localStorage.getItem('aegis-gateway-http')?.replace('http', 'ws') || 'ws://127.0.0.1:18789'} ✓` : '— ✗'],
+            [t('settings.model'), mainModel.split('/').pop() || '—'],
           ].map(([label, value]) => (
             <div key={label} className="flex items-center justify-between">
               <span className="text-[11px] text-aegis-text-dim">{label}</span>

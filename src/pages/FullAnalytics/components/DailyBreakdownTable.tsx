@@ -4,7 +4,7 @@
 // FIX: removed unused `topAgent` dead code
 // ═══════════════════════════════════════════════════════════
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { Activity, ChevronDown, ChevronUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { GlassCard } from '@/components/shared/GlassCard';
@@ -16,7 +16,7 @@ interface DailyBreakdownTableProps {
   daily: DailyEntry[];
 }
 
-export function DailyBreakdownTable({ daily }: DailyBreakdownTableProps) {
+export const DailyBreakdownTable = memo(function DailyBreakdownTable({ daily }: DailyBreakdownTableProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [sortDesc, setSortDesc] = useState(true);
@@ -28,6 +28,16 @@ export function DailyBreakdownTable({ daily }: DailyBreakdownTableProps) {
     );
     return expanded ? list : list.slice(0, 14);
   }, [daily, expanded, sortDesc]);
+
+  // Footer totals — computed once instead of 6 separate reduce() calls in JSX
+  const footerTotals = useMemo(() => daily.reduce((acc, d) => ({
+    input: acc.input + d.input,
+    output: acc.output + d.output,
+    cacheRead: acc.cacheRead + d.cacheRead,
+    cacheWrite: acc.cacheWrite + d.cacheWrite,
+    totalTokens: acc.totalTokens + d.totalTokens,
+    totalCost: acc.totalCost + d.totalCost,
+  }), { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, totalCost: 0 }), [daily]);
 
   if (daily.length === 0) return null;
 
@@ -60,13 +70,13 @@ export function DailyBreakdownTable({ daily }: DailyBreakdownTableProps) {
         <table className="w-full">
           <thead>
             <tr className="border-b border-[rgb(var(--aegis-overlay)/0.06)]">
-              <th className="text-start text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2 ps-2">Date</th>
-              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">Input</th>
-              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">Output</th>
-              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">Cache Read</th>
-              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">Cache Write</th>
-              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">Total Tokens</th>
-              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2 pe-2">Cost</th>
+              <th className="text-start text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2 ps-2">{t('analytics.date')}</th>
+              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">{t('analytics.input')}</th>
+              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">{t('analytics.output')}</th>
+              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">{t('analytics.cacheRead')}</th>
+              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">{t('analytics.cacheWrite')}</th>
+              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">{t('analytics.totalTokens')}</th>
+              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2 pe-2">{t('analytics.cost')}</th>
             </tr>
           </thead>
           <tbody>
@@ -118,22 +128,22 @@ export function DailyBreakdownTable({ daily }: DailyBreakdownTableProps) {
                 {t('analytics.total', 'Total')} ({daily.length} days)
               </td>
               <td className="py-2.5 text-end text-[10px] font-mono font-bold text-aegis-accent/70">
-                {formatTokens(daily.reduce((s, d) => s + d.input, 0))}
+                {formatTokens(footerTotals.input)}
               </td>
               <td className="py-2.5 text-end text-[10px] font-mono font-bold text-aegis-primary/70">
-                {formatTokens(daily.reduce((s, d) => s + d.output, 0))}
+                {formatTokens(footerTotals.output)}
               </td>
               <td className="py-2.5 text-end text-[10px] font-mono font-bold text-aegis-success/60">
-                {formatTokens(daily.reduce((s, d) => s + d.cacheRead, 0))}
+                {formatTokens(footerTotals.cacheRead)}
               </td>
               <td className="py-2.5 text-end text-[10px] font-mono font-bold text-aegis-warning/50">
-                {formatTokens(daily.reduce((s, d) => s + d.cacheWrite, 0))}
+                {formatTokens(footerTotals.cacheWrite)}
               </td>
               <td className="py-2.5 text-end text-[10px] font-mono font-bold text-aegis-text-secondary">
-                {formatTokens(daily.reduce((s, d) => s + d.totalTokens, 0))}
+                {formatTokens(footerTotals.totalTokens)}
               </td>
               <td className="py-2.5 text-end pe-2 text-[11px] font-mono font-bold text-aegis-text">
-                {formatUsd(daily.reduce((s, d) => s + d.totalCost, 0))}
+                {formatUsd(footerTotals.totalCost)}
               </td>
             </tr>
           </tfoot>
@@ -158,4 +168,4 @@ export function DailyBreakdownTable({ daily }: DailyBreakdownTableProps) {
       )}
     </GlassCard>
   );
-}
+});

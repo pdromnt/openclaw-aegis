@@ -14,6 +14,8 @@ import { ChannelsTab } from './ChannelsTab';
 import { AdvancedTab } from './AdvancedTab';
 import { SecretsTab } from './SecretsTab';
 import { FloatingSaveButton, ChangesPill, DiffPreviewModal } from './components';
+import { gateway } from '@/services/gateway/index';
+import { validateConfig, formatValidationSummary, type ValidationIssue } from '@/utils/configValidator';
 
 type Tab = 'providers' | 'agents' | 'channels' | 'advanced' | 'secrets';
 
@@ -102,6 +104,10 @@ export function ConfigManagerPage() {
   // ── Editable config path ──
   const [editingPath, setEditingPath] = useState(false);
   const [pathInput, setPathInput]     = useState('');
+  const [configSchema, setConfigSchema] = useState<any>(null);
+  const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([]);
+  const [showValidationWarning, setShowValidationWarning] = useState(false);
+  const [configBaseHash, setConfigBaseHash] = useState<string | null>(null);
 
   // ── hasChanges — true when config differs from disk ──
   const hasChanges = useMemo(
@@ -126,13 +132,30 @@ export function ConfigManagerPage() {
           setOriginalConfig(structuredClone(data));
         }
       } catch (err: any) {
-        setError(err.message || 'Unknown error');
+        setError(err.message || t('errors.unknown'));
       } finally {
         setDetecting(false);
       }
     };
 
     init();
+  }, []);
+
+  // ── Fetch config schema + baseHash from Gateway ──
+  useEffect(() => {
+    // Schema for client-side validation
+    gateway.getConfigSchema()
+      .then((schema: any) => {
+        if (schema && typeof schema === 'object') setConfigSchema(schema);
+      })
+      .catch(() => {});
+    // BaseHash for concurrent-edit guard (used by config.apply)
+    gateway.getConfig()
+      .then((res: any) => {
+        const hash = res?.baseHash || res?.hash;
+        if (hash) setConfigBaseHash(hash);
+      })
+      .catch(() => {});
   }, []);
 
   // ── Ctrl+S shortcut — opens diff modal ──
@@ -156,73 +179,110 @@ export function ConfigManagerPage() {
   );
 
   // ── Save ──
-  const handleSave = async () => {
+  const handleSave = async (bypassValidation = false) => {
     if (!config || !configPath) return;
+
+    // ── Pre-save validation (if schema available and not bypassed) ──
+    if (configSchema && !bypassValidation) {
+      const result = validateConfig(config, configSchema);
+      if (result.issues.length > 0) {
+        setValidationIssues(result.issues);
+        setShowValidationWarning(true);
+        return; // Stop — user must choose "Save Anyway" or "Fix"
+      }
+    }
+
     setSaving(true);
+    setValidationIssues([]);
+    setShowValidationWarning(false);
     try {
-      // 1. Re-read the latest version from disk to capture any external edits
-      const { data: diskConfig } = await window.aegis.config.read(configPath);
-
-      // 2. Build a patch: only keys the user actually changed vs original
-      //    smartMerge gives us the merged result; we use config.patch so the
-      //    IPC layer applies it on top of the live file (handles any final-ms edits).
-      const merged = smartMerge(diskConfig, originalConfig, config);
-
-      // Auto-backup: save last 5 versions before overwriting
+      // ── Strategy 1: config.apply via Gateway RPC (validated + base-hash guard + restart) ──
+      let appliedViaRpc = false;
       try {
-        const backupKey = `config-backup-${Date.now()}`;
-        const backups: { key: string; data: any; ts: number }[] = JSON.parse(
-          localStorage.getItem('aegis-config-backups') || '[]'
+        const merged = smartMerge(
+          originalConfig || {},
+          originalConfig || {},
+          config
         );
-        backups.push({ key: backupKey, data: structuredClone(diskConfig), ts: Date.now() });
-        // Keep only last 5
-        while (backups.length > 5) backups.shift();
-        localStorage.setItem('aegis-config-backups', JSON.stringify(backups));
-      } catch (backupErr) {
-        console.warn('[Config] Backup failed:', backupErr);
-      }
-
-      // 3. Use patch semantics — sends only changed keys, preserves any CLI edits
-      //    made between the time we read diskConfig and now.
-      const patchResult = await window.aegis.config.patch(configPath, merged);
-      if (!patchResult.success) throw new Error(patchResult.error || 'Patch failed');
-
-      // Re-read the final patched config so our in-memory state matches disk exactly
-      const { data: finalConfig } = await window.aegis.config.read(configPath);
-
-      // 4. Sync both states to the final on-disk version
-      setConfig(structuredClone(finalConfig));
-      setOriginalConfig(structuredClone(finalConfig));
-
-      // Restart gateway after successful save
-      try {
-        const restartResult = await window.aegis.config.restart() as {
-          success: boolean;
-          error?: string;
-          instructions?: { native: string; docker: string };
-        };
-        if (restartResult.success) {
+        const applyResult = await gateway.applyConfig(
+          merged,
+          configBaseHash || undefined,
+          'AEGIS Desktop config save'
+        );
+        if (applyResult?.ok) {
+          appliedViaRpc = true;
+          // Update baseHash for next save
+          const newConfig = applyResult.config || merged;
+          setConfig(structuredClone(newConfig));
+          setOriginalConfig(structuredClone(newConfig));
+          // Refresh baseHash
+          gateway.getConfig().then((res: any) => {
+            if (res?.baseHash) setConfigBaseHash(res.baseHash);
+          }).catch(() => {});
           setSaveSuccess(true);
-          // Toast will show "Saved & Restarted"
-        } else {
-          // Save succeeded but restart failed — show warning with instructions
-          setSaveSuccess(true);
-          console.warn('[Config] Restart failed:', restartResult.error);
-          if (restartResult.instructions) {
-            setError(
-              `Config saved ✓ but gateway restart failed. Try manually:\n` +
-              `• ${restartResult.instructions.native}\n` +
-              `• ${restartResult.instructions.docker}`
-            );
-          }
+          setTimeout(() => setSaveSuccess(false), 3000);
         }
-      } catch {
-        // restart IPC not available — still show save success
-        setSaveSuccess(true);
-        console.warn('[Config] Restart IPC unavailable');
+      } catch (rpcErr: any) {
+        console.warn('[Config] config.apply RPC failed, falling back to IPC:', rpcErr?.message);
       }
 
-      setTimeout(() => setSaveSuccess(false), 3000);
+      // ── Strategy 2: Fallback to IPC (window.aegis.config) — for older gateways or no WS ──
+      if (!appliedViaRpc) {
+        // 1. Re-read the latest version from disk
+        const { data: diskConfig } = await window.aegis.config.read(configPath);
+
+        // 2. Smart merge
+        const merged = smartMerge(diskConfig, originalConfig, config);
+
+        // Auto-backup: save last 5 versions before overwriting
+        try {
+          const backupKey = `config-backup-${Date.now()}`;
+          const backups: { key: string; data: any; ts: number }[] = JSON.parse(
+            localStorage.getItem('aegis-config-backups') || '[]'
+          );
+          backups.push({ key: backupKey, data: structuredClone(diskConfig), ts: Date.now() });
+          while (backups.length > 5) backups.shift();
+          localStorage.setItem('aegis-config-backups', JSON.stringify(backups));
+        } catch (backupErr) {
+          console.warn('[Config] Backup failed:', backupErr);
+        }
+
+        // 3. Patch via IPC
+        const patchResult = await window.aegis.config.patch(configPath, merged);
+        if (!patchResult.success) throw new Error(patchResult.error || 'Patch failed');
+
+        // Re-read final config
+        const { data: finalConfig } = await window.aegis.config.read(configPath);
+        setConfig(structuredClone(finalConfig));
+        setOriginalConfig(structuredClone(finalConfig));
+
+        // 4. Restart gateway
+        try {
+          const restartResult = await window.aegis.config.restart() as {
+            success: boolean;
+            error?: string;
+            instructions?: { native: string; docker: string };
+          };
+          if (restartResult.success) {
+            setSaveSuccess(true);
+          } else {
+            setSaveSuccess(true);
+            console.warn('[Config] Restart failed:', restartResult.error);
+            if (restartResult.instructions) {
+              setError(
+                `Config saved ✓ but gateway restart failed. Try manually:\n` +
+                `• ${restartResult.instructions.native}\n` +
+                `• ${restartResult.instructions.docker}`
+              );
+            }
+          }
+        } catch {
+          setSaveSuccess(true);
+          console.warn('[Config] Restart IPC unavailable');
+        }
+
+        setTimeout(() => setSaveSuccess(false), 3000);
+      }
     } catch (err: any) {
       setError(err.message || t('config.saveFailed'));
     } finally {
@@ -278,7 +338,7 @@ export function ConfigManagerPage() {
       setOriginalConfig(structuredClone(data));
       setConfigExists(true);
     } catch (err: any) {
-      setError(err.message || 'Reload failed');
+      setError(err.message || t('config.reloadFailed'));
     }
   };
 
@@ -393,7 +453,7 @@ export function ConfigManagerPage() {
               className="px-3 py-1.5 rounded-lg text-[11px] font-semibold
                 bg-[rgb(var(--aegis-overlay)/0.04)] border border-[rgb(var(--aegis-overlay)/0.08)]
                 text-aegis-text-muted hover:text-aegis-text-secondary transition-colors"
-              title="Restore from backup"
+              title={t('configExtra.restoreBackup', 'Restore from backup')}
             >
               <History size={14} />
             </button>
@@ -408,7 +468,7 @@ export function ConfigManagerPage() {
                     localStorage.getItem('aegis-config-backups') || '[]'
                   );
                   if (backups.length === 0) return (
-                    <div className="text-[11px] text-aegis-text-dim px-2 py-3">No backups yet</div>
+                    <div className="text-[11px] text-aegis-text-dim px-2 py-3">{t('configExtra.noBackups')}</div>
                   );
                   return backups.slice().reverse().map((b) => (
                     <button key={b.key}
@@ -507,7 +567,7 @@ export function ConfigManagerPage() {
                 <button
                   onClick={handleStartEdit}
                   className="text-aegis-text-muted hover:text-aegis-primary transition-colors shrink-0"
-                  title="Edit path"
+                  title={t('configExtra.editPath', 'Edit path')}
                 >
                   <Pencil size={13} />
                 </button>
@@ -586,11 +646,58 @@ export function ConfigManagerPage() {
       <DiffPreviewModal
         open={diffOpen}
         onClose={() => setDiffOpen(false)}
-        onConfirm={async () => { await handleSave(); setDiffOpen(false); }}
+        onConfirm={async () => { await handleSave(false); setDiffOpen(false); }}
         original={originalConfig}
         current={config}
         saving={saving}
       />
+
+      {/* ── Validation Warning Modal ── */}
+      {showValidationWarning && validationIssues.length > 0 && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-[110]" onClick={() => setShowValidationWarning(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[120] w-[480px] max-h-[80vh] bg-aegis-elevated-solid border border-aegis-border rounded-xl p-5 shadow-2xl overflow-hidden flex flex-col">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertCircle size={18} className="text-amber-400 shrink-0" />
+              <h3 className="text-[14px] font-bold text-aegis-text">{t('config.validationWarning', '⚠️ Config Validation Issues')}</h3>
+            </div>
+            <p className="text-[12px] text-aegis-text-muted mb-3">
+              {t('config.validationDesc', 'The following issues were found. Saving may cause the Gateway to reject the config and enter a restart loop.')}
+            </p>
+            <div className="flex-1 overflow-y-auto max-h-[300px] mb-4 rounded-lg bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.06)] p-3 space-y-1.5">
+              {validationIssues.map((issue, i) => (
+                <div key={i} className={clsx(
+                  'flex items-start gap-2 text-[11px] px-2 py-1.5 rounded-md',
+                  issue.severity === 'error' ? 'bg-red-500/8 text-red-400' : 'bg-amber-500/8 text-amber-400'
+                )}>
+                  <span className="shrink-0 mt-0.5">{issue.severity === 'error' ? '✗' : '⚠'}</span>
+                  <div>
+                    <span className="font-mono font-semibold">{issue.path}</span>
+                    <span className="text-aegis-text-dim ml-1.5">{issue.message}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowValidationWarning(false)}
+                className="px-4 py-2 rounded-lg text-[12px] font-medium text-aegis-primary bg-aegis-primary/10 border border-aegis-primary/20 hover:bg-aegis-primary/20 transition-colors"
+              >
+                {t('config.fixAndRetry', 'Fix and Retry')}
+              </button>
+              <button
+                onClick={async () => {
+                  setShowValidationWarning(false);
+                  await handleSave(true); // bypass validation
+                }}
+                className="px-4 py-2 rounded-lg text-[12px] font-medium text-amber-400 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-colors"
+              >
+                {t('config.saveAnyway', 'Save Anyway')}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ── Save Success Toast ── */}
       {saveSuccess && (

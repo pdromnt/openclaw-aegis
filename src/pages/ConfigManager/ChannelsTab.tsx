@@ -266,7 +266,7 @@ function ChannelRow({ channelId, channelConfig, onChange, onRemove }: ChannelRow
                   <MaskedInput
                     value={(channelConfig as any).appToken ?? ''}
                     onChange={(v) => updateChannel({ appToken: v || undefined })}
-                    placeholder="xapp-..."
+                    placeholder={t('configExtra.xappPlaceholder')}
                   />
                 </FormField>
               )}
@@ -468,7 +468,7 @@ function PickChannelStep({ onPick, onClose, existingIds }: PickChannelStepProps)
                   {t(`config.channel.${tmpl.id}`, { defaultValue: tmpl.id })}
                 </div>
                 {alreadyAdded && (
-                  <div className="text-[9px] text-aegis-text-muted">Already added</div>
+                  <div className="text-[9px] text-aegis-text-muted">{t('configExtra.alreadyAdded')}</div>
                 )}
               </div>
             </button>
@@ -561,7 +561,7 @@ function ConfigureChannelStep({ tmpl, onBack, onAdd }: ConfigureChannelStepProps
           <MaskedInput
             value={appToken}
             onChange={setAppToken}
-            placeholder="xapp-..."
+            placeholder={t('configExtra.xappPlaceholder')}
           />
         </FormField>
       )}

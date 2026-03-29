@@ -47,15 +47,15 @@ export interface SkillDetail extends HubSkill {
 // ═══════════════════════════════════════════════════════════
 
 export const CATEGORIES = [
-  { id: 'all', label: 'All', emoji: '' },
-  { id: 'ai', label: 'AI', emoji: '🤖' },
-  { id: 'dev', label: 'Dev', emoji: '💻' },
-  { id: 'prod', label: 'Productivity', emoji: '📊' },
-  { id: 'search', label: 'Research', emoji: '🔍' },
-  { id: 'comm', label: 'Communication', emoji: '💬' },
-  { id: 'home', label: 'Smart Home', emoji: '🏠' },
-  { id: 'write', label: 'Writing', emoji: '✍️' },
-  { id: 'devops', label: 'DevOps', emoji: '⚙️' },
+  { id: 'all', i18nKey: 'skills.catAll', emoji: '' },
+  { id: 'ai', i18nKey: 'skills.catAI', emoji: '🤖' },
+  { id: 'dev', i18nKey: 'skills.catDev', emoji: '💻' },
+  { id: 'prod', i18nKey: 'skills.catProd', emoji: '📊' },
+  { id: 'search', i18nKey: 'skills.catSearch', emoji: '🔍' },
+  { id: 'comm', i18nKey: 'skills.catComm', emoji: '💬' },
+  { id: 'home', i18nKey: 'skills.catHome', emoji: '🏠' },
+  { id: 'write', i18nKey: 'skills.catWrite', emoji: '✍️' },
+  { id: 'devops', i18nKey: 'skills.catDevOps', emoji: '⚙️' },
 ];
 
 // ═══════════════════════════════════════════════════════════
@@ -125,6 +125,7 @@ export function MySkillRow({ skill, onToggle, index = 0, onDelete }: {
   index?: number;
   onDelete?: (slug: string) => void;
 }) {
+  const { t } = useTranslation();
   const color = SKILL_COLORS[index % SKILL_COLORS.length];
 
   return (
@@ -163,7 +164,7 @@ export function MySkillRow({ skill, onToggle, index = 0, onDelete }: {
 
       {/* Version — same position as "Time Left" in CronMonitor */}
       <div className="w-[80px] shrink-0 flex flex-col items-end justify-center pe-3 py-2">
-        <span className="text-[8px] text-aegis-text-dim font-medium mb-0.5">Version</span>
+        <span className="text-[8px] text-aegis-text-dim font-medium mb-0.5">{t('skills.version')}</span>
         <span className="text-sm font-bold font-mono" style={{
           color: skill.enabled ? color : 'rgb(var(--aegis-overlay) / 0.1)',
         }}>
@@ -253,6 +254,7 @@ export function HubSkillRow({ skill, onClick }: { skill: HubSkill; onClick: () =
 // ═══════════════════════════════════════════════════════════
 
 export function CategoryChips({ active, onSelect }: { active: string; onSelect: (id: string) => void }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       {CATEGORIES.map(cat => (
@@ -267,7 +269,7 @@ export function CategoryChips({ active, onSelect }: { active: string; onSelect: 
           )}
         >
           {cat.emoji && <span className="me-1">{cat.emoji}</span>}
-          {cat.label}
+          {t(cat.i18nKey)}
         </button>
       ))}
     </div>
@@ -357,8 +359,8 @@ export function SkillDetailPanel({ open, skill, loading, onClose }: {
             {/* Stats */}
             <div className="mx-6 grid grid-cols-3 gap-px rounded-[10px] overflow-hidden border border-[rgb(var(--aegis-overlay)/0.06)]">
               {[
-                { value: formatNum(skill.downloads), label: 'Downloads' },
-                { value: String(skill.stars), label: 'Stars' },
+                { value: formatNum(skill.downloads), label: t('skills.downloads') },
+                { value: String(skill.stars), label: t('skills.stars') },
                 { value: formatNum(skill.installs), label: t('skillsExtra.installs') },
               ].map(s => (
                 <div key={s.label} className="p-2.5 text-center bg-[rgb(var(--aegis-overlay)/0.015)]">
@@ -393,7 +395,7 @@ export function SkillDetailPanel({ open, skill, loading, onClose }: {
                   text-aegis-text-secondary hover:border-[rgb(var(--aegis-overlay)/0.1)] transition-colors
                   flex items-center justify-center gap-1.5"
               >
-                <ExternalLink size={13} /> View on ClawHub
+                <ExternalLink size={13} /> {t('skills.viewOnClawHub')}
               </button>
             </div>
 
@@ -442,7 +444,7 @@ export function SkillDetailPanel({ open, skill, loading, onClose }: {
             {skill.versions.length > 0 && (
               <div className="px-6 pb-8">
                 <h3 className="text-[12px] font-semibold text-aegis-text-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  📋 Versions
+                  📋 {t('skills.versions')}
                 </h3>
                 <ul className="space-y-0">
                   {skill.versions.map(v => (

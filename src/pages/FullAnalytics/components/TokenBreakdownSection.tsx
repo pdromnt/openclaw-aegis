@@ -5,6 +5,7 @@
 
 import { motion } from 'framer-motion';
 import { Database } from 'lucide-react';
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { type CostTotals } from '../types';
@@ -15,7 +16,7 @@ interface TokenBreakdownSectionProps {
   totals: CostTotals;
 }
 
-export function TokenBreakdownSection({ totals }: TokenBreakdownSectionProps) {
+export const TokenBreakdownSection = memo(function TokenBreakdownSection({ totals }: TokenBreakdownSectionProps) {
   const { t } = useTranslation();
   const totalCost   = totals.totalCost   || 1;
   const totalTokens = totals.totalTokens || 1;
@@ -143,4 +144,4 @@ export function TokenBreakdownSection({ totals }: TokenBreakdownSectionProps) {
       )}
     </GlassCard>
   );
-}
+});

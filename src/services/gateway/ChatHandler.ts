@@ -28,18 +28,6 @@ CAPABILITIES:
 - You can send: markdown (syntax highlighting, tables, RTL/LTR auto-detection), images (![](url)), videos (![](url.mp4))
 - The interface supports dark/light themes and bilingual Arabic/English layout
 
-ARTIFACTS (opens in a separate preview window):
-For interactive content (dashboards, games, charts, UIs, diagrams), wrap in:
-<aegis_artifact type="TYPE" title="Title">
-...content...
-</aegis_artifact>
-Types: html (vanilla JS, CSS inline) | react (JSX, React 18 pre-loaded) | svg | mermaid
-Rules:
-- ONE self-contained file (inline CSS + JS, no external imports)
-- Sandboxed iframe — no Node.js or filesystem access
-- ALWAYS use for: interactive content, visualizations, calculators, games
-- NEVER use for: simple text, short code snippets, explanations
-
 FILE REFERENCES:
 - Files: 📎 file: <path> (mime/type, size)
 - Voice: 🎤 [voice] <path> (duration)
@@ -692,6 +680,44 @@ export class ChatHandler {
           severity: decision === 'deny' ? 'error' : 'success',
           title: `Exec ${decision === 'deny' ? 'Denied' : 'Approved'}`,
           body: p?.request?.command || p?.command || id,
+          showToast: false,
+        });
+      }
+    }
+
+    // ── Plugin approval requests ──
+    if (event === 'plugin.approval.requested') {
+      const req = p?.request || p;
+      if (p?.id && req?.title) {
+        useChatStore.getState().addPluginApproval({
+          id: p.id,
+          title: req.title || 'Plugin Approval',
+          description: req.description || '',
+          severity: req.severity || null,
+          toolName: req.toolName || null,
+          pluginId: req.pluginId || null,
+          expiresAt: p.expiresAtMs || (Date.now() + 120000),
+        });
+        useNotificationStore.getState().addNotification({
+          category: 'plugin-approval',
+          severity: req.severity === 'critical' ? 'error' : 'warning',
+          title: req.title,
+          body: req.description || req.toolName || '',
+          route: '/chat',
+          showToast: false,
+        });
+      }
+    }
+    if (event === 'plugin.approval.resolved') {
+      const id = p?.id;
+      const decision = p?.decision || 'resolved';
+      if (id) {
+        useChatStore.getState().removePluginApproval(id);
+        useNotificationStore.getState().addNotification({
+          category: 'plugin-approval',
+          severity: decision === 'deny' ? 'error' : 'success',
+          title: `Plugin ${decision === 'deny' ? 'Denied' : 'Approved'}`,
+          body: p?.request?.title || p?.request?.toolName || id,
           showToast: false,
         });
       }

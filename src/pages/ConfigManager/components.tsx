@@ -4,7 +4,8 @@
 // ═══════════════════════════════════════════════════════════
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Eye, EyeOff, Star, X, Save, ChevronDown, CheckCircle2 } from 'lucide-react';
+import { Eye, EyeOff, Star, X, Save, ChevronDown, CheckCircle2, Copy, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import type { ModelEntry } from './types';
 
@@ -21,7 +22,17 @@ interface MaskedInputProps {
 }
 
 export function MaskedInput({ value, onChange, placeholder, className, id }: MaskedInputProps) {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {}
+  };
 
   return (
     <div className="relative">
@@ -32,7 +43,7 @@ export function MaskedInput({ value, onChange, placeholder, className, id }: Mas
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className={clsx(
-          'w-full bg-aegis-surface border border-aegis-border rounded-lg px-3 py-2 pr-20',
+          'w-full bg-aegis-surface border border-aegis-border rounded-lg px-3 py-2 pr-[88px]',
           'text-aegis-text text-sm font-mono placeholder:text-aegis-text-muted',
           'outline-none focus:border-aegis-primary transition-colors duration-200',
           className
@@ -40,22 +51,33 @@ export function MaskedInput({ value, onChange, placeholder, className, id }: Mas
         spellCheck={false}
         autoComplete="off"
       />
-      <button
-        type="button"
-        onClick={() => setVisible((v) => !v)}
-        className={clsx(
-          'absolute right-2 top-1/2 -translate-y-1/2',
-          'flex items-center gap-1 px-2 py-1 rounded text-xs font-bold',
-          'bg-aegis-primary/10 text-aegis-primary border border-aegis-primary/20',
-          'hover:bg-aegis-primary/20 transition-colors duration-200'
-        )}
-      >
-        {visible ? (
-          <><EyeOff size={11} /> Hide</>
-        ) : (
-          <><Eye size={11} /> Show</>
-        )}
-      </button>
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+        {/* Copy button */}
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="flex items-center gap-0.5 px-1.5 py-1 rounded text-[10px] font-medium text-aegis-text-dim hover:text-aegis-text-muted hover:bg-[rgb(var(--aegis-overlay)/0.06)] transition-colors"
+          title={t('config.copySecret', 'Copy')}
+        >
+          {copied ? <Check size={10} className="text-aegis-success" /> : <Copy size={10} />}
+        </button>
+        {/* Show/Hide toggle */}
+        <button
+          type="button"
+          onClick={() => setVisible((v) => !v)}
+          className={clsx(
+            'flex items-center gap-1 px-2 py-1 rounded text-xs font-bold',
+            'bg-aegis-primary/10 text-aegis-primary border border-aegis-primary/20',
+            'hover:bg-aegis-primary/20 transition-colors duration-200'
+          )}
+        >
+          {visible ? (
+            <><EyeOff size={11} /> {t('config.hide', 'Hide')}</>
+          ) : (
+            <><Eye size={11} /> {t('config.show', 'Show')}</>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
@@ -72,11 +94,12 @@ interface ChipListProps {
 }
 
 export function ChipList({ models, primaryModel, onRemove, onSetPrimary }: ChipListProps) {
+  const { t } = useTranslation();
   const entries = Object.entries(models);
 
   if (entries.length === 0) {
     return (
-      <p className="text-xs text-aegis-text-muted italic py-1">No models configured</p>
+      <p className="text-xs text-aegis-text-muted italic py-1">{t('configExtra.noModels')}</p>
     );
   }
 
@@ -123,7 +146,7 @@ export function ChipList({ models, primaryModel, onRemove, onSetPrimary }: ChipL
             {onRemove && (
               <button
                 onClick={() => onRemove(id)}
-                title="Remove model"
+                title={t('configExtra.removeModel', 'Remove model')}
                 className="text-aegis-text-muted hover:text-red-400 transition-colors"
               >
                 <X size={12} />
@@ -773,6 +796,7 @@ export function DiffPreviewModal({
   current,
   saving,
 }: DiffPreviewModalProps) {
+  const { t } = useTranslation();
   const diffs = useMemo(() => {
     if (!original || !current) return [];
     return computeDiff(original, current);
@@ -806,7 +830,7 @@ export function DiffPreviewModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-aegis-border flex-shrink-0">
           <div className="flex items-center gap-2">
-            <h3 className="font-bold text-sm text-aegis-text">Review Changes</h3>
+            <h3 className="font-bold text-sm text-aegis-text">{t('configExtra.reviewChanges')}</h3>
             {diffs.length > 0 && (
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-400/10 text-yellow-400 border border-yellow-400/20">
                 {diffs.length} changes
@@ -826,7 +850,7 @@ export function DiffPreviewModal({
           {diffs.length === 0 ? (
             <div className="flex items-center gap-2 justify-center py-12 text-sm text-aegis-text-secondary">
               <CheckCircle2 size={16} className="text-aegis-primary" />
-              <span>No changes detected</span>
+              <span>{t('configExtra.noChanges')}</span>
             </div>
           ) : (
             diffs.map((diff, i) => <DiffRow key={i} diff={diff} />)

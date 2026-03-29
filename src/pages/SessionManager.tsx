@@ -3,7 +3,7 @@
 // Header + search + filter tabs + 2-col session cards + preview drawer
 // ═══════════════════════════════════════════════════════════
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -33,10 +33,10 @@ function classifySession(key: string): SessionType {
   return 'dm';
 }
 
-function sessionLabel(s: SessionInfo): string {
+function sessionLabel(s: SessionInfo, t?: (key: string) => string): string {
   const key = s.key || '';
   if (s.label || s.displayName) return (s.label || s.displayName || '').slice(0, 40);
-  if (key === 'agent:main:main') return 'Main';
+  if (key === 'agent:main:main') return t ? t('sessionManager.mainSession') : 'Main';
   const parts = key.split(':');
   if (parts.length >= 3) {
     if (parts[2] === 'subagent') {
@@ -71,14 +71,14 @@ function badgeClass(type: SessionType): string {
   }
 }
 
-function timeAgo(ts: string | undefined | null): string {
+function timeAgo(ts: string | undefined | null, t: (key: string, opts?: any) => string): string {
   if (!ts) return '—';
   try {
     const diff = Date.now() - new Date(ts).getTime();
-    if (diff < 0 || diff < 60_000) return 'just now';
-    if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-    if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
-    return `${Math.floor(diff / 86_400_000)}d ago`;
+    if (diff < 0 || diff < 60_000) return t('sessionManager.justNow');
+    if (diff < 3_600_000) return t('sessionManager.minutesAgo', { n: Math.floor(diff / 60_000) });
+    if (diff < 86_400_000) return t('sessionManager.hoursAgo', { n: Math.floor(diff / 3_600_000) });
+    return t('sessionManager.daysAgo', { n: Math.floor(diff / 86_400_000) });
   } catch { return '—'; }
 }
 
@@ -100,13 +100,15 @@ const fmtTokens = (n?: number): string => n == null ? '—' : formatTokens(n);
 // ═══════════════════════════════════════════════════════════
 
 function PreviewDrawer({ session, onClose }: { session: SessionInfo | null; onClose: () => void }) {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Fetch messages when session changes
-  useState(() => {
+  useEffect(() => {
     if (!session) return;
     setLoading(true);
+    setMessages([]);
     gateway.getHistory(session.key, 10)
       .then((res: any) => {
         const msgs = Array.isArray(res?.messages) ? res.messages : Array.isArray(res) ? res : [];
@@ -114,7 +116,7 @@ function PreviewDrawer({ session, onClose }: { session: SessionInfo | null; onCl
       })
       .catch(() => setMessages([]))
       .finally(() => setLoading(false));
-  });
+  }, [session]);
 
   if (!session) return null;
 
@@ -131,7 +133,7 @@ function PreviewDrawer({ session, onClose }: { session: SessionInfo | null; onCl
       >
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-aegis-border">
           <span className="text-[14px] font-semibold text-aegis-text">
-            📋 {sessionLabel(session)} — Last Messages
+            📋 {sessionLabel(session, t)} — {t('sessionManager.lastMessages')}
           </span>
           <button onClick={onClose} className="p-1 rounded-md text-aegis-text-dim hover:text-aegis-text-secondary hover:bg-[rgb(var(--aegis-overlay)/0.06)]">
             <X size={16} />
@@ -141,7 +143,7 @@ function PreviewDrawer({ session, onClose }: { session: SessionInfo | null; onCl
           {loading ? (
             <div className="flex items-center justify-center h-32"><Loader2 className="w-5 h-5 animate-spin text-aegis-primary/50" /></div>
           ) : messages.length === 0 ? (
-            <div className="text-center text-aegis-text-dim text-[12px] mt-8">No messages</div>
+            <div className="text-center text-aegis-text-dim text-[12px] mt-8">{t('sessions.noMessages')}</div>
           ) : messages.map((m: any, i: number) => {
             const role = m.role || 'unknown';
             const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content || '');
@@ -152,7 +154,7 @@ function PreviewDrawer({ session, onClose }: { session: SessionInfo | null; onCl
                 isUser ? 'bg-aegis-primary/8 ml-10' : 'bg-[rgb(var(--aegis-overlay)/0.03)] mr-10',
               )}>
                 <div className="text-[10px] font-semibold text-aegis-text-dim mb-1">
-                  {isUser ? 'You' : role.charAt(0).toUpperCase() + role.slice(1)}
+                  {isUser ? t('sessionManager.you') : role.charAt(0).toUpperCase() + role.slice(1)}
                 </div>
                 <div className="text-aegis-text-muted line-clamp-4">{content.substring(0, 300)}</div>
               </div>
@@ -171,6 +173,7 @@ function PreviewDrawer({ session, onClose }: { session: SessionInfo | null; onCl
 function ConfirmDialog({ title, message, onConfirm, onCancel, danger }: {
   title: string; message: string; onConfirm: () => void; onCancel: () => void; danger?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-[110]" onClick={onCancel} />
@@ -179,13 +182,13 @@ function ConfirmDialog({ title, message, onConfirm, onCancel, danger }: {
         <div className="text-[12px] text-aegis-text-muted mb-4">{message}</div>
         <div className="flex justify-end gap-2">
           <button onClick={onCancel} className="px-3 py-1.5 rounded-lg text-[11px] text-aegis-text-muted bg-[rgb(var(--aegis-overlay)/0.04)] border border-aegis-border hover:bg-[rgb(var(--aegis-overlay)/0.08)]">
-            Cancel
+            {t('common.cancel')}
           </button>
           <button onClick={onConfirm} className={clsx(
             'px-3 py-1.5 rounded-lg text-[11px] font-medium border',
             danger ? 'bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20' : 'bg-aegis-primary/10 text-aegis-primary border-aegis-primary/20 hover:bg-aegis-primary/20'
           )}>
-            Confirm
+            {t('common.confirm')}
           </button>
         </div>
       </div>
@@ -248,13 +251,13 @@ export function SessionManagerPage() {
       await gateway.resetSession(s.key);
       useNotificationStore.getState().addNotification({
         category: 'system', severity: 'success',
-        title: 'Session Reset', body: sessionLabel(s),
+        title: t('sessionManager.resetSuccess'), body: sessionLabel(s, t),
       });
       refreshGroup('sessions');
     } catch (e: any) {
       useNotificationStore.getState().addNotification({
         category: 'error', severity: 'error',
-        title: 'Reset Failed', body: e?.message || 'Unknown error',
+        title: t('errors.resetFailed'), body: e?.message || t('errors.unknown'),
       });
     }
     setActionLoading(null);
@@ -267,13 +270,13 @@ export function SessionManagerPage() {
       await gateway.deleteSession(s.key);
       useNotificationStore.getState().addNotification({
         category: 'system', severity: 'success',
-        title: 'Session Deleted', body: sessionLabel(s),
+        title: t('sessionManager.deleteSuccess'), body: sessionLabel(s, t),
       });
       refreshGroup('sessions');
     } catch (e: any) {
       useNotificationStore.getState().addNotification({
         category: 'error', severity: 'error',
-        title: 'Delete Failed', body: e?.message || 'Unknown error',
+        title: t('errors.deleteFailed'), body: e?.message || t('errors.unknown'),
       });
     }
     setActionLoading(null);
@@ -286,13 +289,13 @@ export function SessionManagerPage() {
       await gateway.cleanupSessions();
       useNotificationStore.getState().addNotification({
         category: 'system', severity: 'success',
-        title: 'Cleanup Complete', body: 'Old sessions removed',
+        title: t('sessionManager.cleanupComplete'), body: t('sessionManager.oldSessionsRemoved'),
       });
       refreshGroup('sessions');
     } catch (e: any) {
       useNotificationStore.getState().addNotification({
         category: 'error', severity: 'error',
-        title: 'Cleanup Failed', body: e?.message || 'Unknown error',
+        title: t('errors.cleanupFailed'), body: e?.message || t('errors.unknown'),
       });
     }
     setActionLoading(null);
@@ -308,10 +311,10 @@ export function SessionManagerPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-[18px] font-bold text-aegis-text flex items-center gap-2">
-              <Users size={20} /> Session Manager
+              <Users size={20} /> {t('sessionManager.title')}
             </h1>
             <p className="text-[12px] text-aegis-text-dim mt-0.5">
-              {sessions.length} sessions · {classified.filter((s) => s.running).length} active
+              {t('sessionManager.sessionsCount', { count: sessions.length })} · {t('sessionManager.activeCount', { count: classified.filter((s) => s.running).length })}
             </p>
           </div>
           <div className="flex gap-2">
@@ -319,13 +322,13 @@ export function SessionManagerPage() {
               onClick={() => refreshGroup('sessions')}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] text-aegis-text-muted bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.08)] hover:bg-[rgb(var(--aegis-overlay)/0.06)] transition-colors"
             >
-              <RefreshCw size={12} className={loading ? 'animate-spin' : ''} /> Refresh
+              <RefreshCw size={12} className={loading ? 'animate-spin' : ''} /> {t('sessionManager.refresh')}
             </button>
             <button
               onClick={() => setConfirmAction({ type: 'cleanup' })}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] text-red-400 bg-red-500/5 border border-red-500/15 hover:bg-red-500/10 transition-colors"
             >
-              <Trash2 size={12} /> Cleanup Old
+              <Trash2 size={12} /> {t('sessionManager.cleanupOld')}
             </button>
           </div>
         </div>
@@ -338,7 +341,7 @@ export function SessionManagerPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search sessions..."
+              placeholder={t('sessions.searchPlaceholder')}
               className="w-full pl-9 pr-3 py-2 rounded-lg text-[12px] bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.08)] text-aegis-text placeholder:text-aegis-text-dim/40 outline-none focus:border-aegis-primary/30"
             />
           </div>
@@ -354,7 +357,7 @@ export function SessionManagerPage() {
                     : 'bg-[rgb(var(--aegis-overlay)/0.03)] text-aegis-text-muted border-transparent hover:bg-[rgb(var(--aegis-overlay)/0.06)]'
                 )}
               >
-                {key.charAt(0).toUpperCase() + key.slice(1)}
+                {t(`sessionManager.filter${key.charAt(0).toUpperCase() + key.slice(1)}`)}
                 <span className="ml-1 opacity-60 text-[9px]">{counts[key]}</span>
               </button>
             ))}
@@ -365,14 +368,14 @@ export function SessionManagerPage() {
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-[200px] text-aegis-text-dim">
             <Users size={32} className="opacity-20 mb-2" />
-            <span className="text-[12px]">No sessions match your filters</span>
+            <span className="text-[12px]">{t('sessions.noResults')}</span>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             <AnimatePresence mode="popLayout">
               {filtered.map((s) => {
                 const type = s._type;
-                const pct = tokenPercent(s.totalTokens || s.contextTokens, s.maxTokens || 200000);
+                const pct = tokenPercent(s.totalTokens || s.contextTokens, s.maxTokens || s.contextWindow || 200000);
                 const isLoading = actionLoading === s.key;
 
                 return (
@@ -388,7 +391,7 @@ export function SessionManagerPage() {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2 text-[13px] font-semibold text-aegis-text">
                         <span>{sessionIcon(type)}</span>
-                        <span className="truncate max-w-[180px]">{sessionLabel(s)}</span>
+                        <span className="truncate max-w-[180px]">{sessionLabel(s, t)}</span>
                         <span className={clsx('text-[9px] px-1.5 py-0.5 rounded font-semibold', badgeClass(type))}>
                           {type}
                         </span>
@@ -398,7 +401,7 @@ export function SessionManagerPage() {
 
                     {/* Meta */}
                     <div className="flex items-center gap-3 text-[10px] text-aegis-text-dim mb-2">
-                      <span className="flex items-center gap-1"><Clock size={10} /> {timeAgo(s.updatedAt || s.lastActive)}</span>
+                      <span className="flex items-center gap-1"><Clock size={10} /> {timeAgo(s.updatedAt || s.lastActive, t)}</span>
                       <span className="flex items-center gap-1"><Bot size={10} /> {s.key.split(':')[1] || 'main'}</span>
                     </div>
 
@@ -408,7 +411,7 @@ export function SessionManagerPage() {
                         <div className={clsx('h-full rounded-full transition-all', tokenBarColor(pct))} style={{ width: `${pct}%` }} />
                       </div>
                       <span className="text-[10px] text-aegis-text-dim font-mono whitespace-nowrap">
-                        {fmtTokens(s.totalTokens || s.contextTokens)} / {fmtTokens(s.maxTokens || 200000)}
+                        {fmtTokens(s.totalTokens || s.contextTokens)} / {fmtTokens(s.maxTokens || s.contextWindow || 200000)}
                       </span>
                     </div>
 
@@ -425,14 +428,14 @@ export function SessionManagerPage() {
                         onClick={() => setPreviewSession(s)}
                         className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium text-aegis-primary bg-aegis-primary/5 border border-aegis-primary/15 hover:bg-aegis-primary/10 transition-colors"
                       >
-                        <Eye size={10} /> Preview
+                        <Eye size={10} /> {t('sessionManager.preview')}
                       </button>
                       <button
                         onClick={() => setConfirmAction({ type: 'reset', session: s })}
                         disabled={isLoading}
                         className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium text-blue-400 bg-blue-500/5 border border-blue-500/15 hover:bg-blue-500/10 transition-colors disabled:opacity-30"
                       >
-                        <RotateCcw size={10} /> Reset
+                        <RotateCcw size={10} /> {t('sessionManager.reset')}
                       </button>
                       {s.key !== 'agent:main:main' && (
                         <button
@@ -440,7 +443,7 @@ export function SessionManagerPage() {
                           disabled={isLoading}
                           className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium text-red-400 bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 transition-colors disabled:opacity-30"
                         >
-                          <Trash2 size={10} /> Delete
+                          <Trash2 size={10} /> {t('sessionManager.delete')}
                         </button>
                       )}
                       {isLoading && <Loader2 size={12} className="animate-spin text-aegis-text-dim ml-1" />}
@@ -463,14 +466,14 @@ export function SessionManagerPage() {
         {confirmAction && (
           <ConfirmDialog
             title={
-              confirmAction.type === 'reset' ? 'Reset Session?' :
-              confirmAction.type === 'delete' ? 'Delete Session?' :
-              'Cleanup Old Sessions?'
+              confirmAction.type === 'reset' ? t('sessionManager.resetTitle') :
+              confirmAction.type === 'delete' ? t('sessionManager.deleteTitle') :
+              t('sessionManager.cleanupTitle')
             }
             message={
-              confirmAction.type === 'reset' ? `This will clear context for "${sessionLabel(confirmAction.session!)}"` :
-              confirmAction.type === 'delete' ? `This will permanently delete "${sessionLabel(confirmAction.session!)}"` :
-              'This will remove sessions older than 30 days. This cannot be undone.'
+              confirmAction.type === 'reset' ? t('sessionManager.resetMessage', { name: sessionLabel(confirmAction.session!, t) }) :
+              confirmAction.type === 'delete' ? t('sessionManager.deleteMessage', { name: sessionLabel(confirmAction.session!, t) }) :
+              t('sessionManager.cleanupWarning')
             }
             danger={confirmAction.type === 'delete' || confirmAction.type === 'cleanup'}
             onCancel={() => setConfirmAction(null)}

@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
-import { ArrowDown, Download, Loader2, Search, X, Zap, Pin, PinOff, ChevronDown, Wrench } from 'lucide-react';
+import { ArrowDown, Download, Loader2, Search, X, Zap, Pin, PinOff, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
@@ -14,7 +14,7 @@ import { TypingIndicator } from './TypingIndicator';
 import { InlineButtonBar } from './InlineButtonBar';
 import { QuickReplyBar } from './QuickReplyBar';
 import type { RenderBlock } from '@/types/RenderBlock';
-import { exportChatMarkdown } from '@/utils/exportChat';
+// exportChatMarkdown moved to ChatTabs toolbar
 import clsx from 'clsx';
 
 // ═══════════════════════════════════════════════════════════
@@ -22,6 +22,7 @@ import clsx from 'clsx';
 // ═══════════════════════════════════════════════════════════
 
 function CompactDivider({ timestamp }: { timestamp?: string }) {
+  const { t } = useTranslation();
   const time = timestamp ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
   return (
     <div className="flex items-center gap-0 py-5 px-4 group">
@@ -37,7 +38,7 @@ function CompactDivider({ timestamp }: { timestamp?: string }) {
       <div className="flex items-center gap-1.5 px-3.5 py-1 bg-amber-500/[0.06] border border-amber-500/[0.12] rounded-full shrink-0 mx-1 transition-colors group-hover:bg-amber-500/[0.1] group-hover:border-amber-500/[0.2]">
         <Zap size={10} className="text-amber-500/50" />
         <span className="text-[9px] font-bold uppercase tracking-[1.5px] text-amber-500/50 group-hover:text-amber-500/70 transition-colors">
-          Context Compacted
+          {t('chat.contextCompacted')}
         </span>
         {time && <span className="text-[9px] text-amber-500/25 font-mono">· {time}</span>}
       </div>
@@ -70,8 +71,7 @@ export function ChatView() {
   const renderBlocks = useChatStore((s) => s.renderBlocks);
   const messages = useChatStore((s) => s.messages);
   const isTyping = useChatStore((s) => s.isTyping);
-  const thinkingText = useChatStore((s) => s.thinkingText);
-  const thinkingRunId = useChatStore((s) => s.thinkingRunId);
+  // thinkingText + thinkingRunId read inside Footer component (stable Virtuoso ref)
   const quickReplies = useChatStore((s) => s.quickReplies);
   const isLoadingHistory = useChatStore((s) => s.isLoadingHistory);
   const fallbackInfo = useChatStore((s) => s.fallbackInfo);
@@ -90,7 +90,6 @@ export function ChatView() {
   const loadSessionHistory = useChatStore((s) => s.loadSessionHistory);
 
   const toolIntentEnabled = useSettingsStore((s) => s.toolIntentEnabled);
-  const setToolIntentEnabled = useSettingsStore((s) => s.setToolIntentEnabled);
 
   // ── Search state ──
   const [searchOpen, setSearchOpen] = useState(false);
@@ -308,15 +307,8 @@ export function ChatView() {
     }
   }, [toolIntentEnabled, handleResend, handleRegenerate, handleInlineButtonClick]);
 
-  // ── Footer: thinking stream + typing indicator ──
-  const Footer = useCallback(() => (
-    <div className="pb-1">
-      {thinkingText && thinkingRunId && (
-        <ThinkingBubble content={thinkingText} isStreaming />
-      )}
-      {isTyping && <TypingIndicator />}
-    </div>
-  ), [thinkingText, thinkingRunId, isTyping]);
+  // Footer is a stable component reference — reads store internally
+  // (avoids Virtuoso re-mount on every thinkingText change)
 
   // ── Drag & drop overlay for file uploads ──
   const [dragging, setDragging] = useState(false);
@@ -360,8 +352,8 @@ export function ChatView() {
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-aegis-bg/80 backdrop-blur-sm border-2 border-dashed border-aegis-primary/40 m-2 pointer-events-none" style={{ borderRadius: 'var(--aegis-radius)' }}>
           <div className="flex flex-col items-center gap-2 text-aegis-primary">
             <Download size={40} className="animate-bounce" />
-            <span className="text-[14px] font-semibold">Drop files here</span>
-            <span className="text-[11px] text-aegis-text-dim">Images, PDFs, documents...</span>
+            <span className="text-[14px] font-semibold">{t('chat.dropFiles')}</span>
+            <span className="text-[11px] text-aegis-text-dim">{t('chat.dropFilesSubtitle')}</span>
           </div>
         </div>
       )}
@@ -373,7 +365,7 @@ export function ChatView() {
       {fallbackInfo && (
         <div className="shrink-0 px-4 py-1.5 text-center text-[11px] bg-amber-500/10 text-amber-400 border-b border-amber-500/15 flex items-center justify-center gap-2">
           <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse" />
-          <span>Model fallback: <strong>{fallbackInfo.from}</strong> → <strong>{fallbackInfo.to}</strong></span>
+          <span>{t('chat.modelFallback')} <strong>{fallbackInfo.from}</strong> → <strong>{fallbackInfo.to}</strong></span>
           {fallbackInfo.reason && <span className="opacity-60">({fallbackInfo.reason})</span>}
           <button onClick={() => useChatStore.getState().setFallbackInfo(null)} className="ml-2 opacity-40 hover:opacity-80 text-[10px]">✕</button>
         </div>
@@ -418,7 +410,7 @@ export function ChatView() {
               if (e.key === 'Enter') setSearchIndex((prev) => (prev + 1) % Math.max(searchResults.length, 1));
               if (e.key === 'Enter' && e.shiftKey) setSearchIndex((prev) => (prev - 1 + searchResults.length) % Math.max(searchResults.length, 1));
             }}
-            placeholder="Search messages..."
+            placeholder={t('chat.searchPlaceholder')}
             className="flex-1 bg-transparent text-[12px] text-aegis-text outline-none placeholder:text-aegis-text-dim"
           />
           {searchResults.length > 0 && (
@@ -427,7 +419,7 @@ export function ChatView() {
             </span>
           )}
           {searchQuery && searchResults.length === 0 && (
-            <span className="text-[10px] text-aegis-text-dim shrink-0">No results</span>
+            <span className="text-[10px] text-aegis-text-dim shrink-0">{t('chat.noResults')}</span>
           )}
           <button onClick={() => { setSearchOpen(false); setSearchQuery(''); setSearchResults([]); }}
             className="p-1 rounded hover:bg-[rgb(var(--aegis-overlay)/0.06)]">
@@ -438,33 +430,6 @@ export function ChatView() {
 
       {/* Messages Area — Virtualized */}
       <div className="flex-1 min-h-0 relative">
-        {/* Export button — floating, shown when there are messages */}
-        {renderBlocks.length > 0 && !searchOpen && (
-          <div className="absolute top-3 right-3 z-10 flex items-center gap-1">
-            <button
-              onClick={() => setToolIntentEnabled(!toolIntentEnabled)}
-              className={`p-1.5 rounded-lg border transition-colors ${
-                toolIntentEnabled
-                  ? 'bg-aegis-primary/10 border-aegis-primary/30 text-aegis-primary'
-                  : 'bg-[rgb(var(--aegis-overlay)/0.06)] border-[rgb(var(--aegis-overlay)/0.10)] text-aegis-text-muted hover:text-aegis-text-secondary hover:bg-[rgb(var(--aegis-overlay)/0.12)]'
-              }`}
-              title={toolIntentEnabled ? 'Hide tool calls' : 'Show tool calls'}
-            >
-              <Wrench size={14} />
-            </button>
-            <button
-              onClick={() => exportChatMarkdown(renderBlocks, activeSessionKey)}
-              className="p-1.5 rounded-lg
-                bg-[rgb(var(--aegis-overlay)/0.06)] border border-[rgb(var(--aegis-overlay)/0.10)]
-                text-aegis-text-muted hover:text-aegis-text-secondary hover:bg-[rgb(var(--aegis-overlay)/0.12)]
-                transition-colors"
-              title="Export chat as Markdown"
-            >
-              <Download size={14} />
-            </button>
-          </div>
-        )}
-
         {isLoadingHistory ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-8">
             <Loader2 size={28} className="text-aegis-primary animate-spin mb-4" />
@@ -556,6 +521,7 @@ export function ChatView() {
 
 // ── Pinned Messages Bar ──
 function PinnedMessagesBar() {
+  const { t } = useTranslation();
   const pinnedMessages = useChatStore((s) => s.pinnedMessages);
   const unpinMessage = useChatStore((s) => s.unpinMessage);
   const renderBlocks = useChatStore((s) => s.renderBlocks);
@@ -578,7 +544,7 @@ function PinnedMessagesBar() {
         className="w-full flex items-center gap-2 px-4 py-1.5 text-[11px] text-amber-400 hover:bg-amber-500/5 transition-colors"
       >
         <Pin size={11} />
-        <span className="font-medium">{pinnedMessages.length} pinned</span>
+        <span className="font-medium">{t('chat.pinnedCount', { count: pinnedMessages.length })}</span>
         <ChevronDown size={11} className={clsx('ml-auto transition-transform', expanded && 'rotate-180')} />
       </button>
       {expanded && (
@@ -595,6 +561,22 @@ function PinnedMessagesBar() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Virtuoso Footer — reads store directly for stable reference ──
+function Footer() {
+  const thinkingText = useChatStore((s) => s.thinkingText);
+  const thinkingRunId = useChatStore((s) => s.thinkingRunId);
+  const isTyping = useChatStore((s) => s.isTyping);
+
+  return (
+    <div className="pb-1">
+      {thinkingText && thinkingRunId && (
+        <ThinkingBubble content={thinkingText} isStreaming />
+      )}
+      {isTyping && <TypingIndicator />}
     </div>
   );
 }

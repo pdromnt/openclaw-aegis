@@ -3,7 +3,7 @@
 // Top: Command bar | Col 1: Gantt job rows | Col 2: 24h clock | Col 3: Detail + Activity
 // ═══════════════════════════════════════════════════════════
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Play, RotateCcw, Loader2, Check, X, Plus, Search, Trash2 } from 'lucide-react';
 import { gateway } from '@/services/gateway/index';
@@ -131,23 +131,25 @@ function getCronTemplates(t: (key: string) => string) {
 
 // ── Formatting ──
 
-function formatSchedule(schedule: any): string {
+function formatSchedule(schedule: any, t?: (k: string, opts?: any) => string): string {
   if (!schedule) return '—';
   if (schedule.kind === 'every') {
     const mins = Math.round((schedule.everyMs || 0) / 60000);
-    if (mins < 60) return `Every ${mins}m`;
+    if (mins < 60) return t ? t('cron.everyMinutes', { m: mins }) : `Every ${mins}m`;
     const h = Math.floor(mins / 60), m = mins % 60;
-    return m > 0 ? `Every ${h}h ${m}m` : `Every ${h}h`;
+    if (m > 0) return t ? t('cron.everyHoursMinutes', { h, m }) : `Every ${h}h ${m}m`;
+    return t ? t('cron.everyHours', { h }) : `Every ${h}h`;
   }
   if (schedule.kind === 'at') return new Date(schedule.at).toLocaleString();
   if (schedule.kind === 'cron') {
     const parts = (schedule.expr || '').split(' ');
     if (parts.length >= 5) {
       const [min, hour, dom, mon] = parts;
-      if (dom !== '*' && mon === '*' && hour !== '*') return `Monthly ${dom}${ordSuffix(dom)} ${fmtTime(hour, min)}`;
-      if (dom !== '*' && mon !== '*') return `${['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+mon]||mon} ${dom} ${fmtTime(hour,min)}`;
-      if (hour.includes('*/')) return `Every ${hour.replace('*/','')}h`;
-      if (hour !== '*' && dom === '*') return `Daily ${fmtTime(hour, min)}`;
+      const time = fmtTime(hour, min);
+      if (dom !== '*' && mon === '*' && hour !== '*') return t ? t('cron.monthly', { day: `${dom}${ordSuffix(dom)}`, time }) : `Monthly ${dom}${ordSuffix(dom)} ${time}`;
+      if (dom !== '*' && mon !== '*') return `${['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+mon]||mon} ${dom} ${time}`;
+      if (hour.includes('*/')) return t ? t('cron.everyHours', { h: hour.replace('*/','') }) : `Every ${hour.replace('*/','')}h`;
+      if (hour !== '*' && dom === '*') return t ? t('cron.daily', { time }) : `Daily ${time}`;
     }
     return schedule.expr;
   }
@@ -157,7 +159,7 @@ function formatSchedule(schedule: any): string {
 function ordSuffix(n: string) { const v = +n; return [1,21,31].includes(v)?'st':[2,22].includes(v)?'nd':[3,23].includes(v)?'rd':'th'; }
 function fmtTime(h: string, m: string) { const hr=+h, mm=m.padStart(2,'0'); return hr===0?`12:${mm}AM`:hr<12?`${hr}:${mm}AM`:hr===12?`12:${mm}PM`:`${hr-12}:${mm}PM`; }
 
-function formatTimeAgo(ts: string | number | null | undefined): string {
+function formatTimeAgo(ts: string | number | null | undefined, t?: (k: string, opts?: any) => string): string {
   if (ts == null) return '—';
   try {
     const d = new Date(typeof ts === 'string' ? ts : ts);
@@ -165,15 +167,15 @@ function formatTimeAgo(ts: string | number | null | undefined): string {
     const diff = Date.now() - d.getTime();
     if (diff < 0) {
       const a = Math.abs(diff);
-      if (a < 60000) return 'now';
-      if (a < 3600000) return `in ${Math.floor(a / 60000)}m`;
-      if (a < 86400000) { const h = Math.floor(a / 3600000), m = Math.floor((a % 3600000) / 60000); return m > 0 ? `in ${h}h ${m}m` : `in ${h}h`; }
-      return `in ${Math.floor(a / 86400000)}d`;
+      if (a < 60000) return t ? t('cron.now') : 'now';
+      if (a < 3600000) return t ? t('cron.inMinutes', { m: Math.floor(a / 60000) }) : `in ${Math.floor(a / 60000)}m`;
+      if (a < 86400000) { const h = Math.floor(a / 3600000), m = Math.floor((a % 3600000) / 60000); return m > 0 ? (t ? t('cron.inHoursMinutes', { h, m }) : `in ${h}h ${m}m`) : (t ? t('cron.inHours', { h }) : `in ${h}h`); }
+      return t ? t('cron.inDays', { d: Math.floor(a / 86400000) }) : `in ${Math.floor(a / 86400000)}d`;
     }
-    if (diff < 60000) return 'just now';
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-    return `${Math.floor(diff / 86400000)}d ago`;
+    if (diff < 60000) return t ? t('cron.justNow') : 'just now';
+    if (diff < 3600000) return t ? t('cron.minutesAgo', { m: Math.floor(diff / 60000) }) : `${Math.floor(diff / 60000)}m ago`;
+    if (diff < 86400000) return t ? t('cron.hoursAgo', { h: Math.floor(diff / 3600000) }) : `${Math.floor(diff / 3600000)}h ago`;
+    return t ? t('cron.daysAgo', { d: Math.floor(diff / 86400000) }) : `${Math.floor(diff / 86400000)}d ago`;
   } catch { return '—'; }
 }
 
@@ -213,14 +215,19 @@ function scheduleAngle(schedule: any): number | null {
 // ClockFace — 24h circular schedule visualization
 // ═══════════════════════════════════════════════════════════
 
-function ClockFace({ jobs, colorMap, selectedId, onSelect }: {
+const ClockFace = memo(function ClockFace({ jobs, colorMap, selectedId, onSelect }: {
   jobs: CronJob[];
   colorMap: Record<string, string>;
   selectedId: string | null;
   onSelect: (id: string) => void;
 }) {
   const primaryHex = themeHex('primary');
-  // Compute on every render — parent re-renders every 15s via tick, no need for internal interval
+  // Internal 15s tick — independent of parent re-renders
+  const [, setClockTick] = useState(0);
+  useEffect(() => {
+    const iv = setInterval(() => setClockTick(t => t + 1), 15000);
+    return () => clearInterval(iv);
+  }, []);
   const now = new Date();
   const nowAngle = (now.getHours() + now.getMinutes() / 60) / 24 * 360;
   const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
@@ -342,7 +349,7 @@ function ClockFace({ jobs, colorMap, selectedId, onSelect }: {
       </text>
     </svg>
   );
-}
+});
 
 // ═══════════════════════════════════════════════════════════
 // Main Page
@@ -377,10 +384,10 @@ export function CronMonitorPage() {
   // Fix #3: Stale request guard for selected job fetches
   const selectedFetchId = useRef(0);
 
-  // Fix #6: Tick for live countdown/timeAgo updates (every 15s)
+  // Fix #6: Tick for live countdown/timeAgo updates (every 30s — aligned with cron poll)
   const [, setTick] = useState(0);
   useEffect(() => {
-    const iv = setInterval(() => setTick(t => (t + 1) % 10000), 15000);
+    const iv = setInterval(() => setTick(t => (t + 1) % 10000), 30000);
     return () => clearInterval(iv);
   }, []);
 
@@ -586,10 +593,10 @@ export function CronMonitorPage() {
       {/* ═══ COMMAND BAR ═══ */}
       <div className="shrink-0 flex items-center gap-4 px-6 py-3 border-b border-[rgb(var(--aegis-overlay)/0.06)] bg-[rgb(var(--aegis-overlay)/0.004)]">
         <div className="flex items-center gap-2">
-          <span className="text-base font-extrabold">⏰ Cron Monitor</span>
+          <span className="text-base font-extrabold">⏰ {t('cron.title')}</span>
           <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md
             bg-aegis-primary/10 border border-aegis-primary/20 text-aegis-primary uppercase tracking-[1px]">
-            {jobs.length} Jobs
+            {t('cron.jobsCount', { count: jobs.length })}
           </span>
         </div>
         <div className="flex-1" />
@@ -598,7 +605,7 @@ export function CronMonitorPage() {
           <Search size={13} className="absolute start-2.5 top-1/2 -translate-y-1/2 text-aegis-text-muted pointer-events-none" />
           <input
             value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Search jobs..."
+            placeholder={t('cron.searchPlaceholder')}
             className="w-[200px] ps-8 pe-3 py-1.5 rounded-[10px] text-xs
               bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.06)] text-aegis-text placeholder:text-aegis-text-muted
               outline-none focus:border-aegis-accent/30 focus:bg-aegis-accent/[0.03] transition-all"
@@ -607,13 +614,13 @@ export function CronMonitorPage() {
         <button onClick={() => { refreshGroup('cron'); loadAllRuns(); }}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border border-[rgb(var(--aegis-overlay)/0.06)]
             text-[11px] font-semibold text-aegis-text-muted hover:text-aegis-text-secondary transition-colors">
-          <RotateCcw size={12} className={loading ? 'animate-spin' : ''} /> Refresh
+          <RotateCcw size={12} className={loading ? 'animate-spin' : ''} /> {t('cron.refresh')}
         </button>
         <button onClick={() => setShowTemplates(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px]
             bg-aegis-accent/10 border border-aegis-accent/25 text-aegis-accent
             text-[11px] font-semibold hover:bg-aegis-accent/15 transition-colors">
-          <Plus size={12} /> New Job
+          <Plus size={12} /> {t('cron.newJob')}
         </button>
       </div>
 
@@ -625,9 +632,9 @@ export function CronMonitorPage() {
         <div className="border-e border-[rgb(var(--aegis-overlay)/0.06)] flex flex-col overflow-hidden">
           <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-[rgb(var(--aegis-overlay)/0.06)]
             bg-aegis-bg-frosted backdrop-blur-sm sticky top-0 z-10">
-            <h3 className="text-xs font-bold uppercase tracking-[1.5px] text-aegis-text-muted">Scheduled Jobs</h3>
+            <h3 className="text-xs font-bold uppercase tracking-[1.5px] text-aegis-text-muted">{t('cron.scheduledJobs')}</h3>
             <span className="text-[10px] font-bold text-aegis-primary bg-aegis-primary/10 px-2 py-0.5 rounded-md">
-              {activeCount} active
+              {t('cron.activeCount', { count: activeCount })}
             </span>
           </div>
 
@@ -681,7 +688,7 @@ export function CronMonitorPage() {
                         </span>
                       </div>
                       <div className="text-[10px] text-aegis-text-muted flex items-center gap-2 flex-wrap">
-                        {formatSchedule(job.schedule)}
+                        {formatSchedule(job.schedule, t)}
                         {isError && (
                           <span className="text-[9px] font-bold text-aegis-danger/50 bg-aegis-danger/[0.08] px-1.5 py-0.5 rounded">
                             ✗ {job.state?.lastError?.substring(0, 20) || 'error'}
@@ -689,7 +696,7 @@ export function CronMonitorPage() {
                         )}
                         {status === 'active' && (
                           <span className="text-[9px] font-bold text-aegis-primary/50 bg-aegis-primary/[0.08] px-1.5 py-0.5 rounded">
-                            ✓ {formatTimeAgo(getLastRun(job))}
+                            ✓ {formatTimeAgo(getLastRun(job), t)}
                           </span>
                         )}
                         {isPaused && <span className="text-aegis-warning/50">{t('cronDetail.paused').toLowerCase()}</span>}
@@ -758,8 +765,8 @@ export function CronMonitorPage() {
         {/* ═══ COL 2: 24h Clock Face ═══ */}
         <div className="border-e border-[rgb(var(--aegis-overlay)/0.06)] flex flex-col overflow-hidden">
           <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-[rgb(var(--aegis-overlay)/0.06)]">
-            <h3 className="text-xs font-bold uppercase tracking-[1.5px] text-aegis-text-muted">24h Schedule</h3>
-            <span className="text-[10px] font-bold text-aegis-accent bg-aegis-accent/10 px-2 py-0.5 rounded-md">Live</span>
+            <h3 className="text-xs font-bold uppercase tracking-[1.5px] text-aegis-text-muted">{t('cron.schedule24h')}</h3>
+            <span className="text-[10px] font-bold text-aegis-accent bg-aegis-accent/10 px-2 py-0.5 rounded-md">{t('cron.live')}</span>
           </div>
           {/* Clock pushed up slightly — more top padding, less bottom */}
           <div className="flex-1 flex items-start justify-center pt-4 pb-0 px-4">
@@ -797,7 +804,7 @@ export function CronMonitorPage() {
                   <div className="flex-1 min-w-0">
                     <div className="text-lg font-extrabold truncate">{selectedJob.name || selectedJob.id}</div>
                     <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                      <span className="text-[11px] text-aegis-text-muted">{formatSchedule(selectedJob.schedule)}</span>
+                      <span className="text-[11px] text-aegis-text-muted">{formatSchedule(selectedJob.schedule, t)}</span>
                       {/* Stagger badge — Gateway 2026.2.25+ */}
                       {(selectedJob.stagger || selectedJob.schedule?.stagger) && (
                         <span className="text-[9px] font-bold px-1.5 py-0.5 rounded
@@ -924,7 +931,7 @@ export function CronMonitorPage() {
             ) : (
               <div className="shrink-0 p-5 border-b border-[rgb(var(--aegis-overlay)/0.06)] text-center">
                 <div className="text-2xl mb-2">👈</div>
-                <div className="text-[11px] text-aegis-text-dim">Select a job</div>
+                <div className="text-[11px] text-aegis-text-dim">{t('cron.selectJob')}</div>
               </div>
             )}
           </AnimatePresence>
@@ -946,16 +953,16 @@ export function CronMonitorPage() {
               <div className="flex items-center gap-1.5 text-[8px] font-extrabold text-aegis-primary uppercase tracking-[1px]">
                 <div className="w-[5px] h-[5px] rounded-full bg-aegis-primary"
                   style={{ animation: 'mc-dot-ping 2s ease-in-out infinite' }} />
-                LIVE
+                {t('cron.live')}
               </div>
             </div>
             <div className={clsx('px-2 py-1', showAllLogs ? 'flex-1 overflow-y-auto' : 'overflow-hidden')}>
               {loadingRuns ? (
                 <div className="flex items-center gap-2 py-4 px-3 text-[10px] text-aegis-text-dim">
-                  <Loader2 size={12} className="animate-spin" /> Loading...
+                  <Loader2 size={12} className="animate-spin" /> {t('cron.loadingRuns')}
                 </div>
               ) : activityRuns.length === 0 ? (
-                <div className="text-[10px] text-aegis-text-dim py-4 px-3">No runs yet</div>
+                <div className="text-[10px] text-aegis-text-dim py-4 px-3">{t('cron.noRuns')}</div>
               ) : (
                 <>
                   {/* Fix #4: no motion animation on log items (they re-rendered every poll) */}
@@ -976,7 +983,7 @@ export function CronMonitorPage() {
                           </div>
                           <div className="text-[9px] text-aegis-text-dim truncate"
                             style={!isOk ? { color: tc.dangerA25 } : undefined}>
-                            {run.summary || run.error || (isOk ? 'Completed' : 'Failed')}
+                            {run.summary || run.error || (isOk ? t('cron.completed') : t('cron.failed'))}
                           </div>
                         </div>
                         <div className="text-[8px] font-mono text-aegis-text-dim px-1.5 py-0.5 rounded
@@ -985,7 +992,7 @@ export function CronMonitorPage() {
                           {formatDuration(run.durationMs)}
                         </div>
                         <div className="text-[9px] text-aegis-text-dim font-mono shrink-0 w-9 text-end">
-                          {run.ts ? formatTimeAgo(run.ts).replace(' ago', '') : '—'}
+                          {run.ts ? formatTimeAgo(run.ts, t).replace(' ago', '') : '—'}
                         </div>
                       </div>
                     );
@@ -1024,8 +1031,8 @@ export function CronMonitorPage() {
                     <Trash2 size={20} className="text-aegis-danger" />
                   </div>
                   <div>
-                    <h3 className="text-base font-extrabold text-aegis-text">Delete Job?</h3>
-                    <p className="text-[11px] text-aegis-text-muted mt-0.5">This action cannot be undone</p>
+                    <h3 className="text-base font-extrabold text-aegis-text">{t('cron.deleteJobTitle')}</h3>
+                    <p className="text-[11px] text-aegis-text-muted mt-0.5">{t('cron.cannotUndo')}</p>
                   </div>
                 </div>
 
@@ -1034,7 +1041,7 @@ export function CronMonitorPage() {
                     <span className="text-base">{getJobIcon(jobToDelete?.name || '')}</span>
                     <span className="text-[13px] font-bold text-aegis-text truncate">{jobToDelete?.name || deleteConfirm}</span>
                   </div>
-                  <div className="text-[10px] text-aegis-text-muted mt-1">{formatSchedule(jobToDelete?.schedule)}</div>
+                  <div className="text-[10px] text-aegis-text-muted mt-1">{formatSchedule(jobToDelete?.schedule, t)}</div>
                 </div>
 
                 <div className="flex gap-2">
@@ -1042,7 +1049,7 @@ export function CronMonitorPage() {
                     className="flex-1 py-2.5 rounded-xl text-[12px] font-semibold
                       bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.08)] text-aegis-text-muted
                       hover:text-aegis-text-secondary transition-colors">
-                    Cancel
+                    {t('cron.cancelBtn')}
                   </button>
                   <button onClick={() => deleteJob(deleteConfirm)}
                     disabled={actionLoading === `del-${deleteConfirm}`}
@@ -1051,7 +1058,7 @@ export function CronMonitorPage() {
                       hover:bg-aegis-danger/25 transition-colors disabled:opacity-40">
                     {actionLoading === `del-${deleteConfirm}`
                       ? <Loader2 size={14} className="animate-spin mx-auto" />
-                      : 'Delete'}
+                      : t('cron.deleteBtn')}
                   </button>
                 </div>
               </motion.div>
@@ -1071,8 +1078,8 @@ export function CronMonitorPage() {
               onClick={e => e.stopPropagation()}
               className="w-[560px] p-6 rounded-2xl border border-[rgb(var(--aegis-overlay)/0.1)] shadow-2xl"
               style={{ background: 'var(--aegis-bg-frosted)', backdropFilter: 'blur(40px)' }}>
-              <h3 className="text-base font-extrabold mb-1">Quick Templates</h3>
-              <p className="text-[11px] text-aegis-text-dim mb-5">Add a pre-configured job with one click</p>
+              <h3 className="text-base font-extrabold mb-1">{t('cron.quickTemplates')}</h3>
+              <p className="text-[11px] text-aegis-text-dim mb-5">{t('cron.quickTemplatesDesc')}</p>
               <div className="grid grid-cols-2 gap-3">
                 {cronTemplates.map(tpl => {
                   const isAdded = templateResult[tpl.id] === 'ok';
@@ -1104,7 +1111,7 @@ export function CronMonitorPage() {
               </div>
               <button onClick={() => setShowTemplates(false)}
                 className="mt-4 w-full py-2 rounded-xl text-[11px] text-aegis-text-muted hover:text-aegis-text-secondary transition-colors">
-                Close
+                {t('cron.close')}
               </button>
             </motion.div>
           </motion.div>

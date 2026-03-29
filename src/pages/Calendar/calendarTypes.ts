@@ -2,6 +2,7 @@
 // Calendar Types — Single source of truth for all calendar data
 // ═══════════════════════════════════════════════════════════
 
+export type CalendarSystem = 'gregorian' | 'hijri' | 'chinese';
 export type EventCategory = 'work' | 'personal' | 'health' | 'social' | 'education' | 'other';
 export type EventSource = 'local' | 'memory' | 'ics';
 export type ReminderStatus = 'pending' | 'scheduled' | 'fired' | 'failed' | 'none';

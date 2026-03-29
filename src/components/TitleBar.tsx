@@ -175,11 +175,23 @@ function ModelPicker({ currentModel }: { currentModel: string | null }) {
                     >
                       <div className="flex-1 min-w-0">
                         <span className="font-mono truncate block">{m.alias || formatModelName(m.id)}</span>
-                        {m.alias && (
-                          <span className="text-[9px] text-aegis-text-dim font-mono truncate block">
-                            {formatModelName(m.id)}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {m.alias && (
+                            <span className="text-[9px] text-aegis-text-dim font-mono truncate">
+                              {formatModelName(m.id)}
+                            </span>
+                          )}
+                          {(m as any).contextWindow && (
+                            <span className="text-[8px] text-aegis-text-dim/50 font-mono">
+                              {(m as any).contextWindow >= 1_000_000
+                                ? `${((m as any).contextWindow / 1_000_000).toFixed((m as any).contextWindow % 1_000_000 === 0 ? 0 : 1)}M`
+                                : `${Math.round((m as any).contextWindow / 1000)}K`}
+                            </span>
+                          )}
+                          {(m as any).reasoning && (
+                            <span className="text-[8px] text-aegis-accent/50">🧠</span>
+                          )}
+                        </div>
                       </div>
                       {isActive && <Check size={11} className="text-aegis-primary shrink-0 ms-2" />}
                     </button>
@@ -388,6 +400,7 @@ function useAutoUpdate() {
 
 // ── NotificationBell — Bell icon with unread badge + drawer toggle ────────
 function NotificationBell() {
+  const { t } = useTranslation();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const unreadCount = useNotificationStore((s) => s.unreadCount);
 
@@ -402,7 +415,7 @@ function NotificationBell() {
           drawerOpen ? 'bg-[rgb(var(--aegis-overlay)/0.08)]' : 'bg-[rgb(var(--aegis-overlay)/0.04)]',
         )}
         style={{ border: '1px solid rgb(var(--aegis-overlay) / 0.08)' }}
-        title="Notifications"
+        title={t('titlebar.notifications', 'Notifications')}
       >
         <Bell size={12} className="text-aegis-text-dim" />
         {unreadCount > 0 && (
@@ -576,11 +589,12 @@ export function TitleBar() {
         </div>
       </div>
 
-      {/* ── Center: Search / Command Palette trigger (absolute centered) ── */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      {/* ── Right: ⌘K + Bell + Window Controls ── */}
+      <div className="no-drag flex items-center gap-1.5 px-4">
+        {/* Command Palette trigger */}
         <button
           onClick={() => useSettingsStore.getState().setCommandPaletteOpen(true)}
-          className="no-drag pointer-events-auto flex items-center gap-2 px-3 py-1 rounded-lg
+          className="flex items-center gap-2 px-3 py-1 rounded-lg
             bg-[rgb(var(--aegis-overlay)/0.04)] border border-[rgb(var(--aegis-overlay)/0.08)]
             text-aegis-text-dim text-[11px] cursor-pointer
             hover:bg-[rgb(var(--aegis-overlay)/0.08)] hover:border-[rgb(var(--aegis-overlay)/0.15)] transition-colors"
@@ -591,13 +605,9 @@ export function TitleBar() {
             <Command size={8} />K
           </kbd>
         </button>
-      </div>
-
-      {/* ── Right: Bell + Window Controls ── */}
-      <div className="no-drag flex items-center gap-1 px-4">
+        {/* Notifications bell */}
         <NotificationBell />
-      </div>
-      <div className="no-drag flex items-center gap-1 px-4">
+        {/* Window controls */}
         <button
           onClick={handleMinimize}
           className="w-[32px] h-[22px] rounded-[11px] flex items-center justify-center text-[12px] leading-none transition-all duration-[250ms]"

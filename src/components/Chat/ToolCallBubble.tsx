@@ -1,9 +1,10 @@
+import { useTranslation } from 'react-i18next';
 // ═══════════════════════════════════════════════════════════
 // ToolCallBubble — Intent-first tool call display
 // Shows tool name + key params + result in a compact card
 // ═══════════════════════════════════════════════════════════
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -86,7 +87,8 @@ interface ToolCallBubbleProps {
   tool: ToolCallInfo;
 }
 
-export function ToolCallBubble({ tool }: ToolCallBubbleProps) {
+export const ToolCallBubble = memo(function ToolCallBubble({ tool }: ToolCallBubbleProps) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const meta = getToolMeta(tool.toolName);
   const summary = tool.input ? summarizeInput(tool.toolName, tool.input) : '';
@@ -94,7 +96,7 @@ export function ToolCallBubble({ tool }: ToolCallBubbleProps) {
   const hasDetails = !!(tool.input && Object.keys(tool.input).length > 0) || !!tool.output;
 
   return (
-    <div className="px-5 py-px">
+    <div className="px-5 py-px animate-fade-in">
       <div
         className={clsx(
           'group inline-flex items-center gap-1 px-2 py-0.5 transition-all duration-150',
@@ -127,7 +129,7 @@ export function ToolCallBubble({ tool }: ToolCallBubbleProps) {
             {/* Input */}
             {tool.input && Object.keys(tool.input).length > 0 && (
               <div>
-                <div className="text-[9px] text-aegis-text-dim uppercase tracking-wider mb-1">Input</div>
+                <div className="text-[9px] text-aegis-text-dim uppercase tracking-wider mb-1">{t('chat.toolInput')}</div>
                 <pre className="text-[10px] font-mono text-aegis-text-muted whitespace-pre-wrap break-all
                   bg-[rgb(var(--aegis-overlay)/0.04)] rounded-lg p-2 max-h-[120px] overflow-auto"
                   dir="ltr">
@@ -138,7 +140,7 @@ export function ToolCallBubble({ tool }: ToolCallBubbleProps) {
             {/* Output */}
             {tool.output && (
               <div>
-                <div className="text-[9px] text-aegis-text-dim uppercase tracking-wider mb-1">Output</div>
+                <div className="text-[9px] text-aegis-text-dim uppercase tracking-wider mb-1">{t('chat.toolOutput')}</div>
                 <pre className="text-[10px] font-mono text-aegis-text-muted whitespace-pre-wrap break-all
                   bg-[rgb(var(--aegis-overlay)/0.04)] rounded-lg p-2 max-h-[200px] overflow-auto"
                   dir="ltr">
@@ -152,4 +154,4 @@ export function ToolCallBubble({ tool }: ToolCallBubbleProps) {
       )}
     </div>
   );
-}
+});

@@ -2,6 +2,8 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import ar from './locales/ar.json';
 import en from './locales/en.json';
+import zh from './locales/zh.json';
+import es from './locales/es.json';
 
 // ═══════════════════════════════════════════════════════════
 // i18n — Internationalization (Arabic + English)
@@ -20,14 +22,14 @@ const getInitialLang = (): string => {
 
   // New install or upgrade: installer language takes priority
   // (The NSIS wizard asks the user every time — respect that choice)
-  if (installerLang && (installerLang === 'ar' || installerLang === 'en') && lastVersion !== currentVersion) {
+  if (installerLang && (installerLang === 'ar' || installerLang === 'en' || installerLang === 'zh' || installerLang === 'es') && lastVersion !== currentVersion) {
     localStorage.setItem('aegis-language', installerLang);
     localStorage.setItem('aegis-installed-version', currentVersion);
     return installerLang;
   }
 
   // Normal run: use saved preference
-  if (stored === 'ar' || stored === 'en') {
+  if (stored === 'ar' || stored === 'en' || stored === 'zh' || stored === 'es') {
     // Sync version marker if missing
     if (!lastVersion && currentVersion) localStorage.setItem('aegis-installed-version', currentVersion);
     return stored;
@@ -45,6 +47,8 @@ i18n.use(initReactI18next).init({
   resources: {
     ar: { translation: ar },
     en: { translation: en },
+    zh: { translation: zh },
+    es: { translation: es },
   },
   lng: savedLang,
   fallbackLng: 'en',

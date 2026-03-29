@@ -2,15 +2,17 @@
 // ExportMenu — Dropdown with CSV download + clipboard copy
 // ═══════════════════════════════════════════════════════════
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Download, FileText, Copy, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ExportMenuProps {
   onExportCSV: () => void;
   onCopyText: () => void;
 }
 
-export function ExportMenu({ onExportCSV, onCopyText }: ExportMenuProps) {
+export const ExportMenu = memo(function ExportMenu({ onExportCSV, onCopyText }: ExportMenuProps) {
+  const { t } = useTranslation();
   const [open, setOpen]     = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -30,7 +32,7 @@ export function ExportMenu({ onExportCSV, onCopyText }: ExportMenuProps) {
         {copied
           ? <Check size={14} className="text-aegis-success" />
           : <Download size={14} />}
-        <span>{copied ? 'Copied!' : 'Export'}</span>
+        <span>{copied ? t('analytics.copiedBtn') : t('analytics.exportBtn')}</span>
       </button>
 
       {open && (
@@ -48,18 +50,18 @@ export function ExportMenu({ onExportCSV, onCopyText }: ExportMenuProps) {
               className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-[rgb(var(--aegis-overlay)/0.05)] text-[12px] text-aegis-text-muted text-start transition-colors"
             >
               <FileText size={14} className="text-aegis-accent shrink-0" />
-              <span>Download CSV</span>
+              <span>{t('analytics.downloadCsv', 'Download CSV')}</span>
             </button>
             <button
               onClick={handleCopy}
               className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-[rgb(var(--aegis-overlay)/0.05)] text-[12px] text-aegis-text-muted text-start transition-colors"
             >
               <Copy size={14} className="text-aegis-primary shrink-0" />
-              <span>Copy Summary</span>
+              <span>{t('analytics.copySummary', 'Copy Summary')}</span>
             </button>
           </div>
         </>
       )}
     </div>
   );
-}
+});

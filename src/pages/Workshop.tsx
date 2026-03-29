@@ -136,7 +136,7 @@ function CompletionBar({ tasks }: { tasks: Task[] }) {
       className="flex items-center gap-3.5 rounded-xl p-3 px-4 mb-4 border border-[rgb(var(--aegis-overlay)/0.06)]"
       style={{ background: 'rgb(var(--aegis-overlay) / 0.03)' }}
     >
-      <span className="text-[11px] text-aegis-text-muted whitespace-nowrap">Progress</span>
+      <span className="text-[11px] text-aegis-text-muted whitespace-nowrap">{t('workshop.progress')}</span>
       {/* Track */}
       <div className="flex-1 h-[6px] rounded-full overflow-hidden flex" style={{ background: 'rgb(var(--aegis-overlay) / 0.04)' }}>
         <div className="h-full rounded-s-full" style={{ width: `${(done / total) * 100}%`, background: themeHex('success') }} />
@@ -174,6 +174,7 @@ function TaskCard({ task, onMove, onDelete, onProgress }: {
   onDelete: (id: string) => void;
   onProgress: (id: string, p: number) => void;
 }) {
+  const { t } = useTranslation();
   const isDone = task.status === 'done';
   const ps = priorityStyle(task.priority);
 
@@ -228,7 +229,7 @@ function TaskCard({ task, onMove, onDelete, onProgress }: {
               : { color: ps.color, background: ps.bg, border: `1px solid ${ps.border}` }
             }
           >
-            {isDone ? 'DONE' : task.priority.toUpperCase()}
+            {isDone ? t('workshop.statusDone') : t(`workshop.priority${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}`)}
           </span>
         </div>
 
@@ -294,7 +295,7 @@ function TaskCard({ task, onMove, onDelete, onProgress }: {
                 className="text-[10px] px-2 py-1 rounded-md transition-colors"
                 style={{ background: 'rgb(var(--aegis-overlay) / 0.04)', color: 'rgb(var(--aegis-text-dim))' }}
               >
-                ← Queue
+                ← {t('workshop.moveToQueue')}
               </button>
             )}
             {task.status !== 'inProgress' && (
@@ -303,7 +304,7 @@ function TaskCard({ task, onMove, onDelete, onProgress }: {
                 className="text-[10px] px-2 py-1 rounded-md transition-colors"
                 style={{ background: themeAlpha('accent', 0.08), color: themeHex('accent') }}
               >
-                {task.status === 'queue' ? '→' : '←'} In Progress
+                {task.status === 'queue' ? '→' : '←'} {t('workshop.moveToInProgress')}
               </button>
             )}
             {task.status !== 'done' && (
@@ -312,7 +313,7 @@ function TaskCard({ task, onMove, onDelete, onProgress }: {
                 className="text-[10px] px-2 py-1 rounded-md transition-colors"
                 style={{ background: themeAlpha('success', 0.08), color: themeHex('success') }}
               >
-                ✓ Done
+                ✓ {t('workshop.moveToDone')}
               </button>
             )}
             <button
@@ -350,11 +351,11 @@ function ActivityTimeline({ activities }: { activities: ActivityEntry[] }) {
 
   const describe = (a: ActivityEntry) => {
     switch (a.type) {
-      case 'created':   return <><strong>{a.taskTitle}</strong> added to <strong>Queue</strong></>;
-      case 'moved':     return <><strong>{a.taskTitle}</strong> moved to <strong>{a.to}</strong></>;
-      case 'completed': return <><strong>{a.taskTitle}</strong> completed ✓</>;
-      case 'progress':  return <><strong>{a.taskTitle}</strong> progress → <strong>{a.progress}%</strong></>;
-      case 'deleted':   return <><strong>{a.taskTitle}</strong> deleted</>;
+      case 'created':   return <><strong>{a.taskTitle}</strong> {t('workshop.activityAdded')} <strong>{t('workshop.moveToQueue')}</strong></>;
+      case 'moved':     return <><strong>{a.taskTitle}</strong> {t('workshop.activityMovedTo')} <strong>{a.to}</strong></>;
+      case 'completed': return <><strong>{a.taskTitle}</strong> {t('workshop.activityCompleted')}</>;
+      case 'progress':  return <><strong>{a.taskTitle}</strong> {t('workshop.activityProgress')} <strong>{a.progress}%</strong></>;
+      case 'deleted':   return <><strong>{a.taskTitle}</strong> {t('workshop.activityDeleted')}</>;
       default:          return <>{a.taskTitle}</>;
     }
   };
@@ -456,13 +457,13 @@ function AddTaskModal({ open, onClose, onAdd }: {
                   return (
                     <button
                       key={p} onClick={() => setPriority(p)}
-                      className="text-[11px] px-3 py-1 rounded-full transition-colors capitalize"
+                      className="text-[11px] px-3 py-1 rounded-full transition-colors"
                       style={priority === p
                         ? { background: s.bg, color: s.color, border: `1px solid ${s.border}` }
                         : { border: '1px solid rgb(var(--aegis-overlay) / 0.06)', color: 'rgb(var(--aegis-text-dim))' }
                       }
                     >
-                      {p}
+                      {t(`workshop.priority${p.charAt(0).toUpperCase() + p.slice(1)}`)}
                     </button>
                   );
                 })}
@@ -472,7 +473,7 @@ function AddTaskModal({ open, onClose, onAdd }: {
                 <span className="text-[12px] text-aegis-text-muted">{t('workshop.agent', 'Agent')}:</span>
                 <input
                   value={agent} onChange={(e) => setAgent(e.target.value)}
-                  placeholder="None"
+                  placeholder={t('workshop.nonePlaceholder')}
                   className="rounded-lg px-2 py-1 text-[11px] text-aegis-text focus:outline-none w-28"
                   style={{ background: 'rgb(var(--aegis-overlay) / 0.04)', border: '1px solid rgb(var(--aegis-overlay) / 0.08)' }}
                 />
@@ -549,8 +550,8 @@ export function WorkshopPage() {
       {/* ═══ Header ═══ */}
       <div className="flex items-center justify-between mb-4 shrink-0">
         <div>
-          <h1 className="text-[26px] font-extrabold text-aegis-text tracking-tight">Workshop</h1>
-          <p className="text-[11px] text-aegis-text-dim mt-0.5">Task management & progress tracking</p>
+          <h1 className="text-[26px] font-extrabold text-aegis-text tracking-tight">{t('workshop.title')}</h1>
+          <p className="text-[11px] text-aegis-text-dim mt-0.5">{t('workshop.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
           {/* Search toggle */}
@@ -581,7 +582,7 @@ export function WorkshopPage() {
                 const idx = cycle.indexOf(v);
                 return cycle[(idx + 1) % cycle.length];
               })}
-              title={filterPriority === 'all' ? 'Filter by priority' : `Showing: ${filterPriority}`}
+              title={filterPriority === 'all' ? t('workshop.filterByPriority') : t('workshop.showingPriority', { priority: filterPriority })}
             >
               <Filter size={13} />
               {filterPriority !== 'all' && (
@@ -612,7 +613,7 @@ export function WorkshopPage() {
             onMouseEnter={(e) => { e.currentTarget.style.background = themeAlpha('primary', 0.12); }}
             onMouseLeave={(e) => { e.currentTarget.style.background = themeAlpha('primary', 0.06); }}
           >
-            <Plus size={14} /> New Task
+            <Plus size={14} /> {t('workshop.newTaskBtn')}
           </button>
         </div>
       </div>

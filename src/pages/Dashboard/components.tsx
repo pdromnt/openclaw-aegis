@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 // ═══════════════════════════════════════════════════════════
 // Dashboard/components.tsx
 // Sub-components: ContextRing, QuickAction, SessionItem,
@@ -26,6 +27,7 @@ export { timeAgo, formatUptime as fmtUptime } from '@/utils/format';
 // ContextRing — SVG circular progress ring
 // ═══════════════════════════════════════════════════════════
 export function ContextRing({ percentage }: { percentage: number }) {
+  const { t } = useTranslation();
   const size = 88;
   const sw   = 6;
   const r    = (size - sw) / 2;
@@ -243,6 +245,7 @@ function fmtUptime2(seconds?: number): string {
 }
 
 export function HealthCard({ health, connected }: { health: HealthInfo | null; connected: boolean }) {
+  const { t } = useTranslation();
   const stats = [
     { icon: Clock,    label: 'Uptime',    value: fmtUptime2(health?.uptime) },
     { icon: Bot,      label: 'Model',     value: health?.model?.split('/').pop() || '—' },
@@ -291,7 +294,7 @@ export function HealthCard({ health, connected }: { health: HealthInfo | null; c
       {/* Channels */}
       {channels.length > 0 && (
         <div className="pt-2 border-t border-[rgb(var(--aegis-overlay)/0.04)]">
-          <div className="text-[9px] text-aegis-text-dim uppercase tracking-wider mb-2">Channels</div>
+          <div className="text-[9px] text-aegis-text-dim uppercase tracking-wider mb-2">{t('dashboard.channels')}</div>
           <div className="flex flex-wrap gap-1.5">
             {channels.map((ch, i) => (
               <div key={i} className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.06)] text-[11px]">

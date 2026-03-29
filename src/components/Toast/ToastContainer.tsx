@@ -192,6 +192,7 @@ function ProgressBar({ colorKey, durationMs, rtl }: { colorKey: string; duration
 
 // ── Container — always rendered at the root ───────────────
 export function ToastContainer() {
+  const { t } = useTranslation();
   const { toasts } = useNotificationStore();
 
   // Show at most 3 (store enforces it but guard here too)
@@ -202,7 +203,7 @@ export function ToastContainer() {
       // bottom-4 + end-4 → logical properties, RTL-aware
       className="fixed bottom-4 end-4 flex flex-col gap-2 pointer-events-none"
       style={{ zIndex: 9999 }}
-      aria-label="Notifications"
+      aria-label={t('notifications.title')}
     >
       <AnimatePresence mode="sync">
         {visible.map((toast) => (

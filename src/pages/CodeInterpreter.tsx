@@ -59,11 +59,12 @@ function truncateLines(text: string, n: number): string {
 // ── StatusBadge ───────────────────────────────────────────
 
 function StatusBadge({ status }: { status: ToolBlock['status'] }) {
+  const { t } = useTranslation();
   if (status === 'running') {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-[rgb(var(--aegis-accent)/0.1)] px-2 py-0.5 text-[11px] font-semibold text-aegis-accent">
         <Loader2 className="h-3 w-3 animate-spin" />
-        running
+        {t('codeInterpreter.statusRunning')}
       </span>
     );
   }
@@ -71,14 +72,14 @@ function StatusBadge({ status }: { status: ToolBlock['status'] }) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-aegis-success-surface px-2 py-0.5 text-[11px] font-semibold text-aegis-success">
         <CheckCircle className="h-3 w-3" />
-        done
+        {t('codeInterpreter.statusDone')}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-aegis-danger-surface px-2 py-0.5 text-[11px] font-semibold text-aegis-danger">
       <XCircle className="h-3 w-3" />
-      error
+      {t('codeInterpreter.statusError')}
     </span>
   );
 }
@@ -86,6 +87,7 @@ function StatusBadge({ status }: { status: ToolBlock['status'] }) {
 // ── CopyButton ────────────────────────────────────────────
 
 function CopyButton({ text }: { text: string }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -101,7 +103,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      title="Copy output"
+      title={t('codeInterpreter.copyOutput', 'Copy output')}
       className={clsx(
         'inline-flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors',
         copied
@@ -110,7 +112,7 @@ function CopyButton({ text }: { text: string }) {
       )}
     >
       {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-      {copied ? 'Copied' : 'Copy'}
+      {copied ? t('codeInterpreter.copied') : t('codeInterpreter.copy')}
     </button>
   );
 }
@@ -118,6 +120,7 @@ function CopyButton({ text }: { text: string }) {
 // ── ExecCard ──────────────────────────────────────────────
 
 function ExecCard({ block }: { block: ToolBlock }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
   const inputText = getInputText(block.input);
@@ -137,7 +140,7 @@ function ExecCard({ block }: { block: ToolBlock }) {
         <button
           onClick={() => setExpanded((e) => !e)}
           className="text-aegis-text-muted hover:text-aegis-text-secondary transition-colors shrink-0"
-          title={expanded ? 'Collapse' : 'Expand'}
+          title={expanded ? t('codeInterpreter.collapse') : t('codeInterpreter.expand')}
         >
           {expanded ? (
             <ChevronDown className="h-4 w-4" />
@@ -168,7 +171,7 @@ function ExecCard({ block }: { block: ToolBlock }) {
       {hasInput && (
         <div className="px-4 pt-3 pb-2">
           <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-aegis-text-dim">
-            Input
+            {t('codeInterpreter.input')}
           </div>
           <pre className="overflow-x-auto rounded-lg bg-aegis-bg px-3 py-2 font-mono text-xs leading-relaxed text-aegis-success whitespace-pre-wrap break-words">
             {inputText}
@@ -181,7 +184,7 @@ function ExecCard({ block }: { block: ToolBlock }) {
         <div className="px-4 pt-2 pb-3">
           <div className="mb-1 flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-widest text-aegis-text-dim">
-              Output
+              {t('codeInterpreter.output')}
             </span>
             <CopyButton text={outputText} />
           </div>
@@ -203,7 +206,7 @@ function ExecCard({ block }: { block: ToolBlock }) {
               onClick={() => setExpanded(true)}
               className="mt-1.5 text-[11px] text-aegis-text-muted hover:text-aegis-text-secondary transition-colors"
             >
-              + {outputLines.length - 3} more lines — click to expand
+              {t('codeInterpreter.moreLines', { count: outputLines.length - 3 })}
             </button>
           )}
         </div>
@@ -396,14 +399,11 @@ function EmptyState({ activeFilter }: { activeFilter: FilterOption }) {
       <div>
         <p className="text-base font-semibold text-aegis-text-muted">
           {activeFilter === 'All'
-            ? t('codeInterpreter.empty.noExecs', 'No tool executions yet')
-            : t('codeInterpreter.empty.noFiltered', `No "${activeFilter}" executions found`)}
+            ? t('codeInterpreter.empty.noExecs')
+            : t('codeInterpreter.noFiltered', { filter: activeFilter })}
         </p>
         <p className="mt-1 text-xs text-aegis-text-dim">
-          {t(
-            'codeInterpreter.empty.hint',
-            'Tool calls will appear here as the agent executes commands',
-          )}
+          {t('codeInterpreter.hint')}
         </p>
       </div>
     </div>

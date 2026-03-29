@@ -7,7 +7,8 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertCircle, Check, Plus, X } from 'lucide-react';
+import { AlertCircle, Check, Plus, X, Eye, EyeOff } from 'lucide-react';
+import { isSensitiveField, maskValue } from '@/utils/configSensitive';
 import clsx from 'clsx';
 import type { OpenClawConfig } from './types';
 import {
@@ -78,23 +79,42 @@ export function AdvancedTab({ config, onChange }: AdvancedTabProps) {
   const envVars  = config.env?.vars ?? {};
 
   // ── Raw JSON state ──
+  /** Mask sensitive values in a config object for display */
+  const maskSecrets = (obj: any, parentKey = ''): any => {
+    if (!obj || typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map((v, i) => maskSecrets(v, parentKey));
+    const result: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (typeof value === 'string' && isSensitiveField(key) && value.length > 0) {
+        result[key] = maskValue(value);
+      } else if (typeof value === 'object' && value !== null) {
+        result[key] = maskSecrets(value, key);
+      } else {
+        result[key] = value;
+      }
+    }
+    return result;
+  };
+
   const [jsonStr,     setJsonStr]     = useState(() => JSON.stringify(config, null, 2));
   const [jsonError,   setJsonError]   = useState<string | null>(null);
   const [jsonSuccess, setJsonSuccess] = useState(false);
   const [isEdited,    setIsEdited]    = useState(false);
-
-  // Sync textarea from config when user hasn't manually edited it
-  useEffect(() => {
-    if (!isEdited) {
-      setJsonStr(JSON.stringify(config, null, 2));
-      setJsonError(null);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config]);
+  const [jsonSecretsRevealed, setJsonSecretsRevealed] = useState(false);
 
   // ── Env-var add form ──
   const [newVarKey,   setNewVarKey]   = useState('');
   const [newVarValue, setNewVarValue] = useState('');
+
+  // Sync textarea from config when user hasn't manually edited it
+  useEffect(() => {
+    if (!isEdited) {
+      const displayConfig = jsonSecretsRevealed ? config : maskSecrets(config);
+      setJsonStr(JSON.stringify(displayConfig, null, 2));
+      setJsonError(null);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config, jsonSecretsRevealed]);
 
   // ─────────────────────────────────────────────────────────
   // Patch helpers
@@ -273,14 +293,14 @@ export function AdvancedTab({ config, onChange }: AdvancedTabProps) {
             <ChipInput
               values={tools.deny ?? []}
               onChange={v => patchTools({ deny: v })}
-              placeholder="Add tool name..."
+              placeholder={t('configExtra.addToolPlaceholder')}
             />
           </FormField>
           <FormField label={t('config.allowTools')}>
             <ChipInput
               values={tools.allow ?? []}
               onChange={v => patchTools({ allow: v })}
-              placeholder="Add tool name..."
+              placeholder={t('configExtra.addToolPlaceholder')}
             />
           </FormField>
         </div>
@@ -326,7 +346,7 @@ export function AdvancedTab({ config, onChange }: AdvancedTabProps) {
                 <MaskedInput
                   value={tools.web?.search?.apiKey ?? ''}
                   onChange={v => patchWebSearch({ apiKey: v })}
-                  placeholder="Enter Brave API key..."
+                  placeholder={t('configExtra.braveKeyPlaceholder')}
                 />
               </FormField>
               <FormField label={t('config.searchMaxResults')}>
@@ -499,7 +519,7 @@ export function AdvancedTab({ config, onChange }: AdvancedTabProps) {
               type="text"
               value={messages.tts?.provider ?? ''}
               onChange={e => patchTts({ provider: e.target.value })}
-              placeholder="e.g. elevenlabs, edge"
+              placeholder={t('configExtra.ttsProviderPlaceholder')}
               className={INPUT}
             />
           </FormField>
@@ -517,14 +537,31 @@ export function AdvancedTab({ config, onChange }: AdvancedTabProps) {
               {t('config.rawJsonHint')}
             </p>
           </div>
-          <span
-            className={clsx(
-              'text-[10px] text-aegis-text-muted bg-aegis-surface',
-              'border border-aegis-border rounded-full px-2.5 py-0.5 flex-shrink-0',
-            )}
-          >
-            {t('config.lineCount', { count: lineCount })}
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setJsonSecretsRevealed(v => !v);
+                setIsEdited(false); // Force re-sync with new masking
+              }}
+              className={clsx(
+                'flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-lg border transition-colors',
+                jsonSecretsRevealed
+                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/15'
+                  : 'bg-[rgb(var(--aegis-overlay)/0.04)] text-aegis-text-dim border-[rgb(var(--aegis-overlay)/0.08)] hover:text-aegis-text-muted'
+              )}
+            >
+              {jsonSecretsRevealed ? <EyeOff size={10} /> : <Eye size={10} />}
+              {jsonSecretsRevealed ? t('config.hideSecrets', 'Hide Secrets') : t('config.revealSecrets', 'Reveal Secrets')}
+            </button>
+            <span
+              className={clsx(
+                'text-[10px] text-aegis-text-muted bg-aegis-surface',
+                'border border-aegis-border rounded-full px-2.5 py-0.5 flex-shrink-0',
+              )}
+            >
+              {t('config.lineCount', { count: lineCount })}
+            </span>
+          </div>
         </div>
         <div className="p-4 space-y-3">
 

@@ -13,6 +13,7 @@ import {
   ArrowRight, ArrowLeft, Puzzle, Brain,
   LucideIcon, ToggleLeft, ToggleRight,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { getDirection } from '@/i18n';
 import clsx from 'clsx';
@@ -75,66 +76,66 @@ function setPluginEnabled(id: string, enabled: boolean): void {
 // ── Plugin definition ──────────────────────────────────────
 interface Plugin {
   id: string;
-  name: string;
+  nameKey: string;
   icon: LucideIcon;
-  description: string;
+  descKey: string;
 }
 
 const plugins: Plugin[] = [
   {
     id: 'pixel-agents',
-    name: 'Pixel Agents',
+    nameKey: 'plugins.pixelAgents',
     icon: Gamepad2,
-    description: 'Your virtual pixel art office',
+    descKey: 'plugins.pixelAgentsDesc',
   },
   {
     id: 'sessions',
-    name: 'Session Manager',
+    nameKey: 'plugins.sessionManager',
     icon: Users,
-    description: 'Manage active sessions',
+    descKey: 'plugins.sessionManagerDesc',
   },
   {
     id: 'logs',
-    name: 'Logs Viewer',
+    nameKey: 'plugins.logsViewer',
     icon: ScrollText,
-    description: 'View system logs',
+    descKey: 'plugins.logsViewerDesc',
   },
   {
     id: 'multi-agent',
-    name: 'Multi-Agent',
+    nameKey: 'plugins.multiAgent',
     icon: Radio,
-    description: 'Live multi-agent view',
+    descKey: 'plugins.multiAgentDesc',
   },
   {
     id: 'files',
-    name: 'File Manager',
+    nameKey: 'plugins.fileManager',
     icon: FolderOpen,
-    description: 'Browse and manage files',
+    descKey: 'plugins.fileManagerDesc',
   },
   {
     id: 'sandbox',
-    name: 'Code Interpreter',
+    nameKey: 'plugins.codeInterpreter',
     icon: Code2,
-    description: 'Code execution sandbox',
+    descKey: 'plugins.codeInterpreterDesc',
   },
   {
     id: 'tools',
-    name: 'MCP Tools',
+    nameKey: 'plugins.mcpTools',
     icon: Wrench,
-    description: 'Available MCP tools',
+    descKey: 'plugins.mcpToolsDesc',
   },
 
   {
     id: 'skills',
-    name: 'Skills',
+    nameKey: 'plugins.skills',
     icon: Puzzle,
-    description: 'Available skills and tools',
+    descKey: 'plugins.skillsDesc',
   },
   {
     id: 'memory',
-    name: 'Memory Explorer',
+    nameKey: 'plugins.memoryExplorer',
     icon: Brain,
-    description: 'Explore memory entries',
+    descKey: 'plugins.memoryExplorerDesc',
   },
 ];
 
@@ -167,6 +168,7 @@ interface PluginCardProps {
 }
 
 function PluginCard({ plugin, enabled, onOpen, onToggle }: PluginCardProps) {
+  const { t } = useTranslation();
   const Icon = plugin.icon;
   const ToggleIcon = enabled ? ToggleRight : ToggleLeft;
 
@@ -206,11 +208,11 @@ function PluginCard({ plugin, enabled, onOpen, onToggle }: PluginCardProps) {
                 : 'bg-aegis-overlay/5 text-aegis-text-dim border-aegis-border',
             )}
           >
-            {enabled ? 'enabled' : 'disabled'}
+            {enabled ? t('plugins.enabled') : t('plugins.disabled')}
           </span>
           <button
             onClick={(e) => { e.stopPropagation(); onToggle(plugin.id, !enabled); }}
-            title={enabled ? 'Disable plugin' : 'Enable plugin'}
+            title={enabled ? t('plugins.disablePlugin') : t('plugins.enablePlugin')}
             className="text-aegis-text-muted hover:text-aegis-primary transition-colors"
           >
             <ToggleIcon size={22} className={enabled ? 'text-aegis-primary' : undefined} />
@@ -221,10 +223,10 @@ function PluginCard({ plugin, enabled, onOpen, onToggle }: PluginCardProps) {
       {/* Text content */}
       <div className="flex-1 flex flex-col gap-1">
         <h3 className="text-aegis-text font-semibold text-[14px] leading-snug">
-          {plugin.name}
+          {t(plugin.nameKey)}
         </h3>
         <p className="text-aegis-text-muted text-[12px] leading-relaxed">
-          {plugin.description}
+          {t(plugin.descKey)}
         </p>
       </div>
 
@@ -240,7 +242,7 @@ function PluginCard({ plugin, enabled, onOpen, onToggle }: PluginCardProps) {
             : 'border-aegis-border text-aegis-text-dim cursor-not-allowed',
         )}
       >
-        Open
+        {t('plugins.open')}
       </button>
     </motion.div>
   );
@@ -255,13 +257,14 @@ function PluginLoader() {
         className="inline-block w-4 h-4 rounded-full border-2 border-aegis-primary/30 border-t-aegis-primary animate-spin"
         aria-hidden="true"
       />
-      Loading…
+      {t('plugins.loading')}
     </div>
   );
 }
 
 // ── Main page export ───────────────────────────────────────
 export function PluginsPage() {
+  const { t } = useTranslation();
   const { language } = useSettingsStore();
   const isRTL = getDirection(language) === 'rtl';
   const BackArrow = isRTL ? ArrowRight : ArrowLeft;
@@ -319,7 +322,7 @@ export function PluginsPage() {
               'hover:bg-aegis-elevated hover:text-aegis-text',
               'active:scale-95',
             )}
-            aria-label="Back to Plugins"
+            aria-label={t('pluginsPage.backToPlugins', 'Back to Plugins')}
           >
             <BackArrow size={16} />
           </button>

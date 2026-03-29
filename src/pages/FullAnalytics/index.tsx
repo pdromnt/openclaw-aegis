@@ -3,7 +3,7 @@
 // Composition layer: wires useAnalyticsData hook to sections.
 // ═══════════════════════════════════════════════════════════
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Activity, AlertCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import clsx from 'clsx';
@@ -64,18 +64,14 @@ export function FullAnalyticsPage() {
     setTimeout(() => setManualRefreshing(false), 600);
   }, [refresh]);
 
-  // ── Export action handlers (delegate to helpers.ts) ──
-  const handleExportCSV = () => downloadCSV(daily, totals);
+  // ── Export action handlers (stable refs for memo'd children) ──
+  const handleExportCSV = useCallback(() => downloadCSV(daily, totals), [daily, totals]);
 
-  const handleCopyText  = () =>
-    copyAnalyticsText({
-      periodInfo,
-      totals,
-      sessionsCount: sessions.length,
-      totalApiCalls,
-      byAgent,
-      byModel,
-    });
+  const copyArgs = useMemo(() => ({
+    periodInfo, totals, sessionsCount: sessions.length, totalApiCalls, byAgent, byModel,
+  }), [periodInfo, totals, sessions.length, totalApiCalls, byAgent, byModel]);
+
+  const handleCopyText = useCallback(() => copyAnalyticsText(copyArgs), [copyArgs]);
 
   // ─────────────────────────────────────────────────────────
   // Render
@@ -107,7 +103,7 @@ export function FullAnalyticsPage() {
             {periodInfo.days > 0 && (
               <>
                 <span className="text-aegis-text-dim">·</span>
-                <span className="text-aegis-text-dim font-mono">{periodInfo.days} days</span>
+                <span className="text-aegis-text-dim font-mono">{periodInfo.days} {t('analytics.days')}</span>
                 <span className="text-aegis-text-dim">·</span>
                 <span className="text-aegis-text-dim font-mono">{periodInfo.start}</span>
                 <span className="text-aegis-text-dim">→</span>
@@ -129,7 +125,7 @@ export function FullAnalyticsPage() {
             onClick={handleRefresh}
             disabled={manualRefreshing || isRefetching}
             className="p-1.5 rounded-lg hover:bg-[rgb(var(--aegis-overlay)/0.06)] transition-colors"
-            title="Refresh"
+            title={t('common.refresh')}
           >
             <RefreshCw
               size={15}

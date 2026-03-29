@@ -164,6 +164,137 @@ function formatRelativeTime(ts: number): string {
 }
 
 // ═══════════════════════════════════════════════════════════
+// Session Overrides — Live per-session controls
+// ═══════════════════════════════════════════════════════════
+
+function SessionOverrides({ sessions, agentId }: { sessions: SessionForPanel[]; agentId: string }) {
+  const { t } = useTranslation();
+  const [applying, setApplying] = useState<string | null>(null);
+  const [applied, setApplied] = useState<string | null>(null);
+
+  if (sessions.length === 0) return null;
+
+  const applyPatch = async (sessionKey: string, field: string, fn: () => Promise<unknown>) => {
+    const id = `${sessionKey}:${field}`;
+    setApplying(id);
+    try {
+      await fn();
+      setApplied(id);
+      setTimeout(() => setApplied(prev => prev === id ? null : prev), 1500);
+    } catch (err) {
+      console.error(`[SessionOverrides] ${field} patch failed:`, err);
+    } finally {
+      setApplying(null);
+    }
+  };
+
+  const isApplying = (key: string, field: string) => applying === `${key}:${field}`;
+  const isApplied = (key: string, field: string) => applied === `${key}:${field}`;
+
+  return (
+    <div>
+      <label className="flex items-center gap-1.5 text-[9px] text-aegis-text-muted uppercase tracking-widest font-bold mb-2">
+        <Zap size={10} />
+        {t('agentSettings.sessionOverrides')}
+      </label>
+      <p className="text-[9px] text-aegis-text-dim mb-3">{t('agentSettings.sessionOverridesDesc')}</p>
+
+      <div className="space-y-2">
+        {sessions.map(session => {
+          const shortKey = session.key.split(':').slice(-1)[0]?.substring(0, 8) || session.key;
+          return (
+            <div key={session.key}
+              className="rounded-xl border p-3 space-y-2.5"
+              style={{ background: themeAlpha('overlay', 0.02), borderColor: themeAlpha('overlay', 0.08) }}>
+
+              {/* Session header */}
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: themeHex('success') }} />
+                <span className="text-[11px] font-semibold text-aegis-text truncate">{session.label || shortKey}</span>
+                <span className="text-[9px] text-aegis-text-dim font-mono ms-auto shrink-0">{session.model.split('/').pop()}</span>
+              </div>
+
+              {/* Thinking */}
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-aegis-text-muted">{t('agentSettings.thinkingLevel')}</span>
+                <div className="flex gap-1">
+                  {(['off', 'low', 'medium', 'high'] as const).map(level => (
+                    <button key={level}
+                      disabled={!!applying}
+                      onClick={() => applyPatch(session.key, 'thinking', () => gateway.setSessionThinking(level, session.key))}
+                      className={clsx(
+                        'px-2 py-0.5 rounded text-[9px] font-semibold border transition-all',
+                        isApplied(session.key, 'thinking')
+                          ? 'border-aegis-success/30 bg-aegis-success/10 text-aegis-success'
+                          : 'border-[rgb(var(--aegis-overlay)/0.08)] text-aegis-text-dim hover:border-aegis-primary/30 hover:text-aegis-text'
+                      )}>
+                      {isApplying(session.key, 'thinking') ? '...' : t(`agentSettings.thinking${level.charAt(0).toUpperCase() + level.slice(1)}`)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Fast Mode */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] text-aegis-text-muted">{t('agentSettings.fastMode')}</span>
+                  <span className="text-[8px] text-aegis-text-dim ms-1.5">{t('agentSettings.fastModeDesc')}</span>
+                </div>
+                <div className="flex gap-1">
+                  {[
+                    { val: true, label: t('agentSettings.on') },
+                    { val: false, label: t('agentSettings.off') },
+                  ].map(opt => (
+                    <button key={String(opt.val)}
+                      disabled={!!applying}
+                      onClick={() => applyPatch(session.key, 'fast', () => gateway.setSessionFast(opt.val, session.key))}
+                      className={clsx(
+                        'px-2 py-0.5 rounded text-[9px] font-semibold border transition-all',
+                        isApplied(session.key, 'fast')
+                          ? 'border-aegis-success/30 bg-aegis-success/10 text-aegis-success'
+                          : 'border-[rgb(var(--aegis-overlay)/0.08)] text-aegis-text-dim hover:border-aegis-primary/30 hover:text-aegis-text'
+                      )}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Verbose */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] text-aegis-text-muted">{t('agentSettings.verboseLevel')}</span>
+                  <span className="text-[8px] text-aegis-text-dim ms-1.5">{t('agentSettings.verboseLevelDesc')}</span>
+                </div>
+                <div className="flex gap-1">
+                  {[
+                    { val: 'on', label: t('agentSettings.on') },
+                    { val: 'off', label: t('agentSettings.off') },
+                    { val: null, label: t('agentSettings.inherit') },
+                  ].map(opt => (
+                    <button key={String(opt.val)}
+                      disabled={!!applying}
+                      onClick={() => applyPatch(session.key, 'verbose', () => gateway.setSessionVerbose(opt.val, session.key))}
+                      className={clsx(
+                        'px-2 py-0.5 rounded text-[9px] font-semibold border transition-all',
+                        isApplied(session.key, 'verbose')
+                          ? 'border-aegis-success/30 bg-aegis-success/10 text-aegis-success'
+                          : 'border-[rgb(var(--aegis-overlay)/0.08)] text-aegis-text-dim hover:border-aegis-primary/30 hover:text-aegis-text'
+                      )}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
 // Main Panel Component
 // ═══════════════════════════════════════════════════════════
 
@@ -520,7 +651,7 @@ export function AgentSettingsPanel({
               {loadingConfig && (
                 <div className="flex flex-col items-center justify-center gap-2.5 py-12 text-aegis-text-dim">
                   <Loader2 size={24} className="animate-spin" style={{ color: primaryColor }} />
-                  <span className="text-[11px]">Loading agent config…</span>
+                  <span className="text-[11px]">{t('agentSettings.loadingConfig')}</span>
                 </div>
               )}
 
@@ -540,7 +671,7 @@ export function AgentSettingsPanel({
                   />
                   <div className="min-w-0">
                     <p className="text-[11px] font-bold" style={{ color: themeHex('danger') }}>
-                      Failed to load config
+                      {t('agentSettings.failedToLoadConfig')}
                     </p>
                     <p className="text-[9px] text-aegis-text-dim mt-0.5 font-mono break-all">
                       {configError}
@@ -550,7 +681,7 @@ export function AgentSettingsPanel({
                       style={{ color: themeHex('danger') }}
                       onClick={() => setInitializedForId(null)}
                     >
-                      Retry
+                      {t('agentSettings.retry')}
                     </button>
                   </div>
                 </div>
@@ -639,7 +770,7 @@ export function AgentSettingsPanel({
                                   type="text"
                                   value={modelSearch}
                                   onChange={e => setModelSearch(e.target.value)}
-                                  placeholder="Filter models…"
+                                  placeholder={t('agentSettings.filterModels')}
                                   className="flex-1 bg-transparent text-[11px] text-aegis-text placeholder:text-aegis-text-dim outline-none min-w-0"
                                 />
                                 {modelSearch && (
@@ -658,7 +789,7 @@ export function AgentSettingsPanel({
                               {filteredModels.length === 0 && !loadingModels && (
                                 <div className="px-4 py-3.5 text-[11px] text-aegis-text-dim text-center">
                                   {modelSearch
-                                    ? `No models match "${modelSearch}"`
+                                    ? t('agentSettings.noModelsMatch', { query: modelSearch })
                                     : t('agentSettings.noModels', 'No models available')}
                                 </div>
                               )}
@@ -753,12 +884,18 @@ export function AgentSettingsPanel({
                                 : 'border-[rgb(var(--aegis-overlay)/0.1)] bg-[rgb(var(--aegis-overlay)/0.03)] text-aegis-text-dim hover:border-aegis-primary/25 hover:text-aegis-text'
                             )}
                           >
-                            {level}
+                            {t(`agentSettings.thinking${level.charAt(0).toUpperCase() + level.slice(1)}`)}
                           </button>
                         );
                       })}
                     </div>
                   </div>
+
+                  {/* ── Section: Per-Session Overrides (Live) ── */}
+                  <SessionOverrides
+                    sessions={agentSessions.filter(s => s.running)}
+                    agentId={agent.id}
+                  />
 
                   {/* ── Section: Agent Info card ── */}
                   <div>
@@ -787,7 +924,7 @@ export function AgentSettingsPanel({
                           {activeSessions}
                         </div>
                         <div className="text-[9px] text-aegis-text-dim mt-0.5">
-                          of {totalSessionCount} total
+                          {t('agentSettings.ofTotal', { total: totalSessionCount })}
                         </div>
                       </div>
 
@@ -812,7 +949,7 @@ export function AgentSettingsPanel({
                           {formatTk(totalTokens)}
                         </div>
                         <div className="text-[9px] text-aegis-text-dim mt-0.5">
-                          all sessions
+                          {t('agentSettings.allSessions')}
                         </div>
                       </div>
                     </div>
@@ -832,7 +969,7 @@ export function AgentSettingsPanel({
                           <FolderOpen size={11} className="text-aegis-text-dim shrink-0" />
                           <div className="min-w-0 flex-1">
                             <div className="text-[8px] text-aegis-text-dim uppercase tracking-wider mb-0.5">
-                              Workspace
+                              {t('agentSettings.workspace')}
                             </div>
                             <div className="text-[10px] text-aegis-text font-mono truncate">
                               {agent.workspace}
@@ -847,7 +984,7 @@ export function AgentSettingsPanel({
                           <Clock size={11} className="text-aegis-text-dim shrink-0" />
                           <div className="min-w-0 flex-1">
                             <div className="text-[8px] text-aegis-text-dim uppercase tracking-wider mb-0.5">
-                              Last Activity
+                              {t('agentSettings.lastActivity')}
                             </div>
                             <div className="flex items-center gap-1.5">
                               <div
@@ -872,7 +1009,7 @@ export function AgentSettingsPanel({
                       {/* No sessions fallback */}
                       {mergedSessions.length === 0 && !agent.workspace && (
                         <div className="px-3.5 py-3 text-center text-[10px] text-aegis-text-dim bg-[rgb(var(--aegis-overlay)/0.02)]">
-                          No sessions yet
+                          {t('agentSettings.noSessionsYet')}
                         </div>
                       )}
                     </div>

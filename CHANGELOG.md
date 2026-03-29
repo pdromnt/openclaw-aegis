@@ -6,6 +6,69 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [6.0.0] — 2026-03-29
+
+### 🌍 Multilingual & Calendar Overhaul
+
+- **4 Languages** — added Spanish (es) and Chinese (zh) alongside Arabic and English. All 1,363 translation keys fully covered across all four locales.
+- **Three Calendar Systems** — Gregorian, Hijri (Islamic Umm al-Qura), and Chinese. Tabbed switcher with native script per system (Arabic numerals for Hijri, 中文 for Chinese). Cron reminders work identically across all systems.
+- **MonthView Rewrite** — full rewrite with per-system grid generation, secondary calendar labels, month-start badges, and configurable week start day.
+- **TodayCard** — new component showing today's date in all three calendar systems simultaneously.
+
+### 🔌 Plugin Approval System
+
+- **PluginApprovalDialog** — global approval bar visible on ALL pages (not just Chat). Shows pending plugin approval requests with severity colors (info/warning/critical), countdown timer, and Allow Once / Allow Always / Deny actions.
+- **Gateway integration** — `plugin.approval.requested` WebSocket event handling with `plugin.approval.resolve` API.
+
+### ⚙️ Config Manager Upgrades
+
+- **Schema Validation** — configs validated against Gateway JSON Schema before save. Catches unrecognized keys and type mismatches to prevent restart loops.
+- **Sensitive Field Detection** — auto-masks API keys, tokens, secrets, and passwords in the config editor.
+- **Concurrent Edit Guard** — `baseHash` tracking prevents overwriting changes made by CLI or other sessions.
+
+### 💬 Chat Improvements
+
+- **Export Chat** — download conversation as clean Markdown document (📥 button in chat header).
+- **Streaming Code Block Fix** — incomplete fenced code blocks auto-closed during streaming to prevent markdown rendering breakage.
+- **Emoji Picker** — full emoji picker with search and categories in message input.
+- **Message Animations** — entrance animations for recent messages (< 3 seconds old).
+- **Avatar Error Handling** — graceful fallback when custom avatar URLs fail to load.
+
+### 🤖 Agent Hub Enhancements
+
+- **Session Overrides** — live per-session controls directly from Agent Hub. Patch model, verbose level, and other settings on active sessions without restarting.
+
+### 📊 Analytics & Dashboard
+
+- **DashboardChart** — lazy-loaded recharts component (~331KB) moved to separate chunk for faster initial load.
+- **All Time Preset** — Analytics now properly fetches complete history for "All Time" preset instead of capping at 365 days.
+- **Smarter Fetching** — preset-aware fetch parameters with proper limits (30d: 200, 90d: 500, All: 2000).
+
+### 🔧 Model Picker
+
+- **Context Window Display** — model dropdown now shows context window size (e.g., "1M", "200K") per model.
+- **Reasoning Indicator** — 🧠 badge on models that support reasoning/thinking.
+- **Alias Subtitle** — shows full model ID below the alias name for clarity.
+
+### ⏰ Cron Monitor
+
+- **Human-Readable Schedules** — cron expressions now display as "Daily 9:00 AM", "Every 6h", "Monthly 1st 10:00" etc. with full i18n support.
+- **Better Time Ago** — "in 5m", "in 2h 30m" format for next run times.
+
+### 🏗️ Performance & Architecture
+
+- **Store Diffing** — `gatewayDataStore` now skips state updates when sessions/agents haven't actually changed, preventing unnecessary re-renders across all pages.
+- **9 Plugins** — added Skills and Memory Explorer to the plugin system (was 8).
+- **Gateway Service** — new methods: `setSessionVerbose`, `resolvePluginApproval`, `getConfigSchema`, `lookupConfigSchema`, `getConfig`, `applyConfig`, `reloadSecrets`.
+
+### 🐛 Fixes
+
+- **Cron Monitor** — full i18n pass; all hardcoded strings moved to locale files.
+- **Full Analytics** — "This Month" preset now handles months with 31 days correctly.
+- **Circular Import Warning** — `gatewayDataStore` → `chatStore` dynamic import converted to static import.
+
+---
+
 ## [5.7.0] — 2026-03-26
 
 ### Added

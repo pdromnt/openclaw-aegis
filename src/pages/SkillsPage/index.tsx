@@ -356,7 +356,7 @@ export function SkillsPage() {
                         ? 'bg-aegis-primary/10 text-aegis-primary border-aegis-primary/20'
                         : 'bg-[rgb(var(--aegis-overlay)/0.03)] text-aegis-text-muted border-transparent hover:bg-[rgb(var(--aegis-overlay)/0.06)]'
                     )}>
-                    {key === 'all' ? 'All' : key === 'ready' ? '✅ Ready' : 'Disabled'}
+                    {key === 'all' ? t('skills.filterAll') : key === 'ready' ? t('skills.filterReady') : t('skills.filterDisabled')}
                     <span className="ml-1 opacity-60 text-[9px]">{myCounts[key as keyof typeof myCounts] ?? 0}</span>
                   </button>
                 ))}
@@ -393,7 +393,7 @@ export function SkillsPage() {
                           <span className={clsx('text-[9px] px-2 py-0.5 rounded-full font-semibold',
                             skill.enabled ? 'bg-emerald-500/12 text-emerald-400' : 'bg-zinc-500/12 text-zinc-500'
                           )}>
-                            {skill.enabled ? '✅ Ready' : 'Disabled'}
+                            {skill.enabled ? t('skills.statusReady') : t('skills.statusDisabled')}
                           </span>
                         </div>
 
@@ -409,7 +409,7 @@ export function SkillsPage() {
                             : skill.source === 'local' ? 'bg-teal-500/10 text-teal-400'
                             : 'bg-blue-500/10 text-blue-400'
                           )}>
-                            {skill.source === 'clawhub' ? 'ClawHub' : skill.source === 'local' ? 'Custom' : 'Built-in'}
+                            {skill.source === 'clawhub' ? t('skills.sourceClawHub') : skill.source === 'local' ? t('skills.sourceCustom') : t('skills.sourceBuiltIn')}
                           </span>
                           <span className="font-mono">v{skill.version}</span>
                         </div>

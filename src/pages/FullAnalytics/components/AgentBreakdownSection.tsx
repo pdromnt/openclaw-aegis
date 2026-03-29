@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════
 
 import { motion } from 'framer-motion';
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { type ByAgentEntry } from '../types';
@@ -13,7 +14,7 @@ interface AgentBreakdownSectionProps {
   totalCost: number;
 }
 
-export function AgentBreakdownSection({ byAgent, totalCost }: AgentBreakdownSectionProps) {
+export const AgentBreakdownSection = memo(function AgentBreakdownSection({ byAgent, totalCost }: AgentBreakdownSectionProps) {
   const { t } = useTranslation();
   if (!byAgent.length) return null;
 
@@ -53,38 +54,38 @@ export function AgentBreakdownSection({ byAgent, totalCost }: AgentBreakdownSect
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-[12px] font-bold truncate" style={{ color }}>
-                      {agent.agentId === 'main' ? 'Main Agent' : agent.agentId}
+                      {agent.agentId === 'main' ? t('analytics.mainAgent') : agent.agentId}
                     </div>
-                    <div className="text-[9px] text-aegis-text-dim">{sharePct}% of total</div>
+                    <div className="text-[9px] text-aegis-text-dim">{sharePct}{t('analytics.ofTotalPct')}</div>
                   </div>
                 </div>
 
                 {/* Stats */}
                 <div className="space-y-1 text-[11px]">
                   <div className="flex justify-between">
-                    <span className="text-aegis-text-muted">Tokens</span>
+                    <span className="text-aegis-text-muted">{t('analytics.tokens')}</span>
                     <span className="font-mono font-bold text-aegis-text-secondary">
                       {formatTokens(agent.totals.totalTokens)}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-aegis-text-muted">Input</span>
+                    <span className="text-aegis-text-muted">{t('analytics.input')}</span>
                     <span className="font-mono text-aegis-text-muted">{formatTokens(agent.totals.input)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-aegis-text-muted">Output</span>
+                    <span className="text-aegis-text-muted">{t('analytics.output')}</span>
                     <span className="font-mono text-aegis-text-muted">{formatTokens(agent.totals.output)}</span>
                   </div>
                   {agent.totals.cacheRead > 0 && (
                     <div className="flex justify-between">
-                      <span className="text-aegis-text-muted">Cache ↓</span>
+                      <span className="text-aegis-text-muted">{t('analytics.cacheDown')}</span>
                       <span className="font-mono text-aegis-success/60">
                         {formatTokens(agent.totals.cacheRead)}
                       </span>
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-aegis-text-muted">Cost</span>
+                    <span className="text-aegis-text-muted">{t('analytics.cost')}</span>
                     <span className="font-mono font-bold" style={{ color }}>
                       {formatUsd(agent.totals.totalCost)}
                     </span>
@@ -112,4 +113,4 @@ export function AgentBreakdownSection({ byAgent, totalCost }: AgentBreakdownSect
       </div>
     </div>
   );
-}
+});

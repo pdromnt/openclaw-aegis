@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { useNotificationStore } from './notificationStore';
+import { useChatStore } from './chatStore';
 
 // ═══════════════════════════════════════════════════════════
 // Gateway Data Store — Central data layer for all pages
@@ -205,21 +206,37 @@ export const useGatewayDataStore = create<GatewayDataState>((set, get) => ({
 
   // ── Setters ──
 
-  setSessions: (sessions) =>
+  setSessions: (sessions) => {
+    // Skip update if sessions haven't actually changed (prevents unnecessary re-renders)
+    const prev = get().sessions;
+    const changed = sessions.length !== prev.length
+      || sessions.some((s: any, i: number) => {
+        const p = prev[i] as any;
+        return !p || s.key !== p.key || s.status !== p.status || s.totalTokens !== p.totalTokens
+          || s.updatedAt !== p.updatedAt || s.endedAt !== p.endedAt;
+      });
     set({
-      sessions,
+      ...(changed ? { sessions } : {}),
       lastFetch: { ...get().lastFetch, sessions: Date.now() },
       loading: { ...get().loading, sessions: false },
       errors: { ...get().errors, sessions: null },
-    }),
+    });
+  },
 
-  setAgents: (agents) =>
+  setAgents: (agents) => {
+    const prev = get().agents;
+    const changed = agents.length !== prev.length
+      || agents.some((a: any, i: number) => {
+        const p = prev[i] as any;
+        return !p || a.id !== p.id || a.name !== p.name || a.configured !== p.configured;
+      });
     set({
-      agents,
+      ...(changed ? { agents } : {}),
       lastFetch: { ...get().lastFetch, agents: Date.now() },
       loading: { ...get().loading, agents: false },
       errors: { ...get().errors, agents: null },
-    }),
+    });
+  },
 
   setCostSummary: (data) =>
     set({
@@ -406,7 +423,33 @@ async function fetchHealth() {
 }
 
 async function tickMid() {
-  await Promise.allSettled([fetchAgents(), fetchCron(), fetchHealth()]);
+  await Promise.allSettled([fetchAgents(), fetchCron(), fetchHealth(), refreshModels()]);
+}
+
+/** Refresh available models from models.list API → update chatStore */
+async function refreshModels() {
+  if (!gw) return;
+  try {
+    const res = await gw.request('models.list', {});
+    const rawModels = Array.isArray(res?.models) ? res.models : [];
+    if (rawModels.length > 0) {
+      const current = useChatStore.getState().availableModels;
+      // Only update if count changed (avoid unnecessary re-renders)
+      if (rawModels.length !== current.length) {
+        const models = rawModels.map((m: any) => ({
+          id: typeof m === 'string' ? m : (m.id || m.model || ''),
+          label: typeof m === 'string' ? m : (m.id || m.model || ''),
+          alias: typeof m === 'object' ? (m.alias || m.name || undefined) : undefined,
+          contextWindow: typeof m === 'object' ? (m.contextWindow || m.context_window || undefined) : undefined,
+          reasoning: typeof m === 'object' ? (m.reasoning || false) : false,
+          provider: typeof m === 'object' ? (m.provider || (m.id || '').split('/')[0] || undefined) : undefined,
+        })).filter((m: any) => m.id);
+        useChatStore.getState().setAvailableModels(models);
+      }
+    }
+  } catch {
+    // Non-critical — keep existing list
+  }
 }
 
 async function tickSlow() {
@@ -477,10 +520,14 @@ export async function refreshGroup(group: 'sessions' | 'agents' | 'cost' | 'usag
  * Fetch full-year cost data (for FullAnalytics).
  * NOT part of regular polling — only called on-demand.
  */
-export async function fetchFullCost(days = 365): Promise<CostSummary | null> {
+export async function fetchFullCost(days?: number, allTime = false): Promise<CostSummary | null> {
   if (!gw) return null;
   try {
-    return await gw.request('usage.cost', { days });
+    // "All Time": send startDate from far back instead of days cap
+    const params = allTime
+      ? { startDate: '2024-01-01', endDate: new Date().toISOString().slice(0, 10) }
+      : { days: days || 365 };
+    return await gw.request('usage.cost', params);
   } catch {
     return null;
   }
@@ -518,11 +565,33 @@ function syncRunningSubAgents() {
   const sessions = store.sessions;
   const prev = store.runningSubAgents;
 
-  // Any sub-agent session in sessions.list is active (completed ones get removed)
+  // Determine truly running sub-agents using multiple signals:
+  // 1. status field: "completed"/"error"/"aborted" → not running
+  // 2. endedAt field: set → not running
+  // 3. Time-based: not updated in 5+ minutes → likely stale (not running)
+  // 4. Positive signal: status === "running" → definitely running
   const running: RunningSubAgent[] = [];
+  const now = Date.now();
+  const STALE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+
   for (const s of sessions) {
     const match = s.key?.match(SUB_AGENT_RE);
     if (!match) continue;
+
+    const status = (s as any).status;
+    const endedAt = (s as any).endedAt;
+    const updatedAt = (s as any).updatedAt || 0;
+
+    // Definitive "not running" signals
+    if (status === 'completed' || status === 'error' || status === 'aborted') continue;
+    if (endedAt) continue;
+
+    // If status is explicitly "running" → trust it
+    const isExplicitlyRunning = status === 'running';
+
+    // If no status field → use time-based heuristic
+    // Sessions not updated in 5+ minutes are stale (completed but not cleaned up)
+    if (!isExplicitlyRunning && updatedAt > 0 && (now - updatedAt) > STALE_THRESHOLD_MS) continue;
 
     const agentId = match[1];
     // Preserve startTime for already-tracked entries

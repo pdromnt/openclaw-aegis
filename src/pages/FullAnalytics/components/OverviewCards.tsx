@@ -3,6 +3,7 @@
 // (Total Cost, Total Tokens, Sessions, API Calls, Days of Data)
 // ═══════════════════════════════════════════════════════════
 
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { type CostTotals, type UsageAggregates, type ByModelEntry } from '../types';
 import { formatTokens, formatUsd } from '../helpers';
@@ -18,7 +19,7 @@ interface OverviewCardsProps {
   periodInfo:    { start: string; end: string; days: number };
 }
 
-export function OverviewCards({
+export const OverviewCards = memo(function OverviewCards({
   totals,
   sessionsCount,
   totalApiCalls,
@@ -29,7 +30,7 @@ export function OverviewCards({
   const { t } = useTranslation();
 
   return (
-    <div className="grid grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {/* Total Cost */}
       <BigStatCard
         iconEmoji="💰"
@@ -39,9 +40,9 @@ export function OverviewCards({
         prefix="$"
         decimals={2}
         delay={0}
-        sub={`in: ${formatUsd(totals.inputCost)} · out: ${formatUsd(totals.outputCost)}`}
+        sub={`${t('analytics.inLabel')}: ${formatUsd(totals.inputCost)} · ${t('analytics.outLabel')}: ${formatUsd(totals.outputCost)}`}
         sub2={totals.cacheReadCost > 0
-          ? `cache: ${formatUsd(totals.cacheReadCost + totals.cacheWriteCost)}`
+          ? `${t('analytics.cacheLabel')}: ${formatUsd(totals.cacheReadCost + totals.cacheWriteCost)}`
           : undefined}
       />
 
@@ -53,9 +54,9 @@ export function OverviewCards({
         color={themeHex('warning')}
         decimals={0}
         delay={0.05}
-        sub={`in: ${formatTokens(totals.input)} · out: ${formatTokens(totals.output)}`}
+        sub={`${t('analytics.inLabel')}: ${formatTokens(totals.input)} · ${t('analytics.outLabel')}: ${formatTokens(totals.output)}`}
         sub2={totals.cacheRead > 0
-          ? `cache: ${formatTokens(totals.cacheRead)}`
+          ? `${t('analytics.cacheLabel')}: ${formatTokens(totals.cacheRead)}`
           : undefined}
       />
 
@@ -67,7 +68,7 @@ export function OverviewCards({
         color={dataColor(4)}
         decimals={0}
         delay={0.1}
-        sub={aggregates ? `${aggregates.messages.total.toLocaleString()} messages` : undefined}
+        sub={aggregates ? `${aggregates.messages.total.toLocaleString()} ${t('analytics.messages')}` : undefined}
       />
 
       {/* API Calls */}
@@ -78,7 +79,7 @@ export function OverviewCards({
         color={themeHex('primary')}
         decimals={0}
         delay={0.15}
-        sub={byModel.length > 0 ? `${byModel.length} models used` : undefined}
+        sub={byModel.length > 0 ? `${byModel.length} ${t('analytics.modelsUsed')}` : undefined}
       />
 
       {/* Days of Data */}
@@ -94,4 +95,4 @@ export function OverviewCards({
       />
     </div>
   );
-}
+});

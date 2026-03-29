@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ShieldCheck, RefreshCw, X, Loader2, Key, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface PairingScreenProps {
   /** HTTP base URL of the Gateway (derived from WS URL) */
@@ -23,6 +24,7 @@ interface PairingScreenProps {
 type PairingState = 'idle' | 'requesting' | 'waiting' | 'waiting-cli' | 'approved' | 'error';
 
 export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage }: PairingScreenProps) {
+  const { t } = useTranslation();
   const [state, setState] = useState<PairingState>('idle');
   const [code, setCode] = useState<string>('');
   const [deviceId, setDeviceId] = useState<string>('');
@@ -185,7 +187,7 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
         <button
           onClick={onCancel}
           className="absolute top-4 end-4 p-1.5 rounded-lg text-aegis-text-dim hover:text-aegis-text-secondary hover:bg-aegis-glass transition-colors"
-          title="Cancel"
+          title={t('pairing.cancel', 'Cancel')}
         >
           <X size={18} />
         </button>
@@ -266,7 +268,7 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
                   </p>
                   <p className="text-xs text-aegis-text-dim flex items-center gap-2">
                     <ShieldCheck size={14} className="text-aegis-primary shrink-0" />
-                    <span>Or approve from the OpenClaw Control UI</span>
+                    <span>{t('pairing.orApproveUI')}</span>
                   </p>
                 </div>
               )}
@@ -354,7 +356,7 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
                   transition-colors"
               >
                 <RefreshCw size={16} />
-                <span>Retry</span>
+                <span>{t('pairing.retry')}</span>
               </button>
             )}
             {(state === 'error' || state === 'idle' || state === 'waiting-cli') && (
@@ -390,7 +392,7 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
                     type="password"
                     value={manualToken}
                     onChange={(e) => setManualToken(e.target.value)}
-                    placeholder="Paste token here..."
+                    placeholder={t('pairing.tokenPlaceholder')}
                     className="w-full px-3 py-2 rounded-lg bg-aegis-bg-solid border border-aegis-border text-sm text-aegis-text placeholder:text-aegis-text-dim focus:outline-none focus:border-aegis-primary"
                     dir="ltr"
                   />

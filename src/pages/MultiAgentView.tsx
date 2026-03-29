@@ -584,7 +584,7 @@ function SubAgentActions({ sessionKey }: { sessionKey: string }) {
           className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-medium text-aegis-primary bg-aegis-primary/10 border border-aegis-primary/20 hover:bg-aegis-primary/15 disabled:opacity-30 transition-colors"
         >
           {steerLoading ? <Loader2 size={10} className="animate-spin" /> : <Send size={10} />}
-          Steer
+          {t('multiAgent.steer')}
         </button>
       </div>
 
@@ -594,23 +594,23 @@ function SubAgentActions({ sessionKey }: { sessionKey: string }) {
           onClick={() => setKillConfirm(true)}
           className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-medium text-red-400 bg-red-500/5 border border-red-500/15 hover:bg-red-500/10 transition-colors"
         >
-          <XCircle size={10} /> Kill Sub-agent
+          <XCircle size={10} /> {t('multiAgent.killSubagent')}
         </button>
       ) : (
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-red-400">Kill this sub-agent?</span>
+          <span className="text-[10px] text-red-400">{t('multiAgent.killConfirmText')}</span>
           <button
             onClick={handleKill}
             disabled={killLoading}
             className="px-2.5 py-1 rounded-md text-[10px] font-medium text-white bg-red-500/80 hover:bg-red-500 transition-colors"
           >
-            {killLoading ? <Loader2 size={10} className="animate-spin" /> : 'Confirm Kill'}
+            {killLoading ? <Loader2 size={10} className="animate-spin" /> : t('multiAgent.confirmKill')}
           </button>
           <button
             onClick={() => setKillConfirm(false)}
             className="px-2.5 py-1 rounded-md text-[10px] text-aegis-text-muted bg-[rgb(var(--aegis-overlay)/0.04)] hover:bg-[rgb(var(--aegis-overlay)/0.08)]"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
         </div>
       )}
@@ -623,6 +623,7 @@ function SubAgentActions({ sessionKey }: { sessionKey: string }) {
 // ═══════════════════════════════════════════════════════════
 
 function MessageRow({ message, index }: { message: HistoryMessage; index: number }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const text = extractText(message.content);
   const isLong = text.length > 400;
@@ -679,7 +680,7 @@ function MessageRow({ message, index }: { message: HistoryMessage; index: number
             onClick={() => setExpanded((e) => !e)}
             className="mt-1 text-[10px] text-aegis-accent/60 hover:text-aegis-accent transition-colors"
           >
-            {expanded ? 'Show less' : `Show ${text.length - 400} more chars`}
+            {expanded ? t('multiAgent.showLess') : t('multiAgent.showMore', { count: text.length - 400 })}
           </button>
         )}
       </div>

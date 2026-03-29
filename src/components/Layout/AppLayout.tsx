@@ -12,6 +12,7 @@ import { CommandPalette } from '@/components/CommandPalette';
 import { OfflineOverlay } from '@/components/OfflineOverlay';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { GlobalExecApprovalBar } from '@/components/shared/ExecApprovalBar';
+import { GlobalPluginApprovalBar } from '@/components/shared/PluginApprovalDialog';
 import { useChatStore } from '@/stores/chatStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -45,6 +46,7 @@ export function AppLayout() {
         <main className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
           {/* Global exec approval bar — visible on ALL pages */}
           <GlobalExecApprovalBar />
+          <GlobalPluginApprovalBar />
           <div className="flex-1 overflow-y-auto scrollbar-thin">
             <ErrorBoundary>
               {showOffline ? (

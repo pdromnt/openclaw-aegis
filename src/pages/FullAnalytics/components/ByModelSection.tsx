@@ -4,6 +4,7 @@
 
 import { motion } from 'framer-motion';
 import { Cpu } from 'lucide-react';
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { type ByModelEntry } from '../types';
@@ -13,7 +14,7 @@ interface ByModelSectionProps {
   byModel: ByModelEntry[];
 }
 
-export function ByModelSection({ byModel }: ByModelSectionProps) {
+export const ByModelSection = memo(function ByModelSection({ byModel }: ByModelSectionProps) {
   const { t } = useTranslation();
   if (!byModel?.length) return null;
 
@@ -34,19 +35,19 @@ export function ByModelSection({ byModel }: ByModelSectionProps) {
           <thead>
             <tr className="border-b border-[rgb(var(--aegis-overlay)/0.06)]">
               <th className="text-start text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2 ps-2">
-                Model
+                {t('agentSettings.model', 'Model')}
               </th>
               <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">
                 {t('analytics.calls', 'Calls')}
               </th>
-              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">Input</th>
-              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">Output</th>
-              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">Cache</th>
+              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">{t('analytics.input')}</th>
+              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">{t('analytics.output')}</th>
+              <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">{t('analytics.cache')}</th>
               <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2">
-                Total Tokens
+                {t('analytics.totalTokensCol')}
               </th>
               <th className="text-end text-[9px] text-aegis-text-dim uppercase tracking-wider font-bold pb-2 pe-2">
-                Cost
+                {t('analytics.costCol')}
               </th>
               <th className="w-16 pb-2" />
             </tr>
@@ -110,4 +111,4 @@ export function ByModelSection({ byModel }: ByModelSectionProps) {
       </div>
     </GlassCard>
   );
-}
+});

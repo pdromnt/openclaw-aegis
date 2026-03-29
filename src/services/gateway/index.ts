@@ -85,11 +85,32 @@ export const gateway = {
   async setSessionFast(enabled: boolean, sessionKey = 'agent:main:main') {
     return connection.request('sessions.patch', { key: sessionKey, fastMode: enabled });
   },
+  async setSessionVerbose(level: string | null, sessionKey = 'agent:main:main') {
+    return connection.request('sessions.patch', { key: sessionKey, verboseLevel: level });
+  },
   async getAgentIdentity(agentId?: string) {
     return connection.request('agent.identity.get', agentId ? { agentId } : {});
   },
   async resolveExecApproval(id: string, decision: 'allow-once' | 'allow-always' | 'deny') {
     return connection.request('exec.approvals.resolve', { id, decision });
+  },
+  async resolvePluginApproval(id: string, decision: 'allow-once' | 'allow-always' | 'deny') {
+    return connection.request('plugin.approval.resolve', { id, decision });
+  },
+  async getConfigSchema() {
+    return connection.request('config.schema', {});
+  },
+  async lookupConfigSchema(path: string) {
+    return connection.request('config.schema.lookup', { path });
+  },
+  async getConfig() {
+    return connection.request('config.get', {});
+  },
+  async applyConfig(raw: any, baseHash?: string, note?: string) {
+    return connection.request('config.apply', { raw, baseHash, note });
+  },
+  async reloadSecrets() {
+    return connection.request('secrets.reload', {});
   },
   async updateAgentParams(agentId: string, params: Record<string, any>) {
     return connection.request('agents.update', { agentId, params });

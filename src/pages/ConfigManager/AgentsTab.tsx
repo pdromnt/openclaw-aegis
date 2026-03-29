@@ -298,7 +298,7 @@ function AgentRow({ agent, index, onChange, onRemove }: AgentRowProps) {
               onChange={(vals) =>
                 updateAgent({ subagents: { ...agent.subagents, allowAgents: vals } })
               }
-              placeholder="agent-id..."
+              placeholder={t('configExtra.agentIdPlaceholder')}
             />
           </FormField>
 
@@ -400,7 +400,7 @@ function AddAgentModal({ onClose, onAdd }: AddAgentModalProps) {
             <TextField
               value={id}
               onChange={setId}
-              placeholder="my-agent"
+              placeholder={t('configExtra.agentNamePlaceholder')}
               mono
             />
           </FormField>
@@ -408,7 +408,7 @@ function AddAgentModal({ onClose, onAdd }: AddAgentModalProps) {
             <TextField
               value={name}
               onChange={setName}
-              placeholder="My Agent"
+              placeholder={t('configExtra.myAgent', 'My Agent')}
             />
           </FormField>
           <FormField label={t('config.primaryModel')} hint={t('config.inheritedFromDefaults')}>
@@ -549,7 +549,7 @@ export function AgentsTab({ config, onChange }: AgentsTabProps) {
               value={defaults.thinkingDefault ?? ''}
               onChange={(v) => patchDefaults({ thinkingDefault: v || undefined })}
               options={THINKING_OPTIONS}
-              placeholder="Inherit"
+              placeholder={t('configExtra.inherit', 'Inherit')}
             />
           </FormField>
 
@@ -572,7 +572,7 @@ export function AgentsTab({ config, onChange }: AgentsTabProps) {
             onChange={(vals) =>
               patchDefaults({ model: { ...defaults.model, fallbacks: vals } })
             }
-            placeholder="Add model ID..."
+            placeholder={t('configExtra.addModelPlaceholder')}
           />
         </FormField>
       </ExpandableCard>
@@ -597,7 +597,7 @@ export function AgentsTab({ config, onChange }: AgentsTabProps) {
           <TextareaField
             value={defaults.heartbeat?.prompt ?? ''}
             onChange={(v) => patchHeartbeat({ prompt: v || undefined })}
-            placeholder="Read HEARTBEAT.md if it exists..."
+            placeholder={t('configExtra.heartbeatPlaceholder')}
             rows={4}
           />
         </FormField>
@@ -616,7 +616,7 @@ export function AgentsTab({ config, onChange }: AgentsTabProps) {
               value={defaults.compaction?.mode ?? ''}
               onChange={(v) => patchCompaction({ mode: v || undefined })}
               options={COMPACTION_MODE_OPTIONS}
-              placeholder="Inherit"
+              placeholder={t('configExtra.inherit', 'Inherit')}
             />
           </FormField>
           <FormField label={t('config.reserveTokensFloor')}>
@@ -653,15 +653,15 @@ export function AgentsTab({ config, onChange }: AgentsTabProps) {
                 <TextareaField
                   value={defaults.compaction?.memoryFlush?.prompt ?? ''}
                   onChange={(v) => patchMemoryFlush({ prompt: v || undefined })}
-                  placeholder="Memory flush prompt..."
+                  placeholder={t('configExtra.memoryFlushPlaceholder')}
                   rows={3}
                 />
               </FormField>
-              <FormField label="System Prompt">
+              <FormField label={t('configExtra.systemPrompt', 'System Prompt')}>
                 <TextareaField
                   value={defaults.compaction?.memoryFlush?.systemPrompt ?? ''}
                   onChange={(v) => patchMemoryFlush({ systemPrompt: v || undefined })}
-                  placeholder="System prompt for memory flush..."
+                  placeholder={t('configExtra.memoryFlushSystemPlaceholder')}
                   rows={3}
                 />
               </FormField>
@@ -683,7 +683,7 @@ export function AgentsTab({ config, onChange }: AgentsTabProps) {
               value={defaults.contextPruning?.mode ?? ''}
               onChange={(v) => patchPruning({ mode: v || undefined })}
               options={PRUNING_MODE_OPTIONS}
-              placeholder="Inherit"
+              placeholder={t('configExtra.inherit', 'Inherit')}
             />
           </FormField>
           <FormField label={t('config.ttl')} hint="e.g. 2h, 30m">

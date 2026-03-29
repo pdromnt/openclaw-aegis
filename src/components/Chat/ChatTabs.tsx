@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Plus, Shield, MessageSquare, ChevronDown, Zap, RotateCcw, Bot } from 'lucide-react';
+import { Plus, Shield, MessageSquare, ChevronDown, Zap, RotateCcw, Bot, Wrench, Download } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useChatStore, Session } from '@/stores/chatStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { useGatewayDataStore } from '@/stores/gatewayDataStore';
+import { exportChatMarkdown } from '@/utils/exportChat';
 import { gateway } from '@/services/gateway/index';
 import { themeHex, themeAlpha, dataColor } from '@/utils/theme-colors';
 import clsx from 'clsx';
@@ -124,7 +126,7 @@ function AgentStatusTooltip({ visible, tokenUsage, connected }: {
                 ? 'bg-aegis-primary/10 text-aegis-primary border-aegis-primary/20'
                 : 'bg-[rgb(var(--aegis-overlay)/0.04)] text-aegis-text-muted border-[rgb(var(--aegis-overlay)/0.08)]'
             )}>
-              {connected ? 'Active' : 'Offline'}
+              {connected ? t('chat.active') : t('chat.offline')}
             </div>
           </div>
 
@@ -173,12 +175,12 @@ function AgentStatusTooltip({ visible, tokenUsage, connected }: {
             <div className="flex items-center gap-2 py-1.5 border-t border-[rgb(var(--aegis-overlay)/0.03)]">
               <span className="text-xs">💓</span>
               <span className="text-[10px] text-aegis-text-muted flex-1">{t('chat.heartbeat', 'Heartbeat')}</span>
-              <span className="text-[10px] font-bold font-mono text-aegis-primary">15m interval</span>
+              <span className="text-[10px] font-bold font-mono text-aegis-primary">{t('chat.heartbeatInterval')}</span>
             </div>
             <div className="flex items-center gap-2 py-1.5 border-t border-[rgb(var(--aegis-overlay)/0.03)]">
               <span className="text-xs">🧠</span>
               <span className="text-[10px] text-aegis-text-muted flex-1">{t('chat.thinking', 'Thinking')}</span>
-              <span className="text-[10px] font-bold font-mono" style={{ color: dataColor(3) }}>HIGH</span>
+              <span className="text-[10px] font-bold font-mono" style={{ color: dataColor(3) }}>{t('chat.high')}</span>
             </div>
           </div>
         </motion.div>
@@ -540,8 +542,12 @@ export function ChatTabs() {
       {/* ── Spacer ── */}
       <div className="flex-1" />
 
-      {/* ── Right: Refresh + New session ── */}
+      {/* ── Right: Tools + Export + Refresh + New session ── */}
       <div className="flex items-center gap-0.5 shrink-0">
+        {/* Tool intent toggle */}
+        <ToolIntentButton />
+        {/* Export chat */}
+        <ExportButton />
         {/* Refresh button */}
         <button
           onClick={handleRefresh}
@@ -615,6 +621,45 @@ export function ChatTabs() {
         </div>
       </div>
     </div>
+  );
+}
+
+// ── ToolIntentButton — Toggle tool call visibility ──
+function ToolIntentButton() {
+  const { t } = useTranslation();
+  const toolIntentEnabled = useSettingsStore((s) => s.toolIntentEnabled);
+  const setToolIntentEnabled = useSettingsStore((s) => s.setToolIntentEnabled);
+
+  return (
+    <button
+      onClick={() => setToolIntentEnabled(!toolIntentEnabled)}
+      className={clsx(
+        'p-1.5 rounded-lg transition-colors',
+        toolIntentEnabled
+          ? 'text-aegis-primary bg-aegis-primary/10 hover:bg-aegis-primary/15'
+          : 'text-aegis-text-dim hover:text-aegis-text-muted hover:bg-[rgb(var(--aegis-overlay)/0.05)]',
+      )}
+      title={toolIntentEnabled ? t('chat.hideToolCalls') : t('chat.showToolCalls')}
+    >
+      <Wrench size={13} />
+    </button>
+  );
+}
+
+// ── ExportButton — Export chat as Markdown ──
+function ExportButton() {
+  const { t } = useTranslation();
+  const renderBlocks = useChatStore((s) => s.renderBlocks);
+  const activeSessionKey = useChatStore((s) => s.activeSessionKey);
+
+  return (
+    <button
+      onClick={() => exportChatMarkdown(renderBlocks, activeSessionKey)}
+      className="p-1.5 rounded-lg transition-colors text-aegis-text-dim hover:text-aegis-text-muted hover:bg-[rgb(var(--aegis-overlay)/0.05)]"
+      title={t('image.exportMarkdown', 'Export chat as Markdown')}
+    >
+      <Download size={13} />
+    </button>
   );
 }
 

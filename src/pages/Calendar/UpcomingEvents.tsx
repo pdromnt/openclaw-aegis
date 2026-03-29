@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// UpcomingEvents — Sidebar list of next events
+// UpcomingEvents — Sidebar list with Hijri/Chinese dates
 // ═══════════════════════════════════════════════════════════
 
 import { useMemo } from 'react';
@@ -8,6 +8,7 @@ import { MapPin, Repeat } from 'lucide-react';
 import { useCalendarStore } from '@/stores/calendarStore';
 import { ReminderBadge } from './ReminderBadge';
 import { toDateStr, getEventColor } from './calendarUtils';
+import { toHijri, toChinese } from './calendarConversions';
 
 interface UpcomingEventsProps {
   onEventClick: (event: any) => void;
@@ -43,6 +44,10 @@ export function UpcomingEvents({ onEventClick, maxItems = 8 }: UpcomingEventsPro
         const dateStr = d.toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' });
         const color = getEventColor(ev);
 
+        // Secondary calendar dates
+        const hijri = toHijri(d);
+        const chinese = toChinese(d);
+
         return (
           <div
             key={ev.id}
@@ -61,6 +66,15 @@ export function UpcomingEvents({ onEventClick, maxItems = 8 }: UpcomingEventsPro
             </div>
             <div className="text-[13px] font-medium text-aegis-text mt-0.5">
               {ev.title || t('calendar.untitled')}
+            </div>
+            {/* Hijri + Chinese dates */}
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-[10px] opacity-70" style={{ color: '#4EC9B0' }}>
+                {hijri.dayAr} {hijri.monthNameAr}
+              </span>
+              <span className="text-[10px] opacity-70" style={{ color: '#f59e0b' }}>
+                {chinese.dayName}
+              </span>
             </div>
             {ev.location && (
               <div className="flex items-center gap-0.5 text-[11px] text-aegis-text-dim mt-0.5">

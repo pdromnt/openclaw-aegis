@@ -58,12 +58,12 @@ function accumulateTotals(target: CostTotals, source: Partial<CostTotals>): void
 }
 
 /** Map a preset to the fetch parameters (days for cost, limit for sessions) */
-function getFetchParams(preset: PresetId): { days: number; limit: number } {
+function getFetchParams(preset: PresetId): { days: number; limit: number; allTime: boolean } {
   switch (preset) {
-    case 'all':       return { days: 365, limit: 2000 };
-    case '90d':       return { days: 90,  limit: 500  };
-    case 'thisMonth': return { days: 31,  limit: 200  }; // Months can have 31 days
-    default:          return { days: 30,  limit: 200  };
+    case 'all':       return { days: 0,   limit: 2000, allTime: true  };
+    case '90d':       return { days: 90,  limit: 500,  allTime: false };
+    case 'thisMonth': return { days: 31,  limit: 200,  allTime: false }; // Months can have 31 days
+    default:          return { days: 30,  limit: 200,  allTime: false };
   }
 }
 
@@ -149,14 +149,14 @@ export function useAnalyticsData(): AnalyticsData {
 
   // ── Data fetching ──
   const fetchData = useCallback(
-    async (days = 30, limit = 200, showLoading = true) => {
+    async (days = 30, limit = 200, showLoading = true, allTime = false) => {
       if (!connected) return;
       try {
         setError(null);
         if (showLoading) setLoading(true);
 
         const [costResult, usageResult] = await Promise.allSettled([
-          fetchFullCost(days),
+          fetchFullCost(allTime ? undefined : days, allTime),
           fetchFullUsage(limit),
         ]);
 
@@ -209,8 +209,8 @@ export function useAnalyticsData(): AnalyticsData {
     const isStale = !cachedCost || (Date.now() - cachedCost.ts > STALE_THRESHOLD_MS);
 
     if (isStale || !hasCached) {
-      const { days, limit } = getFetchParams(saved);
-      fetchData(days, limit, !hasCached);
+      const { days, limit, allTime } = getFetchParams(saved);
+      fetchData(days, limit, !hasCached, allTime);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -222,13 +222,13 @@ export function useAnalyticsData(): AnalyticsData {
       setEndDate(end);
 
       // Fetch more data if the new preset needs a wider scope
-      const requiredDays = getFetchParams(id).days;
-      const currentDays  = costData?.days || 0;
+      const params = getFetchParams(id);
+      const currentDays = costData?.days || 0;
 
-      if (requiredDays > currentDays) {
+      // For "All Time", always refetch if we haven't fetched all-time data yet
+      if (params.allTime || params.days > currentDays) {
         setIsRefetching(true);
-        const { limit } = getFetchParams(id);
-        await fetchData(requiredDays, limit, false);
+        await fetchData(params.days, params.limit, false, params.allTime);
         setIsRefetching(false);
       }
     },
@@ -258,7 +258,7 @@ export function useAnalyticsData(): AnalyticsData {
         const currentDays = costData?.days || 0;
         if (dayDiff > currentDays) {
           setIsRefetching(true);
-          await fetchData(365, 2000, false);
+          await fetchData(undefined, 2000, false, true);
           setIsRefetching(false);
         }
       } else {
@@ -293,16 +293,15 @@ export function useAnalyticsData(): AnalyticsData {
   }, [allDaily, isInRange, startDate, endDate]);
 
   const totals = useMemo<CostTotals>(() => {
-    // "All Time": always use server totals — they reflect whatever scope was fetched,
-    // and auto-update when the 365-day refetch completes.
-    if (activePreset === 'all') {
-      return usageData?.totals || costData?.totals || EMPTY_TOTALS;
-    }
-    // For all other presets, sum from filtered daily entries
+    // ALL presets: sum from daily entries (usage.cost is the accurate source).
+    // This ensures consistency — "All Time" matches sum of all daily rows,
+    // and "30d" matches sum of last 30 daily rows.
+    // Previously "All Time" used usageData.totals (sessions.usage API)
+    // which calculates costs differently → numbers were LOWER than 30d.
     const sum: CostTotals = { ...EMPTY_TOTALS };
     for (const d of daily) accumulateTotals(sum, d);
     return sum;
-  }, [usageData, costData, daily, activePreset]);
+  }, [daily]);
 
   const allSessions = usageData?.sessions || [];
   const aggregates  = usageData?.aggregates;
@@ -318,7 +317,8 @@ export function useAnalyticsData(): AnalyticsData {
   }, [allSessions, isInRange, startDate, endDate]);
 
   const byAgent = useMemo<ByAgentEntry[]>(() => {
-    if (activePreset === 'all') return aggregates?.byAgent || [];
+    // Use aggregates when available (richer data), fall back to session-level computation
+    if (aggregates?.byAgent?.length) return aggregates.byAgent;
     const map = new Map<string, CostTotals>();
     for (const s of sessions) {
       const aid      = (s as any).agentId || 'unknown';
@@ -330,7 +330,7 @@ export function useAnalyticsData(): AnalyticsData {
   }, [aggregates, sessions, activePreset]);
 
   const byModel = useMemo<ByModelEntry[]>(() => {
-    if (activePreset === 'all') return aggregates?.byModel || [];
+    if (aggregates?.byModel?.length) return aggregates.byModel;
     const map = new Map<string, { count: number; totals: CostTotals }>();
     for (const s of sessions) {
       const model    = (s as any).model || 'unknown';
@@ -426,8 +426,8 @@ export function useAnalyticsData(): AnalyticsData {
     handlePresetSelect,
     handleApply,
     refresh: async () => {
-      const { days, limit } = getFetchParams(activePreset);
-      await fetchData(days, limit, true);
+      const { days, limit, allTime } = getFetchParams(activePreset);
+      await fetchData(days, limit, true, allTime);
     },
   };
 }

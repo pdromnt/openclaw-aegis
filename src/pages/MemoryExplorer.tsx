@@ -95,7 +95,7 @@ function groupByDate(memories: Memory[]): { date: string; label: string; items: 
     .sort((a, b) => b[0].localeCompare(a[0]))
     .map(([date, items]) => ({
       date,
-      label: date === today ? 'Today' : date === yesterday ? 'Yesterday' : date,
+      label: date === today ? '$$TODAY$$' : date === yesterday ? '$$YESTERDAY$$' : date,
       items: items.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
     }));
 }
@@ -165,10 +165,10 @@ function MemoryModal({ memory, onSave, onClose }: {
         </h3>
         <div className="space-y-3">
           <textarea value={content} onChange={(e) => setContent(e.target.value)}
-            placeholder="Content..." rows={4} dir="auto"
+            placeholder={t('memory.contentPlaceholder')} rows={4} dir="auto"
             className="w-full bg-[rgb(var(--aegis-overlay)/0.04)] border border-[rgb(var(--aegis-overlay)/0.08)] rounded-xl px-4 py-3 text-[13px] text-aegis-text placeholder:text-aegis-text-dim focus:outline-none focus:border-aegis-primary/40 resize-none" autoFocus />
           <div>
-            <label className="text-[11px] text-aegis-text-muted mb-1.5 block">Category</label>
+            <label className="text-[11px] text-aegis-text-muted mb-1.5 block">{t('memory.category')}</label>
             <div className="flex flex-wrap gap-1.5">
               {CATEGORY_KEYS.filter(c => c.key !== 'all').map((c) => (
                 <button key={c.key} onClick={() => setCategory(c.key)}
@@ -184,23 +184,23 @@ function MemoryModal({ memory, onSave, onClose }: {
           </div>
           <div>
             <label className="text-[11px] text-aegis-text-muted mb-1.5 block">
-              Importance: <span className="text-aegis-primary font-bold">{importance}</span>/10
+              {t('memoryExplorer.importanceLabel')}: <span className="text-aegis-primary font-bold">{importance}</span>/10
             </label>
             <input type="range" min={1} max={10} value={importance} onChange={(e) => setImportance(Number(e.target.value))}
               className="w-full accent-aegis-primary" />
           </div>
           <input value={tagsStr} onChange={(e) => setTagsStr(e.target.value)}
-            placeholder="Tags (comma separated)"
+            placeholder={t('memoryExplorer.tagsPlaceholder')}
             className="w-full bg-[rgb(var(--aegis-overlay)/0.04)] border border-[rgb(var(--aegis-overlay)/0.08)] rounded-xl px-4 py-2.5 text-[13px] text-aegis-text placeholder:text-aegis-text-dim focus:outline-none focus:border-aegis-primary/40" />
         </div>
         <div className="flex items-center justify-end gap-2 mt-5">
-          <button onClick={onClose} className="px-4 py-2 rounded-xl text-[13px] text-aegis-text-muted hover:text-aegis-text-secondary">Cancel</button>
+          <button onClick={onClose} className="px-4 py-2 rounded-xl text-[13px] text-aegis-text-muted hover:text-aegis-text-secondary">{t('common.cancel')}</button>
           <button onClick={() => onSave({
             content, category, importance,
             tags: tagsStr.split(',').map((t) => t.trim()).filter(Boolean),
           })} disabled={!content.trim()}
             className="px-4 py-2 rounded-xl bg-aegis-primary text-aegis-btn-primary-text text-[13px] font-medium hover:bg-aegis-primary/80 disabled:opacity-40">
-            Save
+            {t('memoryExplorer.save')}
           </button>
         </div>
       </motion.div>
@@ -428,7 +428,7 @@ function TimelineView({ memories, onSelect }: { memories: Memory[]; onSelect: (m
             <div className="relative text-[13px] font-bold text-aegis-text mb-3 ps-1">
               <div className="absolute start-[-29px] top-1/2 -translate-y-1/2 w-[10px] h-[10px] rounded-full bg-aegis-accent"
                 style={{ boxShadow: `0 0 10px rgb(var(--aegis-accent) / 0.5)` }} />
-              {group.label}
+              {group.label === '$$TODAY$$' ? t('memoryExplorer.today') : group.label === '$$YESTERDAY$$' ? t('memoryExplorer.yesterday') : group.label}
             </div>
 
             {/* Entries */}
@@ -617,17 +617,17 @@ function DetailPanel({ memory, onClose, onEdit, onDelete, apiUrl, isLocal }: {
                 <div className="flex items-center gap-2 mb-4">
                   <button onClick={() => onEdit(memory)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgb(var(--aegis-overlay)/0.04)] border border-[rgb(var(--aegis-overlay)/0.08)] text-[11px] text-aegis-text-muted hover:text-aegis-primary hover:border-aegis-primary/30 transition-colors">
-                    <Pencil size={12} /> Edit
+                    <Pencil size={12} /> {t('memoryExplorer.edit')}
                   </button>
                   {confirmDel ? (
                     <button onClick={() => { onDelete(memory.id); onClose(); }}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-aegis-danger-surface border border-red-400/30 text-[11px] text-aegis-danger font-semibold">
-                      Confirm Delete
+                      {t('memoryExplorer.confirmDelete')}
                     </button>
                   ) : (
                     <button onClick={() => setConfirmDel(true)}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgb(var(--aegis-overlay)/0.04)] border border-[rgb(var(--aegis-overlay)/0.08)] text-[11px] text-aegis-text-muted hover:text-aegis-danger hover:border-red-400/30 transition-colors">
-                      <Trash2 size={12} /> Delete
+                      <Trash2 size={12} /> {t('memoryExplorer.delete')}
                     </button>
                   )}
                 </div>
@@ -636,7 +636,7 @@ function DetailPanel({ memory, onClose, onEdit, onDelete, apiUrl, isLocal }: {
               <div className="border-t border-[rgb(var(--aegis-overlay)/0.06)] my-4" />
 
               {/* Content */}
-              <div className="text-[9px] uppercase tracking-[1.5px] font-bold text-aegis-text-dim mb-2">Content</div>
+              <div className="text-[9px] uppercase tracking-[1.5px] font-bold text-aegis-text-dim mb-2">{t('memory.content')}</div>
               <div className="text-[13px] text-aegis-text-muted leading-relaxed whitespace-pre-wrap" dir="auto">
                 {memory.content}
               </div>
@@ -644,13 +644,13 @@ function DetailPanel({ memory, onClose, onEdit, onDelete, apiUrl, isLocal }: {
               <div className="border-t border-[rgb(var(--aegis-overlay)/0.06)] my-4" />
 
               {/* Metadata */}
-              <div className="text-[9px] uppercase tracking-[1.5px] font-bold text-aegis-text-dim mb-2">Metadata</div>
+              <div className="text-[9px] uppercase tracking-[1.5px] font-bold text-aegis-text-dim mb-2">{t('memory.metadata')}</div>
               <div className="space-y-2">
                 {([
-                  ['Date', memory.created_at ? new Date(memory.created_at).toLocaleDateString() : '—'],
-                  ['Category', memory.category],
-                  ['Importance', `${memory.importance || 5}/10`],
-                  ['Tags', memory.tags?.join(', ') || '—'],
+                  [t('memoryExplorer.date'), memory.created_at ? new Date(memory.created_at).toLocaleDateString() : '—'],
+                  [t('memoryExplorer.category'), memory.category],
+                  [t('memoryExplorer.importanceLabel'), `${memory.importance || 5}/10`],
+                  [t('memoryExplorer.tags'), memory.tags?.join(', ') || '—'],
                 ] as const).map(([label, value]) => (
                   <div key={label} className="flex justify-between text-[11px]">
                     <span className="text-aegis-text-dim">{label}</span>
@@ -830,10 +830,10 @@ export function MemoryExplorerPage() {
       {stats && !isLocal && (
         <div className="flex gap-3 px-5 py-3 border-b border-[rgb(var(--aegis-overlay)/0.06)] shrink-0">
           {[
-            { value: stats.memories?.total?.toLocaleString() || '—', label: 'Memories' },
-            { value: stats.messages?.total?.toLocaleString() || '—', label: 'Messages' },
-            { value: stats.relations?.toLocaleString() || '—', label: 'KG Relations' },
-            { value: stats.memories?.coverage ? `${stats.memories.coverage}%` : '—', label: 'Embeddings' },
+            { value: stats.memories?.total?.toLocaleString() || '—', label: t('memoryExplorer.statsMemories') },
+            { value: stats.messages?.total?.toLocaleString() || '—', label: t('memoryExplorer.statsMessages') },
+            { value: stats.relations?.toLocaleString() || '—', label: t('memoryExplorer.statsRelations') },
+            { value: stats.memories?.coverage ? `${stats.memories.coverage}%` : '—', label: t('memoryExplorer.statsEmbeddings') },
           ].map((s) => (
             <div key={s.label} className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-[rgb(var(--aegis-overlay)/0.02)] border border-[rgb(var(--aegis-overlay)/0.04)]">
               <span className="text-[16px] font-bold text-aegis-text font-mono">{s.value}</span>
@@ -856,14 +856,14 @@ export function MemoryExplorerPage() {
               value={query}
               onChange={e => setQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSearch()}
-              placeholder="Search memories..."
+              placeholder={t('memory.searchPlaceholder')}
               dir="auto"
               className="w-full bg-[rgb(var(--aegis-overlay)/0.04)] border border-[rgb(var(--aegis-overlay)/0.08)] rounded-xl ps-9 pe-3 py-2.5 text-[13px] text-aegis-text placeholder:text-aegis-text-dim focus:outline-none focus:border-aegis-accent/40 transition-colors"
             />
             {searching && <Loader2 size={14} className="absolute end-3 top-1/2 -translate-y-1/2 animate-spin text-aegis-primary" />}
           </div>
           <div className="text-[9px] text-aegis-text-dim mt-1.5 ps-1">
-            <kbd className="px-1 py-px rounded border border-[rgb(var(--aegis-overlay)/0.1)] bg-[rgb(var(--aegis-overlay)/0.04)] text-[8px] font-mono">Enter</kbd> to search
+            <kbd className="px-1 py-px rounded border border-[rgb(var(--aegis-overlay)/0.1)] bg-[rgb(var(--aegis-overlay)/0.04)] text-[8px] font-mono">{t('common.enter')}</kbd> {t('memoryExplorer.toSearch')}
           </div>
         </div>
 
@@ -894,8 +894,8 @@ export function MemoryExplorerPage() {
         <div className="p-4 border-b border-[rgb(var(--aegis-overlay)/0.06)]">
           <div className="grid grid-cols-2 gap-2">
             {[
-              { value: memories.length, label: 'Memories' },
-              { value: memories.reduce((s, m) => s + (m.tags?.length || 0), 0), label: 'Tags' },
+              { value: memories.length, label: t('memoryExplorer.statsMemories') },
+              { value: memories.reduce((s, m) => s + (m.tags?.length || 0), 0), label: t('memoryExplorer.statsTags') },
             ].map(stat => (
               <div key={stat.label} className="bg-[rgb(var(--aegis-overlay)/0.02)] border border-[rgb(var(--aegis-overlay)/0.04)] rounded-lg p-2.5 text-center">
                 <div className="text-[18px] font-extrabold text-transparent bg-clip-text"
@@ -910,7 +910,7 @@ export function MemoryExplorerPage() {
 
         {/* Recent Activity */}
         <div className="flex-1 overflow-y-auto p-4">
-          <div className="text-[9px] uppercase tracking-[2px] font-bold text-aegis-text-dim mb-2.5">Recent</div>
+          <div className="text-[9px] uppercase tracking-[2px] font-bold text-aegis-text-dim mb-2.5">{t('memory.recent')}</div>
           <div className="space-y-0.5">
             {recentMemories.map(mem => (
               <div key={mem.id} onClick={() => setSelectedMemory(mem)}
@@ -933,14 +933,14 @@ export function MemoryExplorerPage() {
         <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-[rgb(var(--aegis-overlay)/0.06)]">
           <div className="flex items-center gap-3">
             <span className="text-[16px] font-bold text-aegis-text">🧠 {t('memoryExplorer.title')}</span>
-            {filtered.length > 0 && <span className="text-[11px] text-aegis-text-dim">{filtered.length} results</span>}
+            {filtered.length > 0 && <span className="text-[11px] text-aegis-text-dim">{t('memoryExplorer.results', { count: filtered.length })}</span>}
           </div>
           <div className="flex items-center gap-2">
             {/* Add button */}
             {!isLocal && (
               <button onClick={() => { setEditingMemory(null); setModalOpen(true); }}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-aegis-primary text-aegis-btn-primary-text text-[11px] font-semibold hover:bg-aegis-primary/80 transition-colors">
-                <Plus size={14} /> Add
+                <Plus size={14} /> {t('memoryExplorer.add')}
               </button>
             )}
             <button onClick={loadMemories} className="p-1.5 rounded-lg hover:bg-[rgb(var(--aegis-overlay)/0.05)] text-aegis-text-dim transition-colors">

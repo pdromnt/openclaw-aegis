@@ -3,7 +3,7 @@
 // Dynamic from Gateway API with animated SVG connections
 // ═══════════════════════════════════════════════════════════
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, RotateCcw, ChevronDown, Zap, AlertCircle, Bot, Search, Code2, Brain, Plus, Trash2, Settings2 } from 'lucide-react';
@@ -132,7 +132,15 @@ function parseSessions(raw: any[]): SessionInfo[] {
       else if (type === 'cron') label = `Cron: ${parts[3]?.substring(0, 8) || '?'}`;
       else label = key;
     }
-    return { key, label, type, model: s.model || '', totalTokens: s.totalTokens || 0, contextTokens: s.contextTokens || 200000, running: !!s.running, updatedAt: s.updatedAt || 0, agentId };
+    // Determine running state:
+    // 1. subagent/cron: status === "running" (Gateway sets this on active runs)
+    // 2. main sessions: never have status — check if recently updated (< 60s = likely active)
+    // 3. Fallback: s.running (some Gateway versions may include this)
+    const status = s.status || '';
+    const isRunning = status === 'running'
+      || !!s.running
+      || (type === 'main' && s.updatedAt && (Date.now() - (s.updatedAt || 0)) < 60000);
+    return { key, label, type, model: s.model || '', totalTokens: s.totalTokens || 0, contextTokens: s.contextTokens || 200000, running: isRunning, updatedAt: s.updatedAt || 0, agentId };
   }).sort((a, b) => {
     if (a.running && !b.running) return -1;
     if (!a.running && b.running) return 1;
@@ -144,16 +152,19 @@ function parseSessions(raw: any[]): SessionInfo[] {
 // Tree View — SVG connections + animated dots
 // ═══════════════════════════════════════════════════════════
 
-function TreeView({ mainSession, registeredAgents, workers, agents, onAgentClick }: {
+const TreeView = memo(function TreeView({ mainSession, registeredAgents, workers, agents, onAgentClick }: {
   mainSession: SessionInfo | undefined;
   registeredAgents: AgentInfo[];
   workers: SessionInfo[];
   agents: AgentInfo[];
   onAgentClick?: (agent: AgentInfo) => void;
 }) {
+  const [expandedAgentId, setExpandedAgentId] = useState<string | null>(null);
+  const { t } = useTranslation();
   const runningSubAgents = useGatewayDataStore((s) => s.runningSubAgents);
   const agentCount = registeredAgents.length;
   const mainName = agents.find(a => a.id === 'main')?.name || 'Main Agent';
+  const hasAnyRunning = mainSession?.running || workers.some(w => w.running) || runningSubAgents.length > 0;
 
   // Group workers by parent agent
   const workersByAgent = useMemo(() => {
@@ -206,7 +217,7 @@ function TreeView({ mainSession, registeredAgents, workers, agents, onAgentClick
 
       {/* ── Depth 0: Main Agent ── */}
       <div className="text-center mb-2">
-        <span className="text-[9px] uppercase tracking-[2px] font-bold text-aegis-text-muted">Depth 0 — Orchestrator</span>
+        <span className="text-[9px] uppercase tracking-[2px] font-bold text-aegis-text-muted">{t('agentHub.depth0')}</span>
       </div>
       <div className="flex justify-center mb-0">
         <div className="relative">
@@ -236,7 +247,7 @@ function TreeView({ mainSession, registeredAgents, workers, agents, onAgentClick
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-[9px] px-2 py-0.5 rounded-md font-bold uppercase"
                     style={{ background: `${mainColor()}15`, color: mainColor() }}>
-                    {mainSession?.running ? 'Active' : 'Online'}
+                    {mainSession?.running ? t('agentHub.active') : t('agentHub.online')}
                   </span>
                   <span className="text-[10px] text-aegis-text-dim font-mono">
                     {mainSession ? `${formatTokens(mainSession.totalTokens)} / ${formatTokens(mainSession.contextTokens)}` : ''}
@@ -257,9 +268,9 @@ function TreeView({ mainSession, registeredAgents, workers, agents, onAgentClick
         </div>
       </div>
 
-      {/* ── SVG Connectors: Main → Agents ── */}
+      {/* ── SVG Connectors: Main → Agents (hidden on small screens) ── */}
       {agentCount > 0 && (
-        <div className="relative h-14">
+        <div className="relative h-14 hidden lg:block">
           <svg viewBox="0 0 1000 56" preserveAspectRatio="none" className="w-full h-full">
             <defs>
               <linearGradient id="grad-main-tree" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -271,8 +282,8 @@ function TreeView({ mainSession, registeredAgents, workers, agents, onAgentClick
               <g key={`mc${i}`}>
                 <path d={`M 500,0 L 500,20 L ${cx},20 L ${cx},56`}
                   stroke="url(#grad-main-tree)" strokeWidth={1.5} fill="none" strokeDasharray="4,3" />
-                {/* Animated dot (alternate to reduce clutter) */}
-                {i % 2 === 0 && (
+                {/* Animated dot — only when agents are running */}
+                {hasAnyRunning && i % 2 === 0 && (
                   <circle r={3} fill={mainColor()} opacity={0.7}>
                     <animateMotion dur={`${3 + i * 0.5}s`} repeatCount="indefinite"
                       path={`M 500,0 L 500,20 L ${cx},20 L ${cx},56`} />
@@ -288,9 +299,9 @@ function TreeView({ mainSession, registeredAgents, workers, agents, onAgentClick
       {agentCount > 0 && (
         <>
           <div className="text-center mb-2">
-            <span className="text-[9px] uppercase tracking-[2px] font-bold text-aegis-text-muted">Depth 1 — Specialists</span>
+            <span className="text-[9px] uppercase tracking-[2px] font-bold text-aegis-text-muted">{t('agentHub.depth1')}</span>
           </div>
-          <div className="flex justify-center gap-4 flex-wrap">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:justify-center gap-4 lg:flex-wrap">
             {registeredAgents.map((agent) => {
               const cfg = getTreeNodeConfig(agent.id);
               const childCount = spawnCounts[agent.id] || 0;
@@ -300,6 +311,7 @@ function TreeView({ mainSession, registeredAgents, workers, agents, onAgentClick
               const spawned = runningSubAgents.some(sa => sa.agentId === agent.id);
               const isRunning = activeSessions.length > 0 || spawned;
 
+              const isExpanded = expandedAgentId === agent.id;
               return (
                 <div key={agent.id} className="relative">
                   {/* Spawn badge */}
@@ -311,9 +323,10 @@ function TreeView({ mainSession, registeredAgents, workers, agents, onAgentClick
                   )}
                   <div className={clsx(
                     "relative rounded-2xl border px-5 py-3.5 min-w-[200px] max-w-[240px] overflow-hidden transition-all hover:-translate-y-0.5 cursor-pointer",
-                    isRunning && "ring-1 ring-aegis-primary/30"
+                    isRunning && "ring-1 ring-aegis-primary/30",
+                    isExpanded && "ring-1 ring-aegis-accent/30"
                   )}
-                    onClick={() => onAgentClick?.(agent)}
+                    onClick={() => setExpandedAgentId(prev => prev === agent.id ? null : agent.id)}
                     style={{ background: `linear-gradient(135deg, ${cfg.color}10, ${cfg.color}04)`, borderColor: isRunning ? `${cfg.color}50` : `${cfg.color}30` }}>
                     <div className="absolute top-0 inset-x-0 h-[2px] opacity-40"
                       style={{ background: `linear-gradient(90deg, transparent, ${cfg.color}, transparent)` }} />
@@ -332,10 +345,10 @@ function TreeView({ mainSession, registeredAgents, workers, agents, onAgentClick
                           {isRunning ? (
                             <span className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded font-bold"
                               style={{ background: `${cfg.color}12`, color: cfg.color }}>
-                              <Loader2 size={9} className="animate-spin" /> Running
+                              <Loader2 size={9} className="animate-spin" /> {t('agentHub.running')}
                             </span>
                           ) : (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-[rgb(var(--aegis-overlay)/0.04)] text-aegis-text-dim font-bold">Idle</span>
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-[rgb(var(--aegis-overlay)/0.04)] text-aegis-text-dim font-bold">{t('agents.idle')}</span>
                           )}
                           {totalTok > 0 && <span className="text-[9px] text-aegis-text-dim font-mono">{formatTokens(totalTok)}</span>}
                         </div>
@@ -347,6 +360,44 @@ function TreeView({ mainSession, registeredAgents, workers, agents, onAgentClick
                       </div>
                     </div>
                   </div>
+                  {/* ── Inline detail (expands on click) ── */}
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                        className="overflow-hidden"
+                      >
+                        <div className="mt-1.5 rounded-xl border p-3 space-y-2"
+                          style={{ background: `${cfg.color}06`, borderColor: `${cfg.color}20` }}>
+                          {/* Sessions list */}
+                          {agentSessions.length > 0 ? (
+                            agentSessions.slice(0, 4).map(s => (
+                              <div key={s.key} className="flex items-center gap-2 text-[10px]">
+                                <StatusDot status={s.running ? 'active' : 'idle'} size={5} />
+                                <span className="text-aegis-text truncate flex-1">{s.label}</span>
+                                <span className="text-aegis-text-dim font-mono shrink-0">{formatTokens(s.totalTokens)}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-[10px] text-aegis-text-dim">{t('agents.idle')}</div>
+                          )}
+                          {/* Full settings button */}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onAgentClick?.(agent); }}
+                            className="w-full py-1.5 rounded-lg text-[10px] font-semibold border transition-colors
+                              text-aegis-text-muted hover:text-aegis-accent hover:border-aegis-accent/30
+                              border-[rgb(var(--aegis-overlay)/0.08)] bg-[rgb(var(--aegis-overlay)/0.02)]"
+                          >
+                            <Settings2 size={10} className="inline-block me-1" />
+                            {t('agentSettings.model')}
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               );
             })}
@@ -354,9 +405,9 @@ function TreeView({ mainSession, registeredAgents, workers, agents, onAgentClick
         </>
       )}
 
-      {/* ── SVG Connectors: Agents → Workers ── */}
+      {/* ── SVG Connectors: Agents → Workers (hidden on small screens) ── */}
       {depth2Layout.length > 0 && (
-        <div className="relative h-12 mt-1">
+        <div className="relative h-12 mt-1 hidden lg:block">
           <svg viewBox="0 0 1000 48" preserveAspectRatio="none" className="w-full h-full">
             {depth2Layout.map((item, i) => {
               const childX = depth2Positions[i];
@@ -365,7 +416,7 @@ function TreeView({ mainSession, registeredAgents, workers, agents, onAgentClick
                 <g key={`wc${i}`}>
                   <path d={`M ${item.parentX},0 L ${item.parentX},18 L ${childX},18 L ${childX},48`}
                     stroke={meta.color} strokeOpacity={0.5} strokeWidth={1.2} fill="none" strokeDasharray="3,3" />
-                  {i < 6 && (
+                  {hasAnyRunning && i < 6 && (
                     <circle r={2.5} fill={meta.color} opacity={0.6}>
                       <animateMotion dur={`${2 + i * 0.6}s`} repeatCount="indefinite"
                         path={`M ${item.parentX},0 L ${item.parentX},18 L ${childX},18 L ${childX},48`} />
@@ -382,9 +433,9 @@ function TreeView({ mainSession, registeredAgents, workers, agents, onAgentClick
       {depth2Layout.length > 0 && (
         <>
           <div className="text-center mb-2">
-            <span className="text-[9px] uppercase tracking-[2px] font-bold text-aegis-text-muted">Depth 2 — Workers</span>
+            <span className="text-[9px] uppercase tracking-[2px] font-bold text-aegis-text-muted">{t('agentHub.depth2')}</span>
           </div>
-          <div className="flex justify-center gap-3 flex-wrap">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:flex xl:justify-center gap-3 xl:flex-wrap">
             {depth2Layout.map(({ worker }) => {
               const meta = getWorkerMeta(worker.label, worker.type);
               return (
@@ -404,7 +455,7 @@ function TreeView({ mainSession, registeredAgents, workers, agents, onAgentClick
                       <span className="flex items-center gap-1 text-[8px] mt-0.5 font-bold"
                         style={{ color: worker.running ? meta.color : 'rgb(var(--aegis-overlay) / 0.2)' }}>
                         <StatusDot status={worker.running ? 'active' : 'idle'} size={5} glow={worker.running} />
-                        {worker.running ? 'Running' : 'Done'}
+                        {worker.running ? t('agentHub.running') : t('agentHub.done')}
                       </span>
                     </div>
                   </div>
@@ -417,31 +468,31 @@ function TreeView({ mainSession, registeredAgents, workers, agents, onAgentClick
 
       {/* ── Legend ── */}
       <div className="mt-8 flex items-center justify-center gap-5 flex-wrap px-4 py-3 rounded-xl bg-[rgb(var(--aegis-overlay)/0.02)] border border-[rgb(var(--aegis-overlay)/0.04)]">
-        <div className="flex items-center gap-1.5 text-[10px] text-aegis-text-muted"><div className="w-2.5 h-2.5 rounded-sm" style={{ background: mainColor() }} /> Main</div>
+        <div className="flex items-center gap-1.5 text-[10px] text-aegis-text-muted"><div className="w-2.5 h-2.5 rounded-sm" style={{ background: mainColor() }} /> {t('agentHub.mainLegend')}</div>
         {registeredAgents.slice(0, 5).map(a => {
           const cfg = getTreeNodeConfig(a.id);
           return <div key={a.id} className="flex items-center gap-1.5 text-[10px] text-aegis-text-muted"><div className="w-2.5 h-2.5 rounded-sm" style={{ background: cfg.color }} /> {a.name || a.id}</div>;
         })}
-        <div className="flex items-center gap-1.5 text-[10px] text-aegis-text-muted"><div className="w-2.5 h-2.5 rounded-sm" style={{ background: dataColor(2) }} /> Sub-agent</div>
-        <div className="flex items-center gap-1.5 text-[10px] text-aegis-text-muted"><div className="w-2.5 h-2.5 rounded-sm" style={{ background: dataColor(7) }} /> Cron</div>
+        <div className="flex items-center gap-1.5 text-[10px] text-aegis-text-muted"><div className="w-2.5 h-2.5 rounded-sm" style={{ background: dataColor(2) }} /> {t('agentHub.subAgentLegend')}</div>
+        <div className="flex items-center gap-1.5 text-[10px] text-aegis-text-muted"><div className="w-2.5 h-2.5 rounded-sm" style={{ background: dataColor(7) }} /> {t('agentHub.cronLegend')}</div>
         <div className="flex items-center gap-1.5 text-[10px] text-aegis-text-dim ms-auto">
           <svg width={20} height={8}><line x1={0} y1={4} x2={20} y2={4} stroke="rgb(var(--aegis-overlay) / 0.2)" strokeWidth={1} strokeDasharray="3,2" /></svg>
-          spawn
+          {t('agentHub.spawnLegend')}
         </div>
         <div className="flex items-center gap-1.5 text-[10px] text-aegis-text-dim">
           <svg width={12} height={12}><circle cx={6} cy={6} r={4} fill={mainColor()} opacity={0.5} /></svg>
-          data flow
+          {t('agentHub.dataFlowLegend')}
         </div>
       </div>
     </div>
   );
-}
+});
 
 // ═══════════════════════════════════════════════════════════
 // Activity Feed — Live event log built from sessions
 // ═══════════════════════════════════════════════════════════
 
-function ActivityFeed({ sessions, agents }: { sessions: SessionInfo[]; agents: AgentInfo[] }) {
+const ActivityFeed = memo(function ActivityFeed({ sessions, agents }: { sessions: SessionInfo[]; agents: AgentInfo[] }) {
   const { t } = useTranslation();
 
   // Build activity entries from session data
@@ -455,12 +506,12 @@ function ActivityFeed({ sessions, agents }: { sessions: SessionInfo[]; agents: A
         const workerMeta = getWorkerMeta(s.label, s.type);
 
         let text = '';
-        if (s.running && s.type === 'subagent') text = `spawned ${s.label}`;
-        else if (s.running && s.type === 'cron') text = `cron running: ${s.label}`;
-        else if (s.running && s.type === 'main') text = 'active session';
-        else if (s.type === 'subagent') text = `completed ${s.label} (${formatTokens(s.totalTokens)} tokens)`;
-        else if (s.type === 'cron') text = `cron finished: ${s.label}`;
-        else text = `session active (${formatTokens(s.totalTokens)} tokens)`;
+        if (s.running && s.type === 'subagent') text = `${t('agentHub.spawned')} ${s.label}`;
+        else if (s.running && s.type === 'cron') text = `${t('agentHub.cronRunning')} ${s.label}`;
+        else if (s.running && s.type === 'main') text = t('agentHub.activeSession');
+        else if (s.type === 'subagent') text = `${t('agentHub.completed')} ${s.label} (${formatTokens(s.totalTokens)} ${t('agentHub.tokens')})`;
+        else if (s.type === 'cron') text = `${t('agentHub.cronFinished')} ${s.label}`;
+        else text = `${t('agentHub.sessionActive')} (${formatTokens(s.totalTokens)} ${t('agentHub.tokens')})`;
 
         return {
           key: s.key,
@@ -477,7 +528,7 @@ function ActivityFeed({ sessions, agents }: { sessions: SessionInfo[]; agents: A
   if (activities.length === 0) {
     return (
       <div className="flex items-center justify-center py-20 text-aegis-text-dim text-[13px]">
-        ⚡ No activity yet
+        ⚡ {t('agentHub.noActivityYet')}
       </div>
     );
   }
@@ -498,14 +549,14 @@ function ActivityFeed({ sessions, agents }: { sessions: SessionInfo[]; agents: A
               <span className="font-bold" style={{ color: act.agentColor }}>{act.agentName}</span>
               {' → '}
               <span>{act.text}</span>
-              {act.running && <span className="ms-1.5 text-[9px] px-1.5 py-0.5 rounded font-bold" style={{ background: themeAlpha('warning', 0.1), color: themeHex('warning') }}>LIVE</span>}
+              {act.running && <span className="ms-1.5 text-[9px] px-1.5 py-0.5 rounded font-bold" style={{ background: themeAlpha('warning', 0.1), color: themeHex('warning') }}>{t('agents.live')}</span>}
             </div>
           </motion.div>
         ))}
       </div>
     </div>
   );
-}
+});
 
 // ═══════════════════════════════════════════════════════════
 // Main Component
@@ -517,9 +568,21 @@ export function AgentHubPage() {
   const rawSessions = useGatewayDataStore((s) => s.sessions);
   const agents = useGatewayDataStore((s) => s.agents) as AgentInfo[];
   const runningSubAgents = useGatewayDataStore((s) => s.runningSubAgents);
-  const loading = useGatewayDataStore((s) => s.loading.sessions || s.loading.agents);
+  // Don't subscribe to loading — it flips true→false every poll (10s) causing re-renders.
+  // Instead, show spinner only until first data arrives.
+  const hasData = rawSessions.length > 0 || agents.length > 0;
+  const [everLoaded, setEverLoaded] = useState(false);
+  useEffect(() => { if (hasData) setEverLoaded(true); }, [hasData]);
+  const loading = !everLoaded && !hasData;
 
-  const sessions = useMemo(() => parseSessions(rawSessions as any[]), [rawSessions]);
+  // Deduplication: sessions useMemo uses content hash instead of reference
+
+  // Hash sessions by key+running+tokens to detect real changes (not just reference changes from polling)
+  const sessionsHash = useMemo(() =>
+    rawSessions.map((s: any) => `${s.key}:${s.running}:${s.totalTokens}`).join('|'),
+    [rawSessions]
+  );
+  const sessions = useMemo(() => parseSessions(rawSessions as any[]), [sessionsHash]);
 
   const [viewMode, setViewMode] = useState<ViewMode>('tree');
   const [expandedWorker, setExpandedWorker] = useState<string | null>(null);
@@ -652,7 +715,7 @@ export function AgentHubPage() {
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }} className="overflow-hidden">
               <div className="mx-2 mt-1 mb-2 rounded-xl border p-4 bg-[rgb(var(--aegis-overlay)/0.02)] border-[rgb(var(--aegis-overlay)/0.06)]">
                 {loadingLog === w.key ? (
-                  <div className="flex items-center gap-2 py-3 text-[11px] text-aegis-text-muted"><Loader2 size={12} className="animate-spin" /> Loading...</div>
+                  <div className="flex items-center gap-2 py-3 text-[11px] text-aegis-text-muted"><Loader2 size={12} className="animate-spin" /> {t('agentHub.loadingLogs')}</div>
                 ) : logs.length === 0 ? (
                   <div className="text-[11px] text-aegis-text-dim py-2">{t('agents.noActivity', 'No activity recorded yet')}</div>
                 ) : (
@@ -675,7 +738,7 @@ export function AgentHubPage() {
                     )}
                     <div className="flex items-center gap-3 text-[10px] text-aegis-text-muted pt-1 border-t border-[rgb(var(--aegis-overlay)/0.05)]">
                       <span className={clsx('flex items-center gap-1', w.running ? 'text-aegis-primary' : 'text-aegis-text-muted')}>
-                        {w.running ? <><Loader2 size={10} className="animate-spin" /> Running</> : <><AlertCircle size={10} /> Completed</>}
+                        {w.running ? <><Loader2 size={10} className="animate-spin" /> {t('agentHub.running')}</> : <><AlertCircle size={10} /> {t('agentHub.completed')}</>}
                       </span>
                       <span>·</span><span>{formatTokens(w.totalTokens)} tokens</span><span>·</span><span>{w.model.split('/').pop()}</span>
                     </div>
@@ -707,7 +770,7 @@ export function AgentHubPage() {
             {([
               { key: 'tree' as const, label: t('agentHubExtra.treeView') },
               { key: 'grid' as const, label: t('agentHubExtra.gridView') },
-              { key: 'activity' as const, label: '⚡ Activity' },
+              { key: 'activity' as const, label: `⚡ ${t('agentHub.activityLabel')}` },
             ]).map(v => (
               <button key={v.key} onClick={() => setViewMode(v.key)}
                 className={clsx(
@@ -732,7 +795,7 @@ export function AgentHubPage() {
           {/* TREE VIEW                                     */}
           {/* ══════════════════════════════════════════════ */}
           {viewMode === 'tree' && (
-            <TreeView mainSession={mainSession} registeredAgents={registeredAgents} workers={workers} agents={enrichedAgents} onAgentClick={(a) => setSettingsAgent(a)} />
+            <TreeView mainSession={mainSession} registeredAgents={registeredAgents} workers={workers} agents={enrichedAgents} onAgentClick={setSettingsAgent} />
           )}
 
           {/* ══════════════════════════════════════════════ */}
@@ -740,7 +803,7 @@ export function AgentHubPage() {
           {/* ══════════════════════════════════════════════ */}
           {viewMode === 'activity' && (
             <GlassCard delay={0}>
-              <div className="text-[10px] text-aegis-text-dim uppercase tracking-widest font-bold mb-2 px-3 pt-2">Live Activity Feed</div>
+              <div className="text-[10px] text-aegis-text-dim uppercase tracking-widest font-bold mb-2 px-3 pt-2">{t('agents.activityFeed')}</div>
               <ActivityFeed sessions={sessions} agents={enrichedAgents} />
             </GlassCard>
           )}
@@ -774,7 +837,7 @@ export function AgentHubPage() {
                         </div>
                       </div>
                       <div className="px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shrink-0 bg-aegis-primary/10 text-aegis-primary border-aegis-primary/25">
-                        {mainSession.running ? 'ACTIVE' : 'ONLINE'}
+                        {mainSession.running ? t('agentHub.statusActive') : t('agentHub.statusOnline')}
                       </div>
                     </div>
                   </GlassCard>
@@ -786,7 +849,7 @@ export function AgentHubPage() {
                         Æ<div className="absolute -bottom-[3px] -right-[3px]"><StatusDot status="sleeping" size={14} /></div>
                       </div>
                       <div className="flex-1"><div className="text-[18px] font-extrabold text-aegis-text-muted">{enrichedAgents.find(a => a.id === 'main')?.name || 'Main Agent'}</div><div className="text-[11px] text-aegis-text-dim mt-0.5">{t('agents.notConnected', 'Not connected')}</div></div>
-                      <div className="px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border bg-[rgb(var(--aegis-overlay)/0.04)] text-aegis-text-muted border-[rgb(var(--aegis-overlay)/0.08)]">OFFLINE</div>
+                      <div className="px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border bg-[rgb(var(--aegis-overlay)/0.04)] text-aegis-text-muted border-[rgb(var(--aegis-overlay)/0.08)]">{t('agents.offline')}</div>
                     </div>
                   </GlassCard>
                 )}
@@ -801,7 +864,7 @@ export function AgentHubPage() {
                     </div>
                     <button onClick={() => setShowAddForm(!showAddForm)}
                       className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-aegis-primary/10 border border-aegis-primary/25 text-aegis-primary text-[10px] font-semibold hover:bg-aegis-primary/20 transition-colors">
-                      <Plus size={12} /> Add
+                      <Plus size={12} /> {t('agentHub.addBtn')}
                     </button>
                   </div>
 
@@ -811,16 +874,16 @@ export function AgentHubPage() {
                       <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-3">
                         <GlassCard>
                           <div className="space-y-3">
-                            <div className="text-[12px] font-semibold text-aegis-text">Add New Agent</div>
+                            <div className="text-[12px] font-semibold text-aegis-text">{t('agents.addNew')}</div>
                             <div className="grid grid-cols-2 gap-3">
                               <input placeholder="Agent ID *" value={newAgent.id} onChange={e => setNewAgent(p => ({ ...p, id: e.target.value }))} className="w-full bg-[rgb(var(--aegis-overlay)/0.05)] border border-[rgb(var(--aegis-overlay)/0.1)] rounded-lg px-3 py-2 text-sm text-aegis-text placeholder:text-aegis-text-dim focus:border-aegis-primary/50 focus:outline-none" />
-                              <input placeholder="Name" value={newAgent.name} onChange={e => setNewAgent(p => ({ ...p, name: e.target.value }))} className="w-full bg-[rgb(var(--aegis-overlay)/0.05)] border border-[rgb(var(--aegis-overlay)/0.1)] rounded-lg px-3 py-2 text-sm text-aegis-text placeholder:text-aegis-text-dim focus:border-aegis-primary/50 focus:outline-none" />
-                              <input placeholder="Model" value={newAgent.model} onChange={e => setNewAgent(p => ({ ...p, model: e.target.value }))} className="w-full bg-[rgb(var(--aegis-overlay)/0.05)] border border-[rgb(var(--aegis-overlay)/0.1)] rounded-lg px-3 py-2 text-sm text-aegis-text placeholder:text-aegis-text-dim focus:border-aegis-primary/50 focus:outline-none" />
-                              <input placeholder="Workspace" value={newAgent.workspace} onChange={e => setNewAgent(p => ({ ...p, workspace: e.target.value }))} className="w-full bg-[rgb(var(--aegis-overlay)/0.05)] border border-[rgb(var(--aegis-overlay)/0.1)] rounded-lg px-3 py-2 text-sm text-aegis-text placeholder:text-aegis-text-dim focus:border-aegis-primary/50 focus:outline-none" />
+                              <input placeholder={t('agents.namePlaceholder')} value={newAgent.name} onChange={e => setNewAgent(p => ({ ...p, name: e.target.value }))} className="w-full bg-[rgb(var(--aegis-overlay)/0.05)] border border-[rgb(var(--aegis-overlay)/0.1)] rounded-lg px-3 py-2 text-sm text-aegis-text placeholder:text-aegis-text-dim focus:border-aegis-primary/50 focus:outline-none" />
+                              <input placeholder={t('agentHub.modelPlaceholder', 'Model')} value={newAgent.model} onChange={e => setNewAgent(p => ({ ...p, model: e.target.value }))} className="w-full bg-[rgb(var(--aegis-overlay)/0.05)] border border-[rgb(var(--aegis-overlay)/0.1)] rounded-lg px-3 py-2 text-sm text-aegis-text placeholder:text-aegis-text-dim focus:border-aegis-primary/50 focus:outline-none" />
+                              <input placeholder={t('agentHub.workspacePlaceholder', 'Workspace')} value={newAgent.workspace} onChange={e => setNewAgent(p => ({ ...p, workspace: e.target.value }))} className="w-full bg-[rgb(var(--aegis-overlay)/0.05)] border border-[rgb(var(--aegis-overlay)/0.1)] rounded-lg px-3 py-2 text-sm text-aegis-text placeholder:text-aegis-text-dim focus:border-aegis-primary/50 focus:outline-none" />
                             </div>
                             <div className="flex gap-2 justify-end">
-                              <button onClick={() => { setShowAddForm(false); setNewAgent({ id: '', name: '', model: '', workspace: '' }); }} className="px-4 py-2 rounded-lg bg-[rgb(var(--aegis-overlay)/0.05)] border border-[rgb(var(--aegis-overlay)/0.1)] text-aegis-text-muted text-sm">Cancel</button>
-                              <button onClick={handleCreateAgent} disabled={!newAgent.id.trim()} className="px-4 py-2 rounded-lg bg-aegis-primary/20 border border-aegis-primary/30 text-aegis-primary text-sm font-semibold disabled:opacity-30">Create</button>
+                              <button onClick={() => { setShowAddForm(false); setNewAgent({ id: '', name: '', model: '', workspace: '' }); }} className="px-4 py-2 rounded-lg bg-[rgb(var(--aegis-overlay)/0.05)] border border-[rgb(var(--aegis-overlay)/0.1)] text-aegis-text-muted text-sm">{t('common.cancel', 'Cancel')}</button>
+                              <button onClick={handleCreateAgent} disabled={!newAgent.id.trim()} className="px-4 py-2 rounded-lg bg-aegis-primary/20 border border-aegis-primary/30 text-aegis-primary text-sm font-semibold disabled:opacity-30">{t('workshop.create', 'Create')}</button>
                             </div>
                           </div>
                         </GlassCard>
@@ -857,9 +920,9 @@ export function AgentHubPage() {
                                   {isRunning ? (
                                     <span className="flex items-center gap-1 text-aegis-primary">
                                       <Loader2 size={9} className="animate-spin" />
-                                      {activeSessions.length > 0 ? `${activeSessions.length} running` : 'Working…'}
+                                      {activeSessions.length > 0 ? t('agentHub.nRunning', { n: activeSessions.length }) : t('agentHub.working')}
                                     </span>
-                                  ) : <span className="text-aegis-text-dim">Idle</span>}
+                                  ) : <span className="text-aegis-text-dim">{t('agents.idle')}</span>}
                                   {totalTokens > 0 && <><span className="text-aegis-text-dim">·</span><span>{formatTokens(totalTokens)} tokens</span></>}
                                   {lastActive > 0 && <><span className="text-aegis-text-dim">·</span><span>{timeAgo(lastActive)}</span></>}
                                 </div>
@@ -877,7 +940,7 @@ export function AgentHubPage() {
                                     color: isRunning ? themeHex('primary') : agent.configured ? display.color : 'rgb(var(--aegis-overlay) / 0.2)',
                                     borderColor: isRunning ? themeAlpha('primary', 0.25) : agent.configured ? `${display.color}20` : 'rgb(var(--aegis-overlay) / 0.06)',
                                   }}>
-                                  {isRunning ? 'ACTIVE' : agent.configured ? 'READY' : 'SETUP'}
+                                  {isRunning ? t('agentHub.statusActive') : agent.configured ? t('agentHub.statusReady') : t('agentHub.statusSetup')}
                                 </div>
                               </div>
                               <div className="flex items-center gap-1 shrink-0">
@@ -885,7 +948,7 @@ export function AgentHubPage() {
                                   className="p-1.5 rounded-lg bg-[rgb(var(--aegis-overlay)/0.04)] border border-[rgb(var(--aegis-overlay)/0.08)] text-aegis-text-muted hover:text-aegis-primary hover:border-aegis-primary/30 transition-colors"><Settings2 size={13} /></button>
                                 <button onClick={(e) => { e.stopPropagation(); handleDeleteAgent(agent.id); }}
                                   className={clsx('p-1.5 rounded-lg transition-colors', deletingAgentId === agent.id ? 'text-red-400 bg-red-500/10 border border-red-400/30' : 'text-aegis-text-muted hover:text-red-400 bg-[rgb(var(--aegis-overlay)/0.04)] border border-[rgb(var(--aegis-overlay)/0.08)]')}>
-                                  {deletingAgentId === agent.id ? <span className="text-[10px] font-bold">Confirm?</span> : <Trash2 size={13} />}
+                                  {deletingAgentId === agent.id ? <span className="text-[10px] font-bold">{t('agentHub.confirmDelete')}</span> : <Trash2 size={13} />}
                                 </button>
                               </div>
                             </div>
