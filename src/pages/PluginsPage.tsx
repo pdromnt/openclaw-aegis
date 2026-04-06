@@ -250,6 +250,7 @@ function PluginCard({ plugin, enabled, onOpen, onToggle }: PluginCardProps) {
 
 // ── Loading fallback ───────────────────────────────────────
 function PluginLoader() {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center justify-center h-full gap-2 text-aegis-text-muted text-[13px]">
       {/* Spinning ring */}
@@ -332,7 +333,7 @@ export function PluginsPage() {
 
           {/* Plugin name */}
           <span className="text-aegis-text font-medium text-[13px] truncate">
-            {pluginInfo?.name ?? activePlugin}
+            {pluginInfo?.nameKey ? t(pluginInfo.nameKey) : activePlugin}
           </span>
         </div>
 

@@ -200,8 +200,11 @@ export default function App() {
         setIsTyping(false);
         addMessage(msg);
         // Notify when app is minimized/background OR user is on a different page
+        // Skip heartbeat responses and silent system messages
+        const isHeartbeat = /^HEARTBEAT_OK$/i.test((msg.content || '').trim());
+        const isSilent = /^NO_REPLY$/i.test((msg.content || '').trim());
         const isOnChat = window.location.hash === '#/chat' || window.location.hash.startsWith('#/chat?');
-        if (!document.hasFocus() || !isOnChat) {
+        if (!isHeartbeat && !isSilent && (!document.hasFocus() || !isOnChat)) {
           notifications.notify({
             type: 'message',
             title: t('notifications.newMessage'),
@@ -216,8 +219,11 @@ export default function App() {
         finalizeStreamingMessage(messageId, content, media ? { mediaUrl: media.mediaUrl, mediaType: media.mediaType } : undefined);
         loadTokenUsage();
         // Notify (sound + toast) when app is minimized/background OR user is on a different page
+        // Skip heartbeat responses and silent system messages
+        const isHeartbeat = /^HEARTBEAT_OK$/i.test((content || '').trim());
+        const isSilent = /^NO_REPLY$/i.test((content || '').trim());
         const isOnChat = window.location.hash === '#/chat' || window.location.hash.startsWith('#/chat?');
-        if (!document.hasFocus() || !isOnChat) {
+        if (!isHeartbeat && !isSilent && (!document.hasFocus() || !isOnChat)) {
           notifications.notify({
             type: 'task_complete',
             title: t('notifications.replyComplete'),

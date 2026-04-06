@@ -424,6 +424,7 @@ interface ModelsProviderRowProps {
 }
 
 function ModelsProviderRow({ unifiedProvider, onChange }: ModelsProviderRowProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const { provider, modelsProvider, modelCount, template, envKeyFound } = unifiedProvider;
 
@@ -626,6 +627,7 @@ interface EnvOnlyRowProps {
 }
 
 function EnvOnlyRow({ unifiedProvider, onConfigure }: EnvOnlyRowProps) {
+  const { t } = useTranslation();
   const { provider, template, modelCount } = unifiedProvider;
   const envKeyName = template?.envKey;
 

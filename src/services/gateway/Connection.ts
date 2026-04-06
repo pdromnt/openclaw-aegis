@@ -7,6 +7,8 @@
 
 import { startPolling, stopPolling } from '@/stores/gatewayDataStore';
 import { useNotificationStore } from '@/stores/notificationStore';
+import { useChatStore } from '@/stores/chatStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { APP_VERSION } from '@/hooks/useAppVersion';
 import i18n from '@/i18n';
 
@@ -257,13 +259,44 @@ export class GatewayConnection {
         });
       }
 
-      // Close code 1008 = pairing required (Gateway scope rejection)
+      // ── Classify close reason from Gateway ──
+      const reason = (event.reason || '').toLowerCase();
+      const isTokenMismatch = reason.includes('token mismatch') || reason.includes('token_mismatch');
+      const isTokenMissing = reason.includes('token missing') || reason.includes('token_missing');
+      const isRateLimited = reason.includes('rate_limited') || reason.includes('too many failed');
+      const isOriginBlocked = reason.includes('origin not allowed');
+      const isPairingRequired = reason.includes('pairing required') || reason.includes('pairing_required');
+
       if (event.code === 1008) {
-        this.pairingRequired = true;
+        if (isTokenMismatch || isTokenMissing) {
+          // Token mismatch or missing — try to auto-recover the token
+          // from the local Gateway config file (openclaw.json) before
+          // falling back to the pairing/manual-entry flow.
+          console.warn(`[GW] ⚠️ Token ${isTokenMissing ? 'missing' : 'mismatch'} — attempting auto-recovery from gateway config`);
+          this.tryAutoRecoverToken();
+          return;
+        } else if (isOriginBlocked) {
+          // Origin not in allowedOrigins — no point retrying, notify user.
+          console.error('[GW] ❌ Origin blocked by gateway — check controlUi.allowedOrigins');
+          this.callbacks?.onScopeError?.(event.reason || 'origin not allowed');
+          // Don't retry — it will keep failing with the same origin
+          return;
+        } else if (isRateLimited) {
+          // Rate-limited due to too many failed auth attempts.
+          // Back off significantly before retrying (60s).
+          console.warn('[GW] ⏳ Rate-limited by gateway — backing off 60s');
+          this.emitStatus({ error: 'Rate limited — retrying in 60s' });
+          this.reconnectTimer = setTimeout(() => this.connect(this.url, this.token), 60_000);
+          return;
+        } else {
+          // Generic 1008 — assume pairing required (legacy behaviour)
+          this.pairingRequired = true;
+        }
       }
 
       // Pairing required — gentle retry instead of exponential backoff
-      if (this.pairingRequired) {
+      if (this.pairingRequired || isPairingRequired) {
+        this.pairingRequired = true;
         this.callbacks?.onScopeError?.(event.reason || 'pairing required');
         this.schedulePairingRetry();
         return;
@@ -320,7 +353,7 @@ export class GatewayConnection {
 
   private async sendHandshake() {
     const id = this.nextId();
-    const scopes = ['operator.read', 'operator.write', 'operator.admin'];
+    const scopes = ['operator.read', 'operator.write', 'operator.admin', 'operator.approvals'];
     const clientId = 'openclaw-control-ui';
     const clientMode = 'ui';
 
@@ -358,6 +391,9 @@ export class GatewayConnection {
           startPolling(this);
           this.enableReasoningStream();
           this.flushQueue();
+
+          // Clear stale/expired approvals on (re)connect
+          try { useChatStore.getState().clearExpiredApprovals(); } catch {}
         } else {
           const err = response.error?.message || JSON.stringify(response);
           console.error('[GW] ❌ Handshake failed:', err);
@@ -434,7 +470,7 @@ export class GatewayConnection {
         },
         role: 'operator',
         scopes,
-        caps: ['streaming'],
+        caps: ['streaming', 'tool-events'],
         commands: [],
         permissions: {},
         auth: { token: this.token },
@@ -572,6 +608,64 @@ export class GatewayConnection {
     }
   }
 
+  /**
+   * Clear any stored gateway token (localStorage + Electron config).
+   * Called when the gateway reports token_mismatch so the next
+   * pairing flow starts clean.
+   */
+  private clearStoredToken() {
+    try { localStorage.removeItem('aegis-gateway-token'); } catch {}
+    try {
+      // Clear from Electron config file
+      if (window.aegis?.config?.save) {
+        window.aegis.config.save({ gatewayToken: '' }).catch(() => {});
+      }
+    } catch {}
+    try {
+      // Clear from Zustand settings store
+      useSettingsStore.getState().setGatewayToken('');
+    } catch {}
+  }
+
+  /**
+   * Attempt to auto-recover the gateway token by reading it from the
+   * local Gateway config file (openclaw.json) via Electron IPC.
+   * If a valid token is found, reconnect immediately.
+   * If not, fall back to the pairing / manual-entry flow.
+   */
+  private async tryAutoRecoverToken() {
+    try {
+      if (window.aegis?.pairing?.readGatewayToken) {
+        const result = await window.aegis.pairing.readGatewayToken();
+        if (result?.token && result.token !== this.token) {
+          console.log('[GW] 🔑 Auto-recovered token from gateway config — reconnecting');
+          // Save recovered token so it persists
+          this.token = result.token;
+          if (window.aegis?.pairing?.saveToken) {
+            window.aegis.pairing.saveToken(result.token).catch(() => {});
+          }
+          if (window.aegis?.config?.save) {
+            window.aegis.config.save({ gatewayToken: result.token }).catch(() => {});
+          }
+          try { useSettingsStore.getState().setGatewayToken(result.token); } catch {}
+          // Brief delay then reconnect with the recovered token
+          this.reconnectTimer = setTimeout(() => this.connect(this.url, result.token!), 500);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('[GW] Auto-recovery failed:', err);
+    }
+
+    // Auto-recovery unavailable or returned same/no token — fall back to pairing
+    console.log('[GW] Auto-recovery unavailable — entering pairing flow');
+    this.token = '';
+    this.clearStoredToken();
+    this.pairingRequired = true;
+    this.callbacks?.onScopeError?.('token mismatch — pairing required');
+    this.schedulePairingRetry();
+  }
+
   /** Derive HTTP base URL from the WebSocket URL */
   getHttpBaseUrl(): string {
     return this.url
@@ -611,7 +705,7 @@ export class GatewayConnection {
         clientId: 'openclaw-control-ui',
         clientName: 'AEGIS Desktop',
         platform: detectPlatform(),
-        scopes: ['operator.read', 'operator.write', 'operator.admin'],
+        scopes: ['operator.read', 'operator.write', 'operator.admin', 'operator.approvals'],
       }),
     });
     if (!res.ok) {
@@ -630,13 +724,26 @@ export class GatewayConnection {
     return res.json();
   }
 
-  // ── Private: Enable reasoning visibility ──
+  // ── Private: Enable reasoning & thinking visibility ──
   private async enableReasoningStream(sessionKey = 'agent:main:main') {
     try {
+      // Enable reasoning stream (existing behavior)
       await this.request('sessions.patch', { key: sessionKey, reasoningLevel: 'stream' });
       console.log('[GW] 🧠 Reasoning visibility enabled');
     } catch (err) {
       console.warn('[GW] Could not enable reasoning:', err);
+    }
+
+    // Also try to enable thinking stream events for chat.send responses.
+    // OpenClaw 2026.4.1+ may support thinkingVisibility to emit stream:"thinking"
+    // events for direct RPC messages (not just external channel messages).
+    // This is a best-effort call — silently ignored if unsupported.
+    try {
+      await this.request('sessions.patch', { key: sessionKey, thinkingVisibility: 'stream' });
+      console.log('[GW] 🧠 Thinking stream visibility enabled');
+    } catch {
+      // Expected to fail on older Gateway versions — no warning needed.
+      // The polling fallback in ChatHandler handles this case.
     }
   }
 }

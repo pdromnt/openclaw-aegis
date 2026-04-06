@@ -36,6 +36,8 @@ interface AegisAPI {
       role: string;
       scopes: string[];
       token: string;
+      platform?: string;
+      deviceFamily?: string;
     }) => Promise<{
       deviceId: string;
       publicKey: string;
@@ -90,6 +92,7 @@ interface AegisAPI {
     saveToken: (token: string) => Promise<{ success: boolean }>;
     requestPairing: (httpBaseUrl: string) => Promise<{ code: string; deviceId: string }>;
     poll: (httpBaseUrl: string, deviceId: string) => Promise<{ status: string; token?: string }>;
+    readGatewayToken: () => Promise<{ token: string | null }>;
   };
   terminal: {
     create: (opts?: { cols?: number; rows?: number; cwd?: string }) => Promise<{ id: string; pid: number; error?: string }>;

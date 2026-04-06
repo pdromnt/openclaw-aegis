@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "d2042bc4-d6bd-442c-a0ec-b9761cf7a275",
+      "agentId": "main",
+      "sessionKey": "agent:main:main",
+      "name": "GitHub Stats",
+      "description": "يجمع إحصائيات GitHub يومياً الساعة 10 صباحاً",
+      "enabled": true,
+      "createdAtMs": 1712239200000,
+      "updatedAtMs": 1712239200000,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 10 * * *",
+        "tz": "Asia/Riyadh"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Execute: node /workspace/scripts/github-stats.js",
+        "timeoutSeconds": 300,
+        "model": "haiku",
+        "lightContext": true
+      },
+      "delivery": {
+        "mode": "none"
+      },
+      "state": {
+        "consecutiveErrors": 0
+      }
+    },
+    {
+      "id": "5677a951-8fac-4f54-9f58-c438aab9951f",
+      "agentId": "main",
+      "sessionKey": "agent:main:main",
+      "name": "AI Models Stats",
+      "description": "يجمع إحصائيات موديلات AI يومياً الساعة 11 صباحاً",
+      "enabled": true,
+      "createdAtMs": 1712239200000,
+      "updatedAtMs": 1712239200000,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 11 * * *",
+        "tz": "Asia/Riyadh"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "node /workspace/scripts/ai-models-stats.js",
+        "model": "haiku",
+        "timeoutSeconds": 180,
+        "lightContext": true
+      },
+      "delivery": {
+        "mode": "none"
+      },
+      "state": {
+        "consecutiveErrors": 0
+      }
+    },
+    {
+      "id": "4c3bfe39-7f32-4d15-9f00-0311ed76c79a",
+      "agentId": "main",
+      "sessionKey": "agent:main:main",
+      "name": "Daily Backup",
+      "description": "نسخ احتياطي يومي للذاكرة الساعة 2 ظهراً",
+      "enabled": true,
+      "createdAtMs": 1712239200000,
+      "updatedAtMs": 1712239200000,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 14 * * *",
+        "tz": "Asia/Riyadh"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Run this command and report the result briefly: cd /host-d/Docker/aegis-db && node scripts/sync.js export",
+        "timeoutSeconds": 0,
+        "model": "haiku"
+      },
+      "delivery": {
+        "mode": "none"
+      },
+      "state": {
+        "consecutiveErrors": 0
+      }
+    },
+    {
+      "id": "e30f33b8-a694-482b-9173-5ce2dbc6225f",
+      "agentId": "main",
+      "sessionKey": "agent:main:main",
+      "name": "Self-Improve Weekly Maintenance",
+      "description": "صيانة أسبوعية للتحسين الذاتي كل اثنين الساعة 9 صباحاً",
+      "enabled": true,
+      "createdAtMs": 1712239200000,
+      "updatedAtMs": 1712239200000,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 9 * * 1",
+        "tz": "Asia/Riyadh"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Run: node /workspace/scripts/self-improve-maintain.js — then deliver the output digest to Rashed."
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "last",
+        "bestEffort": true
+      },
+      "state": {
+        "consecutiveErrors": 0
+      }
+    },
+    {
+      "id": "d277764e-bc9f-40a5-8e28-1ab85c323faa",
+      "agentId": "main",
+      "sessionKey": "agent:main:main",
+      "name": "Monthly Self-Review",
+      "description": "مراجعة ذاتية شهرية — تحليل أنماط الأخطاء واقتراح قواعد جديدة",
+      "enabled": true,
+      "createdAtMs": 1712239200000,
+      "updatedAtMs": 1712239200000,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 10 1 * *",
+        "tz": "Asia/Riyadh"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Monthly Self-Review for AEGIS:\n\n1. Search AEGIS DB for corrections and mistakes from the past month:\n   cd /host-d/Docker/aegis-db && GOOGLE_API_KEY=$GOOGLE_API_KEY node scripts/quick-search.js \"correction mistake error wrong fix تصحيح خطأ غلط\"\n\n2. Search for positive feedback:\n   cd /host-d/Docker/aegis-db && GOOGLE_API_KEY=$GOOGLE_API_KEY node scripts/quick-search.js \"excellent perfect great ممتاز حبيت رائع\"\n\n3. Read current hot rules:\n   cat /workspace/memory/self-improve/hot.md\n\n4. Analyze patterns: Are there recurring mistakes? Missing rules? Things Rashed consistently likes?\n\n5. Send a brief Arabic summary to Rashed on Telegram with:\n   - Number of corrections found\n   - Patterns detected\n   - Proposed new rules (if any)\n   - What went well this month\n   Use: message tool, action=send, channel=telegram, target=345388950",
+        "model": "haiku",
+        "timeoutSeconds": 0
+      },
+      "delivery": {
+        "mode": "none"
+      },
+      "state": {
+        "consecutiveErrors": 0
+      }
+    },
+    {
+      "id": "fc139c9b-0dc9-4ea8-b1eb-b629bc77b225",
+      "agentId": "main",
+      "sessionKey": "agent:main:main",
+      "name": "One Piece Monitor",
+      "description": "يراقب تويتس ون بيس كل 5 دقائق يوم الخميس والجمعة",
+      "enabled": false,
+      "createdAtMs": 1712239200000,
+      "updatedAtMs": 1712239200000,
+      "schedule": {
+        "kind": "cron",
+        "expr": "*/5 * * * 4,5",
+        "tz": "Asia/Riyadh"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "شغّل: node /workspace/scripts/onep-monitor.js\n\nاقرأ الناتج JSON:\n- لو status = 'new_tweet': أرسل الحقل message مباشرةً لراشد على التليجرام (channel: telegram, to: 345388950). لا تضيف أي كلام إضافي.\n- لو status = 'no_new' أو 'error': رد OK فقط بدون ترسل شي.",
+        "model": "anthropic/claude-sonnet-4-5",
+        "timeoutSeconds": 60
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "last"
+      },
+      "state": {
+        "consecutiveErrors": 0
+      }
+    }
+  ]
+}

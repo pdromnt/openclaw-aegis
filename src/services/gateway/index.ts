@@ -92,7 +92,7 @@ export const gateway = {
     return connection.request('agent.identity.get', agentId ? { agentId } : {});
   },
   async resolveExecApproval(id: string, decision: 'allow-once' | 'allow-always' | 'deny') {
-    return connection.request('exec.approvals.resolve', { id, decision });
+    return connection.request('exec.approval.resolve', { id, decision });
   },
   async resolvePluginApproval(id: string, decision: 'allow-once' | 'allow-always' | 'deny') {
     return connection.request('plugin.approval.resolve', { id, decision });
@@ -120,6 +120,10 @@ export const gateway = {
   async getSessionStatus(sessionKey = 'agent:main:main') { return connection.request('sessions.list', {}); },
   async getAvailableModels() { return connection.request('models.list', {}); },
   async call(method: string, params: any = {}) { return connection.request(method, params); },
+  // Tasks
+  async getTasks() { return connection.request('tasks.list', {}); },
+  async getTaskDetail(lookup: string) { return connection.request('tasks.show', { lookup }); },
+
   // Health & Status
   async getHealth() { return connection.request('system.status', {}); },
   async getChannelsStatus() { return connection.request('channels.status', {}); },

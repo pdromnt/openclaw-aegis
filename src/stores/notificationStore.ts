@@ -13,6 +13,7 @@ import { scopedGet, scopedSet } from '@/utils/scopedStorage';
 
 export type NotificationCategory =
   | 'exec-approval'
+  | 'plugin-approval'
   | 'cron-result'
   | 'error'
   | 'model-fallback'

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { useNotificationStore } from './notificationStore';
 import { useChatStore } from './chatStore';
+import { useTaskStore } from './taskStore';
 
 // ═══════════════════════════════════════════════════════════
 // Gateway Data Store — Central data layer for all pages
@@ -26,8 +27,12 @@ export interface SessionInfo {
   totalTokens?: number;
   contextTokens?: number;
   maxTokens?: number;
+  contextWindow?: number;
   compactions?: number;
   lastActive?: string;
+  updatedAt?: string;
+  displayName?: string;
+  lastMessage?: { content?: string; role?: string };
   kind?: string;
   [k: string]: any;
 }
@@ -711,6 +716,20 @@ export function handleGatewayEvent(event: string, payload: any) {
       // Trigger a full agents refresh to get accurate data
       fetchAgents();
       console.log('[DataStore] 📡 Agent event — refreshing agents');
+      break;
+    }
+
+    // ── Task events ──
+    case 'task.created':
+    case 'task.started':
+    case 'task.completed':
+    case 'task.failed':
+    case 'task.cancelled':
+    case 'task.lost':
+    case 'task.updated': {
+      // Refresh task list when any task event arrives
+      try { useTaskStore.getState().fetchTasks(); } catch {}
+      console.log('[DataStore] 📡 Task event:', event);
       break;
     }
 

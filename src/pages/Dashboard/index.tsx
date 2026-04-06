@@ -44,7 +44,7 @@ const AGENT_EMOJIS: Record<string, string> = {
 const getAgentEmoji = (id: string) =>
   AGENT_EMOJIS[id.toLowerCase()] ?? '🤖';
 
-const getAgentName = (id: string, t: (key: string, fallback?: string) => string) => {
+const getAgentName = (id: string, t: any) => {
   const keyMap: Record<string, string> = {
     main: 'agentNames.mainAgent',
     researcher: 'agentNames.researcher',

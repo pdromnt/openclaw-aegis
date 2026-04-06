@@ -169,11 +169,21 @@ export class ChatHandler {
   private pendingStreamContent: string = '';
   private pendingStreamMedia: MediaInfo | undefined = undefined;
 
+  // ── Thinking poll fallback ──
+  // When the Gateway doesn't emit stream:"thinking" events for chat.send
+  // responses (e.g., direct Desktop messages), we poll the session transcript
+  // periodically during streaming to detect thinking content blocks.
+  // This gives a delayed but functional ThinkingBubble display.
+  private static readonly THINKING_POLL_MS = 1500;
+  private thinkingPollTimer: ReturnType<typeof setInterval> | null = null;
+  private thinkingPollActive = false;
+
   constructor(private conn: GatewayConnection) {}
 
   /** Clean up timers and state — call from Connection.disconnect() */
   destroy() {
     this.forceFlushStream();
+    this.stopThinkingPoll();
     this.currentStreamContent = '';
     this.currentRunId = null;
     this.silentRunPending.clear();
@@ -346,8 +356,94 @@ export class ChatHandler {
 
     if (!text || !runId) return;
 
+    // Real thinking stream received — stop polling fallback (not needed)
+    this.stopThinkingPoll();
+
     const store = useChatStore.getState();
     store.setThinkingStream(runId, text);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // Thinking Poll Fallback — for chat.send responses without
+  // stream:"thinking" events.
+  //
+  // When the Gateway doesn't emit thinking stream events for direct
+  // Desktop messages, we poll the session transcript during streaming
+  // to detect thinking content blocks as they accumulate.
+  // Stops automatically when:
+  //   - Real thinking stream events arrive (handleThinkingStream)
+  //   - The message is finalized (stopThinkingPoll)
+  //   - Thinking content is found via polling
+  // ═══════════════════════════════════════════════════════════
+  private startThinkingPoll(runId: string, sessionKey: string) {
+    // Don't start if already have thinking content or poll already active
+    if (this.thinkingPollActive) return;
+    if (useChatStore.getState().thinkingText) return;
+
+    this.thinkingPollActive = true;
+    console.log('[GW] 🧠 Starting thinking poll fallback for runId:', runId.substring(0, 12));
+
+    this.thinkingPollTimer = setInterval(async () => {
+      // Stop if thinking was already captured (by real stream events or previous poll)
+      const currentThinking = useChatStore.getState().thinkingText;
+      if (currentThinking) {
+        this.stopThinkingPoll();
+        return;
+      }
+
+      try {
+        const result = await this.conn.request('chat.history', {
+          sessionKey: sessionKey || 'agent:main:main',
+          limit: 3,
+        });
+
+        const messages: any[] = result?.messages || result || [];
+        if (!Array.isArray(messages) || messages.length === 0) return;
+
+        // Find the latest assistant message (the one currently streaming)
+        const lastAssistant = [...messages].reverse().find(
+          (m: any) => m.role === 'assistant'
+        );
+        if (!lastAssistant) return;
+
+        let thinking = '';
+
+        // Check thinkingContent field
+        if (typeof lastAssistant.thinkingContent === 'string' && lastAssistant.thinkingContent.trim()) {
+          thinking = lastAssistant.thinkingContent.trim();
+        }
+
+        // Check content blocks with type === 'thinking'
+        if (!thinking && Array.isArray(lastAssistant.content)) {
+          const thinkingBlocks: string[] = [];
+          for (const block of lastAssistant.content) {
+            if (block.type === 'thinking' && (typeof block.thinking === 'string' || typeof block.text === 'string')) {
+              const t = (block.thinking || block.text || '').trim();
+              if (t) thinkingBlocks.push(t);
+            }
+          }
+          if (thinkingBlocks.length > 0) {
+            thinking = thinkingBlocks.join('\n');
+          }
+        }
+
+        if (thinking) {
+          console.log('[GW] 🧠 Thinking found via poll fallback:', thinking.length, 'chars');
+          useChatStore.getState().setThinkingStream(runId, thinking);
+          this.stopThinkingPoll();
+        }
+      } catch {
+        // Non-critical — silently continue polling
+      }
+    }, ChatHandler.THINKING_POLL_MS);
+  }
+
+  private stopThinkingPoll() {
+    if (this.thinkingPollTimer) {
+      clearInterval(this.thinkingPollTimer);
+      this.thinkingPollTimer = null;
+    }
+    this.thinkingPollActive = false;
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -394,13 +490,24 @@ export class ChatHandler {
   }
 
   /**
-   * Post-finalization: fetch reasoning from the session transcript.
-   * The Gateway stores reasoning as a separate "Reasoning:" prefixed message
-   * but does NOT emit it via WebSocket. We fetch it and attach to the message.
+   * Post-finalization: fetch reasoning/thinking from the session transcript.
+   *
+   * The Gateway may store thinking content in multiple formats:
+   *   1. A separate "Reasoning:" prefixed assistant message
+   *   2. Content blocks with type === 'thinking' inside the assistant message
+   *   3. A dedicated thinkingContent field on the assistant message
+   *   4. <think>...</think> tags embedded in the response text
+   *
+   * We check ALL sources (matching parseHistoryMessage logic) so that
+   * reasoning displays immediately instead of only after app restart.
+   *
+   * Retry logic: if first attempt finds nothing (transcript not committed yet),
+   * we retry once after a longer delay.
    */
-  private async fetchReasoningFromHistory(messageId: string) {
-    // Delay to let the Gateway commit the transcript (300ms was too short for heavy sessions)
-    await new Promise(r => setTimeout(r, 1000));
+  private async fetchReasoningFromHistory(messageId: string, attempt = 1): Promise<void> {
+    // First attempt: 1s delay. Retry: 3s delay (gives Gateway time to commit).
+    const delay = attempt === 1 ? 1000 : 3000;
+    await new Promise(r => setTimeout(r, delay));
 
     try {
       const result = await this.conn.request('chat.history', {
@@ -409,26 +516,83 @@ export class ChatHandler {
       });
 
       const messages: any[] = result?.messages || result || [];
-      if (!Array.isArray(messages) || messages.length === 0) return;
+      if (!Array.isArray(messages) || messages.length === 0) {
+        if (attempt === 1) return this.fetchReasoningFromHistory(messageId, 2);
+        return;
+      }
 
-      // Look for a "Reasoning:" prefixed assistant message
-      const reasoningPrefix = /^Reasoning:\s*/i;
-      const reasoningMsg = [...messages].reverse().find(
-        (m: any) => m.role === 'assistant' && reasoningPrefix.test(extractText(m.content))
+      // Find the latest assistant message (the one we just finalized)
+      const lastAssistant = [...messages].reverse().find(
+        (m: any) => m.role === 'assistant'
       );
+      if (!lastAssistant) {
+        if (attempt === 1) return this.fetchReasoningFromHistory(messageId, 2);
+        return;
+      }
 
-      if (!reasoningMsg) return;
+      let thinking = '';
 
-      const rawReasoning = extractText(reasoningMsg.content);
-      const reasoning = rawReasoning.replace(reasoningPrefix, '').trim();
-      if (!reasoning) return;
+      // ── Source 1: dedicated thinkingContent field ──
+      if (typeof lastAssistant.thinkingContent === 'string' && lastAssistant.thinkingContent.trim()) {
+        thinking = lastAssistant.thinkingContent.trim();
+      }
+
+      // ── Source 2: content blocks with type === 'thinking' ──
+      if (!thinking && Array.isArray(lastAssistant.content)) {
+        const thinkingBlocks: string[] = [];
+        for (const block of lastAssistant.content) {
+          if (block.type === 'thinking' && (typeof block.thinking === 'string' || typeof block.text === 'string')) {
+            const t = (block.thinking || block.text || '').trim();
+            if (t) thinkingBlocks.push(t);
+          }
+        }
+        if (thinkingBlocks.length > 0) {
+          thinking = thinkingBlocks.join('\n');
+        }
+      }
+
+      // ── Source 3: "Reasoning:" prefixed assistant message ──
+      if (!thinking) {
+        const reasoningPrefix = /^Reasoning:\s*/i;
+        const reasoningMsg = [...messages].reverse().find(
+          (m: any) => m.role === 'assistant' && reasoningPrefix.test(extractText(m.content))
+        );
+        if (reasoningMsg) {
+          const rawReasoning = extractText(reasoningMsg.content);
+          thinking = rawReasoning.replace(reasoningPrefix, '').trim();
+        }
+      }
+
+      // ── Source 4: <think>...</think> tags in the response text ──
+      if (!thinking) {
+        const rawText = extractText(lastAssistant.content);
+        if (rawText) {
+          const { thinking: tagThinking } = ChatHandler.splitThinkingTags(rawText);
+          if (tagThinking) {
+            thinking = tagThinking;
+          }
+        }
+      }
+
+      if (!thinking) {
+        // Nothing found — retry once if first attempt
+        if (attempt === 1) {
+          console.log('[GW] 🧠 No reasoning found on attempt 1, retrying...');
+          return this.fetchReasoningFromHistory(messageId, 2);
+        }
+        return;
+      }
 
       // Update the message with thinkingContent directly in the store
-      useChatStore.getState().updateMessageThinking(messageId, reasoning);
-      console.log('[GW] 🧠 Reasoning fetched from transcript:', reasoning.length, 'chars');
+      useChatStore.getState().updateMessageThinking(messageId, thinking);
+      console.log('[GW] 🧠 Reasoning fetched from transcript (attempt', attempt + '):', thinking.length, 'chars');
     } catch (err) {
       // Non-critical — just log and continue
       console.warn('[GW] Could not fetch reasoning from transcript:', err);
+      // Retry once on error
+      if (attempt === 1) {
+        return this.fetchReasoningFromHistory(messageId, 2);
+      }
     }
   }
 
@@ -653,21 +817,28 @@ export class ChatHandler {
     // ── Exec approval requests ──
     if (event === 'exec.approval.requested') {
       const req = p?.request || p;
-      if (req?.id && req?.command) {
+      // Gateway sends { id, request: { command, cwd, ... }, expiresAtMs }
+      // The approval `id` lives at p.id (top-level), NOT inside p.request.
+      const approvalId = p?.id || req?.id;
+      const command = req?.command || p?.command;
+      if (approvalId && command) {
+        console.log('[GW] 🔒 Exec approval requested:', approvalId, command);
         useChatStore.getState().addExecApproval({
-          id: req.id || p.id,
-          command: req.command,
-          cwd: req.cwd || null,
+          id: approvalId,
+          command,
+          cwd: req.cwd || p?.cwd || null,
           expiresAt: p.expiresAtMs || (Date.now() + 120000),
         });
         useNotificationStore.getState().addNotification({
           category: 'exec-approval',
           severity: 'warning',
           title: 'Exec Approval Required',
-          body: req.command,
+          body: command,
           route: '/chat',
-          showToast: false, // Global bar already visible
+          showToast: true,
         });
+      } else {
+        console.warn('[GW] ⚠️ exec.approval.requested — missing id or command:', JSON.stringify(p).substring(0, 300));
       }
     }
     if (event === 'exec.approval.resolved') {
@@ -925,6 +1096,13 @@ export class ChatHandler {
           this.forceFlushStream();
           this.currentStreamContent = '';
           this.currentRunId = mId;
+
+          // ── Thinking poll fallback ──
+          // Start polling for thinking content in case the Gateway doesn't
+          // emit stream:"thinking" events for this chat.send response.
+          // If real thinking events arrive, the poll stops automatically.
+          const sk = p.sessionKey || 'agent:main:main';
+          this.startThinkingPoll(mId, sk);
         }
 
         if (messageText.length > 0) {
@@ -936,6 +1114,8 @@ export class ChatHandler {
       }
 
       case 'final': {
+        // Stop thinking poll — finalization will capture any found thinking
+        this.stopThinkingPoll();
         // Flush any buffered stream content before finalizing
         this.forceFlushStream();
         // Message complete — use the most complete version available.
@@ -981,9 +1161,10 @@ export class ChatHandler {
         if (!consumed) {
           this.conn.callbacks?.onStreamEnd(mId, finalText, media);
 
-          // Post-finalization: fetch reasoning from transcript if not captured via streaming.
-          // The Gateway stores "Reasoning:" prefixed messages in the transcript
-          // but does NOT emit them via WebSocket events.
+          // Post-finalization: fetch reasoning/thinking from transcript if not
+          // captured via streaming or polling. Checks all sources:
+          // thinkingContent field, content blocks, "Reasoning:" prefix, <think> tags.
+          // Retries once with longer delay if first attempt finds nothing.
           if (!hasThinking) {
             this.fetchReasoningFromHistory(mId);
           }
@@ -992,6 +1173,7 @@ export class ChatHandler {
       }
 
       case 'error': {
+        this.stopThinkingPoll();
         this.forceFlushStream();
         const errorText = p.errorMessage || i18n.t('errors.occurred');
         this.currentStreamContent = '';
@@ -1008,6 +1190,7 @@ export class ChatHandler {
       }
 
       case 'aborted': {
+        this.stopThinkingPoll();
         this.forceFlushStream();
         const finalContent = messageText || this.currentStreamContent;
         this.currentStreamContent = '';

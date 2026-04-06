@@ -109,6 +109,8 @@ const api = {
     saveToken: (token: string) => ipcRenderer.invoke('pairing:save-token', token),
     requestPairing: (httpBaseUrl: string) => ipcRenderer.invoke('pairing:request', httpBaseUrl),
     poll: (httpBaseUrl: string, deviceId: string) => ipcRenderer.invoke('pairing:poll', httpBaseUrl, deviceId),
+    /** Read the gateway token directly from the local openclaw.json config file */
+    readGatewayToken: () => ipcRenderer.invoke('pairing:read-gateway-token'),
   },
 
   // ── Artifacts Preview ──
@@ -206,4 +208,4 @@ contextBridge.exposeInMainWorld('aegis', api);
 // Type declaration for renderer
 export type AegisAPI = typeof api;
 
-console.log('Æ AEGIS Preload v5.7.0 ready');
+console.log('Æ AEGIS Preload v6.1.0 ready');

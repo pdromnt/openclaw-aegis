@@ -74,7 +74,7 @@ function ModelPicker({ currentModel }: { currentModel: string | null }) {
   const modelList = configuredModels.length > 0 ? configuredModels : FALLBACK_MODELS;
 
   // Group by provider for cleaner display
-  const grouped = modelList.reduce<Record<string, typeof modelList>>((acc, m) => {
+  const grouped = modelList.reduce<Record<string, Array<{ id: string; label: string; alias?: string }>>>((acc, m) => {
     const provider = m.id.split('/')[0] || 'other';
     if (!acc[provider]) acc[provider] = [];
     acc[provider].push(m);

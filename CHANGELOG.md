@@ -6,6 +6,61 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [6.1.0] — 2026-04-06
+
+### 🧠 Thinking & Reasoning Display
+
+- **Thinking Bubble** — AI reasoning/thinking content now appears in chat as an expandable bubble with live timer during streaming and compact "Thought for Xs" pill after completion.
+- **Multi-source extraction** — 4 fallback sources for thinking content: `thinkingContent` field, `content[]` blocks with `type === 'thinking'`, `"Reasoning:"` prefix, and `<think>` tags.
+- **Stream + poll fallback** — real-time `stream:"thinking"` events with automatic 1.5s poll fallback when stream events are unavailable.
+- **Forward-compatible** — sends both `reasoningLevel` and `thinkingVisibility` session patches; older Gateways silently ignore unsupported fields.
+
+### ⚡ Exec Approvals — Fixed
+
+- **Approvals now appear** — added missing `operator.approvals` scope and `tool-events` capability to handshake, so `exec.approval.requested` events are received.
+- **Buttons now work** — fixed `exec.approvals.resolve` → `exec.approval.resolve` method name typo that caused Allow/Always/Deny to silently fail.
+- **Correct ID extraction** — fixed payload parsing to read approval ID from top-level `p.id` instead of nested `req.id`.
+- **Auto-cleanup** — expired approvals are automatically filtered from display and cleaned up every 10 seconds + on reconnect.
+
+### 🔗 Gateway Connection Resilience
+
+- **Classified close reasons** — 1008 close codes now differentiated: token mismatch, token missing, origin blocked, rate limited, or pairing required (was: all treated as pairing).
+- **Auto token recovery** — on token mismatch, reads the correct token from Gateway's `openclaw.json` via IPC and reconnects automatically without user intervention.
+- **Origin blocked handling** — stops retry loop and shows clear error when `controlUi.allowedOrigins` rejects the connection.
+- **Rate limit backoff** — 60-second cooldown before retrying after too many failed auth attempts.
+
+### 📋 Background Tasks Panel
+
+- **Tasks Panel** — new collapsible panel showing active background tasks (ACP, subagent, cron, CLI) above the chat area.
+- **Smart polling** — 15s refresh when tasks are active, 60s when idle. Auto-expands when tasks appear, auto-collapses when done.
+- **Gateway integration** — `tasks.list` RPC + real-time `task.*` event handlers for instant status updates.
+- **4 language support** — task status labels translated in en/ar/es/zh.
+
+### 🌐 i18n Interpolation Fix
+
+- **Fixed ~100 broken placeholders** — `{var}` → `{{var}}` across all 4 locale files (en, ar, es, zh). Affected cron timing, chat pins, code blocks, analytics, agent hub, and more.
+- **More complete than PR #23** — our fix covers 24-27 replacements per file vs. PR's 19, and fixes `monthly`, `daysAgo`, `inDays` which the PR missed.
+
+### 🔇 Notification Filtering
+
+- **Heartbeat silence** — `HEARTBEAT_OK` and `NO_REPLY` responses no longer trigger desktop notifications when the app is minimized.
+
+### 🔒 Security
+
+- **Electron** updated to latest (resolves 3 CVEs including high-severity command injection).
+- **lodash** updated to latest (resolves 2 CVEs).
+- **0 GitHub Dependabot alerts** remaining.
+
+### 🔧 TypeScript Cleanup
+
+- Fixed 23 TypeScript errors across 9 files (missing `useTranslation` hooks, type mismatches, undefined properties, removed stale type imports).
+- Added `readGatewayToken` to global type definitions.
+- Added `platform`/`deviceFamily` to device sign params.
+- Added `plugin-approval` to notification categories.
+- Extended `SessionInfo` interface with `contextWindow`, `updatedAt`, `displayName`, `lastMessage`.
+
+---
+
 ## [6.0.0] — 2026-03-29
 
 ### 🌍 Multilingual & Calendar Overhaul

@@ -105,6 +105,7 @@ interface ChatState {
   execApprovals: Array<{ id: string; command: string; cwd?: string; expiresAt: number }>;
   addExecApproval: (approval: { id: string; command: string; cwd?: string; expiresAt: number }) => void;
   removeExecApproval: (id: string) => void;
+  clearExpiredApprovals: () => void;
   pluginApprovals: Array<{ id: string; title: string; description: string; severity: string | null; toolName: string | null; pluginId: string | null; expiresAt: number }>;
   addPluginApproval: (approval: { id: string; title: string; description: string; severity: string | null; toolName: string | null; pluginId: string | null; expiresAt: number }) => void;
   removePluginApproval: (id: string) => void;
@@ -504,6 +505,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
   removeExecApproval: (id) => set((s) => ({
     execApprovals: s.execApprovals.filter(a => a.id !== id)
   })),
+  clearExpiredApprovals: () => set((s) => {
+    const now = Date.now();
+    return {
+      execApprovals: s.execApprovals.filter(a => a.expiresAt > now),
+      pluginApprovals: s.pluginApprovals.filter(a => a.expiresAt > now),
+    };
+  }),
   pluginApprovals: [],
   addPluginApproval: (approval) => set((s) => ({
     pluginApprovals: [...s.pluginApprovals.filter(a => a.id !== approval.id && a.expiresAt > Date.now()), approval]

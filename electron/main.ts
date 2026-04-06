@@ -688,6 +688,36 @@ function setupIPC(): void {
     }
   });
 
+  // ── Auto-recover token from Gateway config file ──
+  // When aegis-desktop loses its token (mismatch / cleared),
+  // read the authoritative token straight from the local
+  // Gateway config (openclaw.json) instead of forcing re-pair.
+  ipcMain.handle('pairing:read-gateway-token', () => {
+    try {
+      const configPath = detectOpenClawConfigPath();
+      if (!configPath || !fs.existsSync(configPath)) return { token: null };
+      const raw = fs.readFileSync(configPath, 'utf-8');
+      let data: any;
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        const cleaned = raw
+          .replace(/\/\/[^\n]*/g, '')
+          .replace(/\/\*[\s\S]*?\*\//g, '')
+          .replace(/,(\s*[}\]])/g, '$1');
+        data = JSON.parse(cleaned);
+      }
+      const token = data?.gateway?.auth?.token || null;
+      if (token) {
+        console.log('[Pairing] Auto-recovered gateway token from config');
+      }
+      return { token };
+    } catch (err: any) {
+      console.error('[Pairing] Failed to read gateway token:', err.message);
+      return { token: null };
+    }
+  });
+
   ipcMain.handle('pairing:poll', async (_e, httpBaseUrl: string, deviceId: string) => {
     try {
       const url = `${httpBaseUrl}/v1/pair/${encodeURIComponent(deviceId)}/status`;
@@ -1464,5 +1494,5 @@ app.on('before-quit', () => {
   ptyProcesses.clear();
 });
 
-console.log('Æ AEGIS Desktop v5.7.0 started');
+console.log('Æ AEGIS Desktop v6.1.0 started');
 

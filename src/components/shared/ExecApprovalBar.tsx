@@ -4,6 +4,7 @@
 // Floats above page content so approvals are never missed
 // ═══════════════════════════════════════════════════════════
 
+import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldAlert } from 'lucide-react';
@@ -16,12 +17,28 @@ export function GlobalExecApprovalBar() {
   const approvals = useChatStore((s) => s.execApprovals);
   const removeApproval = useChatStore((s) => s.removeExecApproval);
 
-  if (approvals.length === 0) return null;
+  // Auto-cleanup expired approvals every 10 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = Date.now();
+      const expired = approvals.filter(a => a.expiresAt <= now);
+      expired.forEach(a => removeApproval(a.id));
+    }, 10_000);
+    return () => clearInterval(timer);
+  }, [approvals, removeApproval]);
+
+  // Filter out expired approvals for display
+  const activeApprovals = useMemo(
+    () => approvals.filter(a => a.expiresAt > Date.now()),
+    [approvals]
+  );
+
+  if (activeApprovals.length === 0) return null;
 
   return (
     <div className="shrink-0 flex flex-col gap-1.5 px-4 py-2 border-b border-amber-500/15 bg-amber-500/[0.03]">
       <AnimatePresence mode="popLayout">
-        {approvals.map((a) => (
+        {activeApprovals.map((a) => (
           <motion.div
             key={a.id}
             initial={{ opacity: 0, y: -8, scale: 0.97 }}

@@ -13,6 +13,7 @@ import { OfflineOverlay } from '@/components/OfflineOverlay';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { GlobalExecApprovalBar } from '@/components/shared/ExecApprovalBar';
 import { GlobalPluginApprovalBar } from '@/components/shared/PluginApprovalDialog';
+import { TasksPanel } from '@/components/Chat/TasksPanel';
 import { useChatStore } from '@/stores/chatStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -47,6 +48,7 @@ export function AppLayout() {
           {/* Global exec approval bar — visible on ALL pages */}
           <GlobalExecApprovalBar />
           <GlobalPluginApprovalBar />
+          <TasksPanel />
           <div className="flex-1 overflow-y-auto scrollbar-thin">
             <ErrorBoundary>
               {showOffline ? (

@@ -3,10 +3,10 @@
 // No OS notifications, no Electron IPC, no Web Notification API
 // ═══════════════════════════════════════════════════════════
 
-import { useNotificationStore, type NotificationType } from '@/stores/notificationStore';
+import { useNotificationStore } from '@/stores/notificationStore';
 
 export interface NotifyOptions {
-  type: NotificationType;
+  type: string;
   title: string;
   body: string;
 }

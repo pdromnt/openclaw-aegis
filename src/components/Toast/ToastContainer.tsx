@@ -8,12 +8,12 @@ import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, CheckCircle2, Info, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNotificationStore, type Toast, type NotificationType } from '@/stores/notificationStore';
+import { useNotificationStore, type Toast } from '@/stores/notificationStore';
 import { themeHex, themeAlpha } from '@/utils/theme-colors';
 import { timeAgo } from '@/utils/format';
 
 // ── Icon + tint config per notification type ──────────────
-const TYPE_CONFIG: Record<NotificationType, { Icon: React.ElementType; colorKey: 'primary' | 'success' | 'accent' }> = {
+const TYPE_CONFIG: Record<string, { Icon: React.ElementType; colorKey: 'primary' | 'success' | 'accent' }> = {
   message:       { Icon: MessageSquare, colorKey: 'primary' },
   task_complete: { Icon: CheckCircle2,  colorKey: 'success' },
   info:          { Icon: Info,          colorKey: 'accent'  },
