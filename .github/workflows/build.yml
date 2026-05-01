@@ -20,21 +20,21 @@ jobs:
           - os: windows-latest
             platform: Windows
             target: nsis
-            script: package:win
+            target-flag: win
             artifact: AEGIS-Setup-*.exe
 
           # ── Windows Portable ──
           - os: windows-latest
             platform: Windows
             target: portable
-            script: package:portable:win
+            target-flag: 'win portable'
             artifact: 'AEGIS *.exe'
 
           # ── macOS DMG (Apple Silicon) ──
           - os: macos-latest
             platform: macOS
             target: dmg-arm64
-            script: package:mac
+            target-flag: mac
             artifact: AEGIS-*-macOS-arm64.dmg
 
     steps:
@@ -51,7 +51,7 @@ jobs:
         run: npm ci
 
       - name: Build & Package
-        run: npm run ${{ matrix.script }}
+        run: npm run build && npx electron-builder --${{ matrix.target-flag }} --publish never
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
