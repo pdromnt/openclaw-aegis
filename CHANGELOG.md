@@ -13,3 +13,4 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 - Fixed issue with navbar having scroll when it shouldn't
 - Fixed issue with notification panel buttons being hard to click
 - Updated all dependencies (Tailwind 4, React 19, Electron and others)
+- Remove prompt injection to reduce token usage
