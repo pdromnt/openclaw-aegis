@@ -1,12 +1,8 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/openclaw/openclaw/main/ui/public/apple-touch-icon.png" width="96" alt="OpenClaw" />
+  <img src="https://raw.githubusercontent.com/pdromnt/openclaw-aegis/refs/heads/master/assets/icon.png" width="128" alt="OpenClaw" />
   <h1>AEGIS</h1>
   <p><strong>The desktop client that turns your OpenClaw Gateway into a full mission control center.</strong></p>
 </div>
-
----
-
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ---
 
