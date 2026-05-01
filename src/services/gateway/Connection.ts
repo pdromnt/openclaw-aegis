@@ -476,7 +476,7 @@ export class GatewayConnection {
         auth: { token: this.token },
         device,
         locale,
-        userAgent: `aegis-desktop/${APP_VERSION} (${platform})`,
+        userAgent: `aegis/${APP_VERSION} (${platform})`,
       },
     });
   }

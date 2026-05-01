@@ -689,7 +689,7 @@ function setupIPC(): void {
   });
 
   // ── Auto-recover token from Gateway config file ──
-  // When aegis-desktop loses its token (mismatch / cleared),
+  // When aegis loses its token (mismatch / cleared),
   // read the authoritative token straight from the local
   // Gateway config (openclaw.json) instead of forcing re-pair.
   ipcMain.handle('pairing:read-gateway-token', () => {
@@ -1021,6 +1021,32 @@ function setupIPC(): void {
     }
   };
 
+  // Native macOS screencapture — uses built-in CLI (silent, no sound/flash)
+  const captureScreenMacOS = (): string | null => {
+    const pngPath = path.join(app.getPath('temp'), `aegis-ss-${Date.now()}.png`);
+    try {
+      execFileSync('screencapture', ['-x', '-t', 'png', pngPath], {
+        timeout: 10000,
+      });
+
+      const imgData = fs.readFileSync(pngPath);
+      const dataUrl = `data:image/png;base64,${imgData.toString('base64')}`;
+      try { fs.unlinkSync(pngPath); } catch {}
+      return dataUrl;
+    } catch (err: any) {
+      console.error('[Screenshot] macOS screencapture failed:', err.message);
+      try { fs.unlinkSync(pngPath); } catch {}
+      return null;
+    }
+  };
+
+  // Platform-native screen capture
+  const captureScreenNative = (): string | null => {
+    if (process.platform === 'darwin') return captureScreenMacOS();
+    if (process.platform === 'win32') return captureScreenPowerShell();
+    return null;
+  };
+
   ipcMain.handle('screenshot:capture', async () => {
     try {
       // Minimize AEGIS for clean screen capture
@@ -1028,15 +1054,15 @@ function setupIPC(): void {
       if (wasVisible) mainWindow!.minimize();
       await new Promise((r) => setTimeout(r, 500));
 
-      // Try PowerShell native capture first (most reliable)
-      const psResult = captureScreenPowerShell();
-      if (psResult) {
+      // Try platform-native capture first (most reliable)
+      const nativeResult = captureScreenNative();
+      if (nativeResult) {
         if (wasVisible) { mainWindow!.restore(); mainWindow!.focus(); }
-        return { success: true, data: psResult };
+        return { success: true, data: nativeResult };
       }
 
       // Fallback to desktopCapturer
-      console.log('[Screenshot] PowerShell failed, trying desktopCapturer...');
+      console.log('[Screenshot] Native capture failed, trying desktopCapturer...');
       const sources = await desktopCapturer.getSources({
         types: ['screen'],
         thumbnailSize: { width: 1920, height: 1080 },
@@ -1088,16 +1114,16 @@ function setupIPC(): void {
         return { success: true, data: img.toDataURL() };
       }
 
-      // For screen sources — use PowerShell (reliable) with desktopCapturer fallback
+      // For screen sources — use native capture with desktopCapturer fallback
       if (windowId.startsWith('screen:')) {
         const wasVisible = mainWindow!.isVisible() && !mainWindow!.isMinimized();
         if (wasVisible) mainWindow!.minimize();
         await new Promise((r) => setTimeout(r, 500));
 
-        const psResult = captureScreenPowerShell();
-        if (psResult) {
+        const nativeResult = captureScreenNative();
+        if (nativeResult) {
           if (wasVisible) { mainWindow!.restore(); mainWindow!.focus(); }
-          return { success: true, data: psResult };
+          return { success: true, data: nativeResult };
         }
 
         // Fallback to desktopCapturer

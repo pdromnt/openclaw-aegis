@@ -147,12 +147,15 @@ Download from [Releases](../../releases):
 
 | File | Type |
 |------|------|
-| `AEGIS-Desktop-Setup-X.X.X.exe` | Windows installer |
-| `AEGIS-Desktop-X.X.X.exe` | Portable (no install) |
+| `AEGIS-Setup-X.X.X.exe` | Windows installer |
+| `AEGIS-X.X.X.exe` | Portable (no install) |
+| `AEGIS-X.X.X-macOS-arm64.dmg` | DMG Installer Image |
+| `AEGIS.app` | macOS "Portable" App |
+
 
 ### Requirements
 
-- Windows 10/11 
+- Windows 10/11 (x64) or macOS (Apple Silicon)
 - [OpenClaw](https://github.com/openclaw/openclaw) Gateway running locally or remotely
 
 On first launch, you'll pair with your Gateway — a one-time setup using Ed25519 device authentication.
@@ -195,11 +198,13 @@ OpenClaw Gateway (local or remote)       Gemini Live API
 
 ```bash
 npm install
-npm run dev              # Electron + Vite (hot reload)
-npm run dev:web          # Browser only (no Electron)
-npm run build            # Production build
-npm run package          # NSIS installer
-npm run package:portable # Portable exe
+npm run dev                    # Electron + Vite (hot reload)
+npm run dev:web                # Browser only (no Electron)
+npm run build                  # Production build
+npm run package:win            # Windows NSIS installer
+npm run package:portable:win   # Portable Windows EXE
+npm run package:mac            # macOS "Portable" App
+npm run package:mac:dmg        # macOS DMG Installer Image
 ```
 
 ---

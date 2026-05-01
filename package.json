@@ -1,5 +1,5 @@
 {
-  "name": "aegis-desktop",
+  "name": "aegis",
   "version": "7.0.0",
   "description": "AEGIS — Feature Complete Desktop Client for OpenClaw Gateway",
   "main": "dist-electron/main.js",
@@ -15,8 +15,10 @@
     "build:electron": "node scripts/build-electron.js",
     "build:renderer": "vite build",
     "build": "node scripts/build-electron.js && vite build",
-    "package": "npm run build && electron-builder --win",
-    "package:portable": "npm run build && electron-builder --win portable"
+    "package:win": "npm run build && electron-builder --win",
+    "package:portable:win": "npm run build && electron-builder --win portable",
+    "package:mac": "npm run build && electron-builder --mac",
+    "package:mac:dmg": "npm run build && electron-builder --mac dmg"
   },
   "dependencies": {
     "@google/genai": "^1.51.0",
@@ -86,6 +88,19 @@
       "icon": "assets/icon.ico",
       "requestedExecutionLevel": "asInvoker"
     },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "category": "public.app-category.developer-tools",
+      "artifactName": "AEGIS-${version}-macOS-${arch}.${ext}"
+    },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
@@ -101,7 +116,7 @@
       "deleteAppDataOnUninstall": false,
       "runAfterFinish": true,
       "installerSidebar": null,
-      "artifactName": "AEGIS-Desktop-Setup-${version}.${ext}",
+      "artifactName": "AEGIS-Setup-${version}.${ext}",
       "unicode": true,
       "include": "installer/nsis-script.nsh",
       "installerLanguages": [
