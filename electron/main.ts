@@ -250,10 +250,9 @@ function createSplashWindow(): void {
 }
 
 function createWindow(): void {
-  const iconFile = process.platform === 'win32' ? 'icon.ico' : 'icon.png';
   const iconPath = app.isPackaged
-    ? path.join(process.resourcesPath, iconFile)
-    : path.join(__dirname, '..', 'assets', iconFile);
+    ? path.join(process.resourcesPath, 'icon.png')
+    : path.join(__dirname, '..', 'assets', 'icon.png');
 
   mainWindow = new BrowserWindow({
     width: 1100,
