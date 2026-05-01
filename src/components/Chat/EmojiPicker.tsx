@@ -3,13 +3,20 @@ import { Smile } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { getDirection } from '@/i18n';
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
+import EmojiPickerComponent, { type EmojiClickData, EmojiStyle, SkinTonePickerLocation, Theme } from 'emoji-picker-react';
 import clsx from 'clsx';
 
 // ═══════════════════════════════════════════════════════════
-// Emoji Picker — premium floating emoji selector
+// Emoji Picker — floating emoji selector using emoji-picker-react
 // ═══════════════════════════════════════════════════════════
+
+// Lazy-load locale data on demand (static import paths so Vite can code-split).
+// Arabic falls through to default (English) — no ar locale available.
+const localeLoaders: Record<string, () => Promise<any>> = {
+  en: () => import('emoji-picker-react/dist/data/emojis-en'),
+  es: () => import('emoji-picker-react/dist/data/emojis-es'),
+  zh: () => import('emoji-picker-react/dist/data/emojis-zh'),
+};
 
 interface EmojiPickerProps {
   onSelect: (emoji: string) => void;
@@ -21,6 +28,21 @@ export function EmojiPicker({ onSelect, disabled }: EmojiPickerProps) {
   const { language, theme } = useSettingsStore();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [localeData, setLocaleData] = useState<any>(undefined);
+
+  // Load locale data when language changes
+  useEffect(() => {
+    let cancelled = false;
+    const loader = localeLoaders[language];
+    if (!loader) {
+      setLocaleData(undefined);
+      return;
+    }
+    loader().then((mod) => {
+      if (!cancelled) setLocaleData(mod);
+    });
+    return () => { cancelled = true; };
+  }, [language]);
 
   // Close on outside click
   useEffect(() => {
@@ -69,20 +91,16 @@ export function EmojiPicker({ onSelect, disabled }: EmojiPickerProps) {
           getDirection(language) === 'rtl' ? 'right-0' : 'left-0'
         )}>
           <div className="rounded-2xl overflow-hidden shadow-2xl border border-aegis-menu-border bg-aegis-menu-bg">
-            <Picker
-              data={data}
-              onEmojiSelect={(emoji: any) => {
-                onSelect(emoji.native);
+            <EmojiPickerComponent
+              onEmojiClick={(emojiData: EmojiClickData) => {
+                onSelect(emojiData.emoji);
                 setOpen(false);
               }}
-              theme={theme === 'aegis-light' ? 'light' : 'dark'}
-              locale={language}
-              previewPosition="none"
-              skinTonePosition="search"
-              maxFrequentRows={2}
-              perLine={8}
-              navPosition="bottom"
-              set="native"
+              theme={theme === 'aegis-light' ? Theme.LIGHT : Theme.DARK}
+              emojiStyle={EmojiStyle.NATIVE}
+              previewConfig={{ showPreview: false }}
+              skinTonePickerLocation={SkinTonePickerLocation.SEARCH}
+              emojiData={localeData as any}
             />
           </div>
         </div>

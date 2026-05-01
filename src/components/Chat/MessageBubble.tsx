@@ -124,7 +124,7 @@ function ArtifactCard({ artifact }: { artifact: Artifact }) {
   );
 }
 
-// ── Collapsed Meta — thinking, workshop, system under reply ──
+// ── Collapsed Meta — thinking, system under reply ──
 function CollapsedMeta({ items }: { items: MetaItem[] }) {
   // All meta items start collapsed — user opens manually
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
@@ -506,7 +506,7 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
             <ArtifactCard key={`art-${idx}`} artifact={art} />
           ))}
 
-          {/* Collapsed Meta (thinking, workshop, system) */}
+          {/* Collapsed Meta (thinking, system) */}
           {block.meta && block.meta.length > 0 && !block.isStreaming && (
             <CollapsedMeta items={block.meta} />
           )}

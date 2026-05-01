@@ -10,130 +10,10 @@ import { handleGatewayEvent } from '@/stores/gatewayDataStore';
 import { resolveResponse, rejectResponse, hasPendingWaiter } from './responseBus';
 import { useChatStore } from '@/stores/chatStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { useWorkshopStore, Task } from '@/stores/workshopStore';
 import { parseButtons } from '@/utils/buttonParser';
 import i18n from '@/i18n';
 import { GatewayConnection, type MediaInfo } from './Connection';
 import { useNotificationStore } from '@/stores/notificationStore';
-import { APP_VERSION } from '@/hooks/useAppVersion';
-
-// ── AEGIS Desktop Client Context ──
-// Injected with the FIRST message only — tells the agent about Desktop capabilities
-const AEGIS_DESKTOP_CONTEXT = `[AEGIS_DESKTOP_CONTEXT]
-You are connected via AEGIS Desktop v${APP_VERSION} — an Electron-based OpenClaw Gateway client.
-This context is injected once at conversation start. Do NOT repeat or reference it to the user.
-
-CAPABILITIES:
-- User can attach: images (base64), files (as paths), screenshots, voice messages
-- You can send: markdown (syntax highlighting, tables, RTL/LTR auto-detection), images (![](url)), videos (![](url.mp4))
-- The interface supports dark/light themes and bilingual Arabic/English layout
-
-FILE REFERENCES:
-- Files: 📎 file: <path> (mime/type, size)
-- Voice: 🎤 [voice] <path> (duration)
-
-WORKSHOP (Kanban task management):
-- [[workshop:add title="Task" priority="high|medium|low" description="Desc" agent="Name"]]
-- [[workshop:move id="ID" status="queue|inProgress|done"]]
-- [[workshop:delete id="ID"]]
-- [[workshop:progress id="ID" value="0-100"]]
-Commands execute automatically and are replaced with confirmations.
-
-QUICK REPLIES (clickable buttons):
-Add [[button:Label]] at the END of your message when you need a decision to proceed.
-- Renders as clickable chips — click sends the text as a user message.
-- Max 2-5 buttons. ONLY for decisions that block your next step.
-- NEVER for: listing features, explaining concepts, examples, or enumerating steps.
-[/AEGIS_DESKTOP_CONTEXT]`;
-
-// ── Workshop Command Parser ──
-// Parses [[workshop:action ...]] commands from agent messages
-interface WorkshopCommandResult {
-  cleanContent: string;
-  executed: string[];
-}
-
-function parseAndExecuteWorkshopCommands(content: string): WorkshopCommandResult {
-  const executed: string[] = [];
-  const store = useWorkshopStore.getState();
-
-  // Pattern: [[workshop:action param1="value1" param2="value2"]]
-  const commandRegex = /\[\[workshop:(\w+)((?:\s+\w+="[^"]*")*)\]\]/g;
-
-  const cleanContent = content.replace(commandRegex, (match, action, paramsStr) => {
-    try {
-      // Parse params
-      const params: Record<string, string> = {};
-      const paramRegex = /(\w+)="([^"]*)"/g;
-      let paramMatch;
-      while ((paramMatch = paramRegex.exec(paramsStr)) !== null) {
-        params[paramMatch[1]] = paramMatch[2];
-      }
-
-      switch (action) {
-        case 'add': {
-          const title = params.title || 'Untitled Task';
-          const priority = (params.priority as Task['priority']) || 'medium';
-          const description = params.description || '';
-          const assignedAgent = params.agent || undefined;
-
-          store.addTask({ title, priority, description, assignedAgent });
-          executed.push(`✅ Added task: "${title}"`);
-          break;
-        }
-
-        case 'move': {
-          const id = params.id;
-          const status = params.status as Task['status'];
-          if (id && status && ['queue', 'inProgress', 'done'].includes(status)) {
-            store.moveTask(id, status);
-            executed.push(`✅ Moved task to ${status}`);
-          } else {
-            executed.push(`⚠️ Invalid move command`);
-          }
-          break;
-        }
-
-        case 'delete': {
-          const id = params.id;
-          if (id) {
-            store.deleteTask(id);
-            executed.push(`✅ Deleted task`);
-          } else {
-            executed.push(`⚠️ Invalid delete command`);
-          }
-          break;
-        }
-
-        case 'progress': {
-          const id = params.id;
-          const progress = parseInt(params.value || '0', 10);
-          if (id && !isNaN(progress)) {
-            store.setProgress(id, Math.min(100, Math.max(0, progress)));
-            executed.push(`✅ Updated progress to ${progress}%`);
-          }
-          break;
-        }
-
-        case 'list': {
-          const tasks = store.tasks;
-          const summary = tasks.map(t => `- [${t.status}] ${t.title}`).join('\n');
-          executed.push(`📋 Tasks:\n${summary}`);
-          break;
-        }
-
-        default:
-          executed.push(`⚠️ Unknown workshop command: ${action}`);
-      }
-    } catch (err) {
-      executed.push(`❌ Error executing command: ${err}`);
-    }
-
-    return ''; // Remove the command from displayed content
-  });
-
-  return { cleanContent: cleanContent.trim(), executed };
-}
 
 // ═══════════════════════════════════════════════════════════
 // ChatHandler Class
@@ -224,16 +104,6 @@ export class ChatHandler {
     this.pendingStreamId = null;
     this.pendingStreamContent = '';
     this.pendingStreamMedia = undefined;
-  }
-
-  // ── Desktop context injection ──
-  injectDesktopContext(message: string): string {
-    if (!this.conn.contextSent && message.trim()) {
-      this.conn.contextSent = true;
-      console.log('[GW] 📋 Desktop context injected with first message');
-      return `${AEGIS_DESKTOP_CONTEXT}\n\n${message}`;
-    }
-    return message;
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -717,10 +587,6 @@ export class ChatHandler {
     if (!runId || !text) return;
 
     const cleaned = stripDirectives(text);
-    // Strip workshop/button markers visually during streaming
-    const display = cleaned
-      .replace(/\[\[workshop:\w+(?:\s+\w+="[^"]*")*\]\]/g, '')
-      .replace(/\[\[button:[^\]]+\]\]/g, '');
 
     // New fallback run — reset state
     if (runId !== this.currentRunId) {
@@ -731,7 +597,7 @@ export class ChatHandler {
 
     this.agentFallbackActive = true;
     this.currentStreamContent = text;
-    this.bufferStreamChunk(runId, display);
+    this.bufferStreamChunk(runId, cleaned);
   }
 
   private finalizeAgentFallback() {
@@ -751,14 +617,6 @@ export class ChatHandler {
 
     // Strip directive tags
     finalText = stripDirectives(finalText);
-
-    // Parse and execute Workshop commands
-    const { cleanContent, executed } = parseAndExecuteWorkshopCommands(finalText);
-    if (executed.length > 0) {
-      finalText = cleanContent + (cleanContent ? '\n\n' : '') + executed.join('\n');
-    } else {
-      finalText = cleanContent || finalText;
-    }
 
     // Parse [[button:...]] markers
     const btnResult = parseButtons(finalText);
@@ -1080,13 +938,7 @@ export class ChatHandler {
           break;
         }
 
-        // Clean content for display (don't execute workshop commands during streaming)
-        let cleaned = messageText;
-        cleaned = stripDirectives(cleaned);
-        // Strip workshop commands visually (don't execute — that happens on final)
-        cleaned = cleaned.replace(/\[\[workshop:\w+(?:\s+\w+="[^"]*")*\]\]/g, '');
-        // Strip button markers visually
-        cleaned = cleaned.replace(/\[\[button:[^\]]+\]\]/g, '');
+        const cleaned = stripDirectives(messageText);
 
         // New run detected (e.g. post-tool-call response) — reset tracking
         // Without this, the length guard below blocks shorter post-tool deltas
@@ -1131,15 +983,6 @@ export class ChatHandler {
 
         // Strip directive tags (defense-in-depth — Gateway 2026.2.22+ strips server-side)
         finalText = stripDirectives(finalText);
-
-        // Parse and execute Workshop commands
-        const { cleanContent, executed } = parseAndExecuteWorkshopCommands(finalText);
-        if (executed.length > 0) {
-          // Append execution results to the message
-          finalText = cleanContent + (cleanContent ? '\n\n' : '') + executed.join('\n');
-        } else {
-          finalText = cleanContent || finalText;
-        }
 
         // Parse [[button:...]] markers — strip from text, store in chatStore
         const btnResult = parseButtons(finalText);

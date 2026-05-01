@@ -15,9 +15,9 @@
     "waitingConnection": "في انتظار الاتصال..."
   },
   "nav": {
+    "create": "إنشاء",
     "dashboard": "لوحة التحكم",
     "chat": "المحادثة",
-    "workshop": "الورشة",
     "costs": "التكاليف",
     "cron": "المهام الدورية",
     "agents": "الوكلاء",
@@ -119,43 +119,6 @@
     "live": "مباشر",
     "used": "مستخدم",
     "max": "الحد"
-  },
-  "workshop": {
-    "title": "الورشة",
-    "subtitle": "إدارة المهام — Queue → In Progress → Done",
-    "addTask": "مهمة جديدة",
-    "queue": "في الانتظار",
-    "inProgress": "قيد التنفيذ",
-    "done": "منجزة",
-    "empty": "لا توجد مهام",
-    "newTask": "مهمة جديدة",
-    "taskTitle": "عنوان المهمة",
-    "taskDescription": "وصف المهمة (اختياري)",
-    "priority": "الأولوية",
-    "create": "إنشاء",
-    "agent": "الوكيل",
-    "moveToDone": "مكتمل",
-    "noAgent": "لا يوجد وكيل",
-    "clearCompleted": "مسح المنجزات",
-    "recentActivity": "النشاط الأخير",
-    "searchPlaceholder": "ابحث عن مهام، علامات...",
-    "tags": "العلامات",
-    "progress": "التقدم",
-    "nonePlaceholder": "لا شيء",
-    "moveToQueue": "الانتظار",
-    "moveToInProgress": "قيد التنفيذ",
-    "statusDone": "مكتمل",
-    "newTaskBtn": "مهمة جديدة",
-    "filterByPriority": "فلتر حسب الأولوية",
-    "showingPriority": "عرض: {{priority}}",
-    "activityAdded": "أُضيفت إلى",
-    "activityMovedTo": "نُقلت إلى",
-    "activityCompleted": "اكتملت ✓",
-    "activityProgress": "التقدم →",
-    "activityDeleted": "حُذفت",
-    "priorityLow": "منخفضة",
-    "priorityMedium": "متوسطة",
-    "priorityHigh": "عالية"
   },
   "costs": {
     "title": "تتبع التكاليف",
@@ -480,6 +443,7 @@
     "markAllRead": "قراءة الكل",
     "clear": "مسح",
     "empty": "لا توجد إشعارات",
+    "replyComplete": "رد:",
     "filter": {
       "all": "الكل",
       "error": "أخطاء",
@@ -752,15 +716,6 @@
     "on": "تشغيل",
     "off": "إيقاف",
     "inherit": "وراثة"
-  },
-  "workshopExtra": {
-    "queue": "قائمة الانتظار",
-    "inProgress": "قيد التنفيذ",
-    "done": "مكتمل",
-    "totalTasks": "إجمالي المهام",
-    "inQueue": "في الانتظار",
-    "completed": "مكتمل",
-    "active": "نشط"
   },
   "skillsExtra": {
     "featured": "⭐ مميزة",

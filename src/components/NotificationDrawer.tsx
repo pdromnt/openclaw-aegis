@@ -162,22 +162,22 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
             {unreadCount > 0 && (
               <button
                 onClick={markAllRead}
-                className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] text-aegis-text-muted
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs text-aegis-text-muted
                   bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.08)]
                   hover:bg-[rgb(var(--aegis-overlay)/0.06)] hover:text-aegis-text-secondary transition-colors"
               >
-                <CheckCheck size={10} />
+                <CheckCheck size={12} />
                 {t('notifications.markAllRead', 'Mark all read')}
               </button>
             )}
             {history.length > 0 && (
               <button
                 onClick={clearHistory}
-                className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] text-aegis-text-muted
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs text-aegis-text-muted
                   bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.08)]
                   hover:bg-[rgb(var(--aegis-overlay)/0.06)] hover:text-aegis-text-secondary transition-colors"
               >
-                <Trash2 size={10} />
+                <Trash2 size={12} />
                 {t('notifications.clear', 'Clear')}
               </button>
             )}

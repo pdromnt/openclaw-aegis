@@ -44,10 +44,10 @@ interface BlockBase {
   isStreaming: boolean;
 }
 
-/** Collapsed meta item (thinking, workshop, system notes) shown under reply */
+/** Collapsed meta item (thinking, system notes) shown under reply */
 export interface MetaItem {
-  kind: 'thinking' | 'workshop' | 'system' | 'tool-summary';
-  label: string;     // short label: "🧠 Reasoning", "✅ Workshop", etc.
+  kind: 'thinking' | 'system' | 'tool-summary';
+  label: string;     // short label: "🧠 Reasoning", etc.
   content: string;   // full content (shown when expanded)
 }
 
@@ -60,7 +60,7 @@ export interface MessageBlock extends BlockBase {
   images: ImageRef[];          // from attachments + inline markdown images
   audio?: string;              // TTS audio URL (mediaUrl)
   thinkingContent?: string;    // attached reasoning (finalized, not streaming)
-  meta?: MetaItem[];           // collapsed meta items (thinking, workshop results, etc.)
+  meta?: MetaItem[];           // collapsed meta items (thinking, etc.)
 }
 
 /** Tool call display */

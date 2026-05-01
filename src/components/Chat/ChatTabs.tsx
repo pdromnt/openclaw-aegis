@@ -394,7 +394,7 @@ export function ChatTabs() {
 
   const [showSessions, setShowSessions] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
-  const tooltipTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const tooltipTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
   const identityRef = useRef<HTMLDivElement>(null);
 
   // ── Refresh ──

@@ -5,7 +5,7 @@
 // with a back header and localStorage persistence.
 // ═══════════════════════════════════════════════════════════
 
-import { lazy, Suspense, useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect, type JSX } from 'react';
 import { motion } from 'framer-motion';
 import {
   Gamepad2, Users, ScrollText, Radio,
@@ -155,7 +155,7 @@ const cardVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.25, ease: 'easeOut' },
+    transition: { duration: 0.25, ease: 'easeOut' as const },
   },
 };
 

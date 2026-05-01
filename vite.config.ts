@@ -18,11 +18,13 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     chunkSizeWarningLimit: 800,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          'syntax-highlighter': ['react-syntax-highlighter'],
-          'markdown': ['react-markdown', 'remark-gfm'],
+        codeSplitting: {
+          groups: [
+            { test: /react-syntax-highlighter/, name: 'syntax-highlighter' },
+            { test: /react-markdown|remark-gfm/, name: 'markdown' },
+          ],
         },
       },
     },

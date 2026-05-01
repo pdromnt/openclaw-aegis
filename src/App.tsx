@@ -8,7 +8,6 @@ import { ToastContainer } from '@/components/Toast/ToastContainer';
 // Lazy-loaded pages
 const DashboardPage = lazy(() => import('@/pages/Dashboard').then(m => ({ default: m.DashboardPage })));
 const ChatPage = lazy(() => import('@/pages/ChatPage').then(m => ({ default: m.ChatPage })));
-const WorkshopPage = lazy(() => import('@/pages/Workshop').then(m => ({ default: m.WorkshopPage })));
 const FullAnalyticsPage = lazy(() => import('@/pages/FullAnalytics').then(m => ({ default: m.FullAnalyticsPage })));
 const CronMonitorPage = lazy(() => import('@/pages/CronMonitor').then(m => ({ default: m.CronMonitorPage })));
 const AgentHubPage = lazy(() => import('@/pages/AgentHub').then(m => ({ default: m.AgentHubPage })));
@@ -351,7 +350,6 @@ export default function App() {
             <Route element={<AppLayout />}>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/chat" element={<ChatPage />} />
-              <Route path="/workshop" element={<WorkshopPage />} />
               <Route path="/costs" element={<FullAnalyticsPage />} />
               <Route path="/analytics" element={<FullAnalyticsPage />} />
               <Route path="/cron" element={<CronMonitorPage />} />

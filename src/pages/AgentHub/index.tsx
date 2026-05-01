@@ -883,7 +883,7 @@ export function AgentHubPage() {
                             </div>
                             <div className="flex gap-2 justify-end">
                               <button onClick={() => { setShowAddForm(false); setNewAgent({ id: '', name: '', model: '', workspace: '' }); }} className="px-4 py-2 rounded-lg bg-[rgb(var(--aegis-overlay)/0.05)] border border-[rgb(var(--aegis-overlay)/0.1)] text-aegis-text-muted text-sm">{t('common.cancel', 'Cancel')}</button>
-                              <button onClick={handleCreateAgent} disabled={!newAgent.id.trim()} className="px-4 py-2 rounded-lg bg-aegis-primary/20 border border-aegis-primary/30 text-aegis-primary text-sm font-semibold disabled:opacity-30">{t('workshop.create', 'Create')}</button>
+                              <button onClick={handleCreateAgent} disabled={!newAgent.id.trim()} className="px-4 py-2 rounded-lg bg-aegis-primary/20 border border-aegis-primary/30 text-aegis-primary text-sm font-semibold disabled:opacity-30">{t('dashboard.create', 'Create')}</button>
                             </div>
                           </div>
                         </GlassCard>

@@ -31,11 +31,10 @@ export const gateway = {
   // Messaging
   async sendMessage(message: string, attachments?: any[], sessionKey = 'agent:main:main') {
     // Inject Desktop context with first message
-    const finalMessage = chatHandler.injectDesktopContext(message);
 
     // Queue if disconnected
     if (!connection.isConnected()) {
-      connection.enqueueMessage(finalMessage, attachments, sessionKey);
+      connection.enqueueMessage(message, attachments, sessionKey);
       return { queued: true, queueSize: connection.getQueueSize() };
     }
 
@@ -55,7 +54,7 @@ export const gateway = {
 
     return connection.request('chat.send', {
       sessionKey,
-      message: finalMessage,
+      message: message,
       idempotencyKey: `aegis-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       ...(gwAttachments?.length ? { attachments: gwAttachments } : {}),
     });

@@ -17,7 +17,6 @@
   "nav": {
     "dashboard": "Panel",
     "chat": "Chat",
-    "workshop": "Taller",
     "costs": "Costos",
     "cron": "Tareas Cron",
     "agents": "Agentes",
@@ -68,6 +67,7 @@
   "dashboard": {
     "title": "Panel",
     "subtitle": "Centro de mando — Todo en un solo lugar",
+    "create": "Crear",
     "working": "Trabajando",
     "idle": "Inactivo",
     "offline": "Sin conexión",
@@ -119,43 +119,6 @@
     "live": "EN VIVO",
     "used": "usado",
     "max": "máx"
-  },
-  "workshop": {
-    "title": "Taller",
-    "subtitle": "Gestión de Tareas — Cola → En Proceso → Hecho",
-    "addTask": "Nueva Tarea",
-    "queue": "Cola",
-    "inProgress": "En Proceso",
-    "done": "Hecho",
-    "empty": "Sin tareas",
-    "newTask": "Nueva Tarea",
-    "taskTitle": "Título de la tarea",
-    "taskDescription": "Descripción (opcional)",
-    "priority": "Prioridad",
-    "create": "Crear",
-    "agent": "Agente",
-    "moveToDone": "Hecho",
-    "noAgent": "Sin agente",
-    "clearCompleted": "Limpiar completadas",
-    "recentActivity": "Actividad Reciente",
-    "searchPlaceholder": "Buscar tareas, etiquetas...",
-    "tags": "Etiquetas",
-    "progress": "Progreso",
-    "nonePlaceholder": "Ninguno",
-    "moveToQueue": "Cola",
-    "moveToInProgress": "En Progreso",
-    "statusDone": "HECHO",
-    "newTaskBtn": "Nueva Tarea",
-    "filterByPriority": "Filtrar por prioridad",
-    "showingPriority": "Mostrando: {{priority}}",
-    "activityAdded": "agregada a",
-    "activityMovedTo": "movida a",
-    "activityCompleted": "completada ✓",
-    "activityProgress": "progreso →",
-    "activityDeleted": "eliminada",
-    "priorityLow": "Baja",
-    "priorityMedium": "Media",
-    "priorityHigh": "Alta"
   },
   "costs": {
     "title": "Rastreador de Costos",
@@ -480,6 +443,7 @@
     "markAllRead": "Marcar todo como leído",
     "clear": "Limpiar",
     "empty": "Sin notificaciones",
+    "replyComplete": "Respuesta del agente:",
     "filter": {
       "all": "Todas",
       "error": "Errores",
@@ -752,15 +716,6 @@
     "on": "On",
     "off": "Off",
     "inherit": "Heredar"
-  },
-  "workshopExtra": {
-    "queue": "Cola",
-    "inProgress": "En Proceso",
-    "done": "Hecho",
-    "totalTasks": "Tareas Totales",
-    "inQueue": "En Cola",
-    "completed": "Completadas",
-    "active": "Activas"
   },
   "skillsExtra": {
     "featured": "⭐ Destacadas",

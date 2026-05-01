@@ -1,3 +1,4 @@
+@import 'tailwindcss';
 @import './primitives.css';
 @import './terminal.css';
 @import './voice-live.css';
@@ -5,9 +6,7 @@
 @import './themes/aegis-light.css';
 @import './themes/aegis-knot.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@config '../../tailwind.config.cjs';
 
 @layer base {
   /* ── Scrollbar ── */
@@ -184,15 +183,24 @@
   .markdown-body em { color: rgb(var(--aegis-text-secondary)); }
 }
 
-@layer utilities {
-  .scrollbar-hidden { -ms-overflow-style: none; scrollbar-width: none; }
-  .scrollbar-hidden::-webkit-scrollbar { display: none; }
+@utility scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
 
-  /* Text gradient */
-  .text-gradient {
-    background: linear-gradient(135deg, rgb(var(--color-teal-400)) 0%, rgb(var(--color-blue-400)) 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  }
+@utility scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+/* Text gradient */
+@utility text-gradient {
+  background: linear-gradient(135deg, rgb(var(--color-teal-400)) 0%, rgb(var(--color-blue-400)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* ═══════════════════════════════════════════════════════════

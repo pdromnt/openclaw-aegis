@@ -5,13 +5,17 @@
 </div>
 
 ---
-
-[![Version](https://img.shields.io/badge/Version-6.0.0-blue)](https://github.com/rshodoskar-star/openclaw-desktop/releases/tag/v6.0.0)
 [![Electron](https://img.shields.io/badge/Electron-35-47848F?logo=electron&logoColor=white)](https://www.electronjs.org/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![OpenClaw](https://img.shields.io/badge/OpenClaw-2026.3.12+-blueviolet)](https://github.com/openclaw/openclaw)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
+---
+
+### About the Fork
+
+This is a small fork made to add some small QoL that I don't intend to contribute back to the original repo due to diverging opinions. I also intend on maintaining this for anyone else except myself. If you find any issues, please don't report in the original repo.
 
 ---
 
@@ -123,7 +127,6 @@ If you run OpenClaw, AEGIS Desktop is the UI it deserves.
 ### 🔧 Tools
 - **Skills Marketplace** — browse and search 3,286+ skills from ClawHub
 - **Integrated Terminal** — PowerShell/Bash via xterm.js with multi-tab support
-- **Workshop** — Kanban board manageable by AI via text commands
 - **Memory Explorer** — semantic search and CRUD for agent memories
 
 ### 🎨 Interface
@@ -198,25 +201,6 @@ npm run build            # Production build
 npm run package          # NSIS installer
 npm run package:portable # Portable exe
 ```
-
----
-
-## 🔧 Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Framework | Electron 35 |
-| UI | React 18 + TypeScript 5.7 |
-| Build | Vite 6 |
-| Styling | Tailwind CSS + CSS Variables |
-| Animations | Framer Motion |
-| State | Zustand 5 |
-| Charts | Recharts |
-| Terminal | xterm.js + node-pty |
-| Icons | Lucide React |
-| Routing | React Router 7 |
-| i18n | react-i18next |
-| Emoji | emoji-mart |
 
 ---
 

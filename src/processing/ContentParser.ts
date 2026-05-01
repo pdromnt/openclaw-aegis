@@ -254,16 +254,6 @@ export function parseHistoryMessage(msg: any, toolIntentEnabled: boolean): Rende
         content: thinking.trim(),
       });
     }
-
-    // Workshop command results (✅ Added task, ✅ Moved task, etc.)
-    const workshopResults = (cleanText || markdown).match(/✅\s+(Added|Moved|Deleted|Updated)\s+task[^\n]*/g);
-    if (workshopResults && workshopResults.length > 0) {
-      meta.push({
-        kind: 'workshop',
-        label: `📋 Workshop (${workshopResults.length})`,
-        content: workshopResults.join('\n'),
-      });
-    }
   }
 
   return [{

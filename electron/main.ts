@@ -15,8 +15,8 @@ import {
 import { autoUpdater } from 'electron-updater';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createTray } from './tray';
-import { initI18n, setLanguage, t } from './i18n';
+import { createTray } from './tray.js';
+import { initI18n, setLanguage, t } from './i18n.js';
 import * as crypto from 'crypto';
 
 import { execFileSync, spawnSync, execSync } from 'child_process';
@@ -1494,5 +1494,5 @@ app.on('before-quit', () => {
   ptyProcesses.clear();
 });
 
-console.log('Æ AEGIS Desktop v6.1.0 started');
+console.log('Æ AEGIS Desktop v7.0.0 started');
 

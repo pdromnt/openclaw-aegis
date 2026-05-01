@@ -7,7 +7,7 @@ import { useChatStore } from '@/stores/chatStore';
 // Keyboard Shortcuts — Global hotkeys for AEGIS Desktop
 // ═══════════════════════════════════════════════════════════
 
-const NAV_ROUTES = ['/', '/chat', '/workshop', '/costs', '/cron', '/agents', '/memory', '/settings'];
+const NAV_ROUTES = ['/', '/chat', '/costs', '/cron', '/agents', '/memory', '/settings'];
 
 export function useKeyboardShortcuts() {
   const navigate = useNavigate();

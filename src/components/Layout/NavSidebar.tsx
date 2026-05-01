@@ -33,7 +33,6 @@ const navSections: NavSection[] = [
     items: [
       { to: '/', icon: LayoutDashboard, labelKey: 'nav.dashboard' },
       { to: '/chat', icon: MessageCircle, labelKey: 'nav.chat' },
-      { to: '/workshop', icon: Kanban, labelKey: 'nav.workshop' },
     ],
   },
   {
@@ -91,7 +90,7 @@ export function NavSidebar() {
       )}
     >
       {/* Navigation Icons — Sectioned */}
-      <nav className="flex-1 flex flex-col items-center gap-0 overflow-y-auto scrollbar-none">
+      <nav className="flex-1 flex flex-col items-center gap-0 overflow-y-auto overflow-x-hidden scrollbar-none">
         {navSections.map((section, si) => (
           <div key={section.label || si} className="w-full flex flex-col items-center">
             {/* Section divider (skip first) */}

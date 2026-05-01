@@ -1,7 +1,7 @@
 import { Tray, Menu, nativeImage, BrowserWindow, App, shell } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
-import { t } from './i18n';
+import { t } from './i18n.js';
 
 export function createTray(mainWindow: BrowserWindow, app: App): Tray {
   const iconPath = path.join(__dirname, '..', 'assets', 'icon.ico');
