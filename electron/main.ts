@@ -1494,5 +1494,5 @@ app.on('before-quit', () => {
   ptyProcesses.clear();
 });
 
-console.log('Æ AEGIS v7.0.0 started');
+console.log('Æ AEGIS - started');
 
