@@ -5,17 +5,14 @@
 </div>
 
 ---
-[![Electron](https://img.shields.io/badge/Electron-35-47848F?logo=electron&logoColor=white)](https://www.electronjs.org/)
-[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![OpenClaw](https://img.shields.io/badge/OpenClaw-2026.3.12+-blueviolet)](https://github.com/openclaw/openclaw)
+
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ---
 
 ### About the Fork
 
-This is a small fork made to add some small QoL that I don't intend to contribute back to the original repo due to diverging opinions. I also intend on maintaining this for anyone else except myself. If you find any issues, please don't report in the original repo.
+This is a small fork made to add some small QoL that I don't intend to contribute back to the original repo due to diverging opinions. I also don't intend on maintaining this for anyone else except myself. If you find any issues, please don't report in the original repo.
 
 ---
 
@@ -132,7 +129,7 @@ If you run OpenClaw, AEGIS is the UI it deserves.
 ### 🎨 Interface
 - Dark and light themes with full CSS variable system (`--aegis-*`)
 - 6 accent colors (teal, blue, purple, rose, amber, emerald)
-- 4 languages: Arabic (RTL), English (LTR), Spanish, and Chinese — with logical CSS properties
+- 4 languages: Arabic (RTL), English, Spanish, and Chinese — with logical CSS properties
 - Command Palette (`Ctrl+K`), keyboard shortcuts, global hotkey (`Alt+Space`)
 - Model and reasoning level pickers in the title bar
 - Lazy-loaded pages with code splitting for fast startup
@@ -150,7 +147,6 @@ Download from [Releases](../../releases):
 | `AEGIS-Setup-X.X.X.exe` | Windows installer |
 | `AEGIS-X.X.X.exe` | Portable (no install) |
 | `AEGIS-X.X.X-macOS-arm64.dmg` | DMG Installer Image |
-| `AEGIS.app` | macOS "Portable" App |
 
 
 ### Requirements
