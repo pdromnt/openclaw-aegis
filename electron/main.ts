@@ -250,12 +250,17 @@ function createSplashWindow(): void {
 }
 
 function createWindow(): void {
+  const iconFile = process.platform === 'win32' ? 'icon.ico' : 'icon.png';
+  const iconPath = app.isPackaged
+    ? path.join(process.resourcesPath, iconFile)
+    : path.join(__dirname, '..', 'assets', iconFile);
+
   mainWindow = new BrowserWindow({
     width: 1100,
     height: 750,
     minWidth: 600,
     minHeight: 500,
-    icon: path.join(__dirname, '..', 'assets', 'icon.ico'),
+    icon: iconPath,
     frame: false,
     titleBarStyle: 'hidden',
     titleBarOverlay: false,
