@@ -552,7 +552,7 @@
     "enterTokenDesc": "Ingresa el Token del Gateway desde la configuración de OpenClaw:",
     "pasteToken": "Pega el token aquí...",
     "connect": "Conectar",
-    "tokenExplanation": "AEGIS Desktop necesita un token válido para conectarse al Gateway de OpenClaw. Esta vinculación se realiza solo una vez.",
+    "tokenExplanation": "AEGIS necesita un token válido para conectarse al Gateway de OpenClaw. Esta vinculación se realiza solo una vez.",
     "orApproveUI": "O aprueba desde la interfaz de OpenClaw",
     "tokenPlaceholder": "Pega el token aquí..."
   },
@@ -1313,7 +1313,7 @@
     "pathPlaceholder": "Ingresar ruta de carpeta (ej. D:\\workspace)",
     "searchFiles": "Buscar archivos…",
     "noBridgeCode": "La exploración de archivos requiere puente IPC — próximamente",
-    "noBridgeDesc": "La exploración de archivos requiere el puente IPC de Electron. Esta función solo está disponible dentro de la app AEGIS Desktop."
+    "noBridgeDesc": "La exploración de archivos requiere el puente IPC de Electron. Esta función solo está disponible dentro de la app AEGIS."
   },
   "codeInterpreter": {
     "copyOutput": "Copiar salida",
@@ -1407,7 +1407,7 @@
   },
   "plugins": {
     "title": "Plugins",
-    "subtitle": "Páginas y herramientas adicionales en AEGIS Desktop",
+    "subtitle": "Páginas y herramientas adicionales en AEGIS",
     "open": "Abrir",
     "enabled": "activado",
     "disabled": "desactivado",

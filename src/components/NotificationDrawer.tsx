@@ -146,41 +146,15 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-aegis-border">
-          <div className="flex items-center gap-2">
-            <Bell size={16} className="text-aegis-text-muted" />
-            <span className="text-[14px] font-semibold text-aegis-text">
-              {t('notifications.title', 'Notifications')}
-            </span>
-            {unreadCount > 0 && (
-              <span className="text-[10px] text-aegis-text-dim">
-                {unreadCount} {t('notifications.unread', 'unread')}
+        <div className="px-5 pt-4 pb-3 border-b border-aegis-border">
+          {/* Row 1: Title + Close */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bell size={16} className="text-aegis-text-muted" />
+              <span className="text-[14px] font-semibold text-aegis-text">
+                {t('notifications.title', 'Notifications')}
               </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            {unreadCount > 0 && (
-              <button
-                onClick={markAllRead}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs text-aegis-text-muted
-                  bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.08)]
-                  hover:bg-[rgb(var(--aegis-overlay)/0.06)] hover:text-aegis-text-secondary transition-colors"
-              >
-                <CheckCheck size={12} />
-                {t('notifications.markAllRead', 'Mark all read')}
-              </button>
-            )}
-            {history.length > 0 && (
-              <button
-                onClick={clearHistory}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs text-aegis-text-muted
-                  bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.08)]
-                  hover:bg-[rgb(var(--aegis-overlay)/0.06)] hover:text-aegis-text-secondary transition-colors"
-              >
-                <Trash2 size={12} />
-                {t('notifications.clear', 'Clear')}
-              </button>
-            )}
+            </div>
             <button
               onClick={onClose}
               className="p-1 rounded-md text-aegis-text-dim hover:text-aegis-text-secondary
@@ -188,6 +162,39 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
             >
               <X size={16} />
             </button>
+          </div>
+
+          {/* Row 2: Unread count + Actions */}
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-[11px] text-aegis-text-dim">
+              {unreadCount > 0
+                ? `${unreadCount} ${t('notifications.unread', 'unread')}`
+                : t('notifications.noUnread', 'No unread')}
+            </span>
+            <div className="flex items-center gap-2">
+              {unreadCount > 0 && (
+                <button
+                  onClick={markAllRead}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-aegis-text-muted
+                    bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.08)]
+                    hover:bg-[rgb(var(--aegis-overlay)/0.06)] hover:text-aegis-text-secondary transition-colors"
+                >
+                  <CheckCheck size={12} />
+                  {t('notifications.markAllRead', 'Mark all read')}
+                </button>
+              )}
+              {history.length > 0 && (
+                <button
+                  onClick={clearHistory}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-aegis-text-muted
+                    bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.08)]
+                    hover:bg-[rgb(var(--aegis-overlay)/0.06)] hover:text-aegis-text-secondary transition-colors"
+                >
+                  <Trash2 size={12} />
+                  {t('notifications.clear', 'Clear')}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

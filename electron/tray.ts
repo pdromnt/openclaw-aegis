@@ -33,7 +33,7 @@ export function createTray(mainWindow: BrowserWindow, app: App): Tray {
     },
   ]);
 
-  tray.setToolTip('AEGIS Desktop');
+  tray.setToolTip('AEGIS');
   tray.setContextMenu(contextMenu);
   tray.on('double-click', () => {
     mainWindow.show();

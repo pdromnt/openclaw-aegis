@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// Dashboard — AEGIS Desktop (Cost-First Design)
+// Dashboard — AEGIS (Cost-First Design)
 // Sections: Top Bar → Hero Cards → Chart + Agents → Actions
 // ═══════════════════════════════════════════════════════════
 

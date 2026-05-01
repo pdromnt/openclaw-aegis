@@ -24,6 +24,6 @@ What happened instead?
 If applicable, add screenshots.
 
 ## Environment
-- AEGIS Desktop version:
+- AEGIS version:
 - OpenClaw version:
 - OS: (Windows 10 / 11)

@@ -75,7 +75,7 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             clientId: 'openclaw-control-ui',
-            clientName: 'AEGIS Desktop',
+            clientName: 'AEGIS',
             platform: navigator.platform?.toLowerCase().includes('mac') ? 'macos' : navigator.platform?.toLowerCase().includes('linux') ? 'linux' : 'windows',
             scopes: ['operator.read', 'operator.write', 'operator.admin'],
           }),
@@ -419,7 +419,7 @@ export function PairingScreen({ gatewayHttpUrl, onPaired, onCancel, errorMessage
         {/* Bottom info */}
         <div className="px-8 pb-6">
           <div className="text-[10px] text-aegis-text-dim text-center leading-relaxed">
-            AEGIS Desktop needs a valid token to connect to the OpenClaw Gateway. This pairing is done once only.
+            AEGIS needs a valid token to connect to the OpenClaw Gateway. This pairing is done once only.
           </div>
         </div>
       </div>

@@ -207,7 +207,7 @@ export function ConfigManagerPage() {
         const applyResult = await gateway.applyConfig(
           merged,
           configBaseHash || undefined,
-          'AEGIS Desktop config save'
+          'AEGIS config save'
         );
         if (applyResult?.ok) {
           appliedViaRpc = true;

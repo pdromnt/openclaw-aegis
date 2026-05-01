@@ -1,4 +1,4 @@
-// AEGIS Desktop — Global Type Declarations
+// AEGIS — Global Type Declarations
 
 interface AegisAPI {
   /** Installer-selected language (set by NSIS setup wizard) */

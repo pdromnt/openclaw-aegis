@@ -553,7 +553,7 @@
     "enterTokenDesc": "输入来自 OpenClaw 设置的 Gateway 令牌：",
     "pasteToken": "在此粘贴令牌...",
     "connect": "连接",
-    "tokenExplanation": "AEGIS Desktop 需要有效的令牌才能连接到 OpenClaw Gateway。此配对仅需进行一次。",
+    "tokenExplanation": "AEGIS 需要有效的令牌才能连接到 OpenClaw Gateway。此配对仅需进行一次。",
     "orApproveUI": "或从 OpenClaw 控制界面批准",
     "tokenPlaceholder": "在此粘贴令牌..."
   },
@@ -1314,7 +1314,7 @@
     "pathPlaceholder": "输入文件夹路径（例如 D:\\workspace）",
     "searchFiles": "搜索文件…",
     "noBridgeCode": "文件浏览需要 IPC Bridge — 即将推出",
-    "noBridgeDesc": "文件浏览需要 Electron IPC Bridge。此功能仅在 AEGIS Desktop 应用内可用。"
+    "noBridgeDesc": "文件浏览需要 Electron IPC Bridge。此功能仅在 AEGIS 应用内可用。"
   },
   "codeInterpreter": {
     "copyOutput": "复制输出",
@@ -1408,7 +1408,7 @@
   },
   "plugins": {
     "title": "插件",
-    "subtitle": "AEGIS Desktop 中可用的额外页面和工具",
+    "subtitle": "AEGIS 中可用的额外页面和工具",
     "open": "打开",
     "enabled": "已启用",
     "disabled": "已禁用",

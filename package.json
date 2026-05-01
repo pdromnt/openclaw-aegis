@@ -1,7 +1,7 @@
 {
   "name": "aegis-desktop",
   "version": "7.0.0",
-  "description": "AEGIS Desktop — Feature Complete Desktop Client for OpenClaw Gateway",
+  "description": "AEGIS — Feature Complete Desktop Client for OpenClaw Gateway",
   "main": "dist-electron/main.js",
   "author": "Rashed",
   "license": "MIT",
@@ -67,7 +67,7 @@
   },
   "build": {
     "appId": "com.aegis.desktop",
-    "productName": "AEGIS Desktop",
+    "productName": "AEGIS",
     "copyright": "Copyright © 2026 Rashed",
     "asar": true,
     "asarUnpack": [
@@ -92,7 +92,7 @@
       "allowElevation": true,
       "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
-      "shortcutName": "AEGIS Desktop",
+      "shortcutName": "AEGIS",
       "menuCategory": "AEGIS",
       "perMachine": false,
       "installerIcon": "assets/icon.ico",

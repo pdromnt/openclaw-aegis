@@ -10,7 +10,7 @@ import { NotificationDrawer } from '@/components/NotificationDrawer';
 import clsx from 'clsx';
 
 // ═══════════════════════════════════════════════════════════
-// Title Bar — Glass Pills window controls + AEGIS DESKTOP branding
+// Title Bar — Glass Pills window controls + AEGIS branding
 // ═══════════════════════════════════════════════════════════
 
 /** Converts full model IDs to short display names.

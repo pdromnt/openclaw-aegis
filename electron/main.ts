@@ -239,7 +239,7 @@ function createSplashWindow(): void {
     </head>
     <body>
       <div class="logo">A</div>
-      <div class="title">AEGIS Desktop</div>
+      <div class="title">AEGIS</div>
       <div class="subtitle">${t('splash.loading')}</div>
       <div class="spinner"></div>
     </body>
@@ -449,7 +449,7 @@ function setupIPC(): void {
   });
 
   // TODO(v6): Unify config storage — currently aegis-config.json and localStorage
-  // can drift. See Bug #10 in AEGIS Desktop backlog (memory #1689).
+  // can drift. See Bug #10 in AEGIS backlog (memory #1689).
   // ── Settings: sync individual key from UI (localStorage) → aegis-config.json ──
   ipcMain.handle('settings:save', (_e, key: string, value: any) => {
     const configKeyMap: Partial<Record<string, keyof AegisConfig>> = {
@@ -669,7 +669,7 @@ function setupIPC(): void {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           clientId: 'openclaw-control-ui',
-          clientName: 'AEGIS Desktop',
+          clientName: 'AEGIS',
           platform: process.platform,
           scopes: ['operator.read', 'operator.write', 'operator.admin'],
         }),
@@ -1064,7 +1064,7 @@ function setupIPC(): void {
         thumbnailSize: { width: 400, height: 280 },
         fetchWindowIcons: true,
       });
-      // Return all windows (including AEGIS Desktop)
+      // Return all windows (including AEGIS)
       return sources
         .filter((s) => s.thumbnail && !s.thumbnail.isEmpty())
         .map((s) => ({
@@ -1494,5 +1494,5 @@ app.on('before-quit', () => {
   ptyProcesses.clear();
 });
 
-console.log('Æ AEGIS Desktop v7.0.0 started');
+console.log('Æ AEGIS v7.0.0 started');
 

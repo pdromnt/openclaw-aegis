@@ -703,7 +703,7 @@ export class GatewayConnection {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         clientId: 'openclaw-control-ui',
-        clientName: 'AEGIS Desktop',
+        clientName: 'AEGIS',
         platform: detectPlatform(),
         scopes: ['operator.read', 'operator.write', 'operator.admin', 'operator.approvals'],
       }),

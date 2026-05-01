@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to AEGIS Desktop are documented here. Only listing post-fork changes.
+All notable changes to AEGIS are documented here. Only listing post-fork changes.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/).
 

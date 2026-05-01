@@ -1,6 +1,6 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/openclaw/openclaw/main/ui/public/apple-touch-icon.png" width="96" alt="OpenClaw" />
-  <h1>AEGIS Desktop</h1>
+  <h1>AEGIS</h1>
   <p><strong>The desktop client that turns your OpenClaw Gateway into a full mission control center.</strong></p>
 </div>
 
@@ -19,9 +19,9 @@ This is a small fork made to add some small QoL that I don't intend to contribut
 
 ---
 
-## 🤔 Why AEGIS Desktop?
+## 🤔 Why AEGIS?
 
-OpenClaw is powerful — but managing it through a terminal or basic webchat leaves a lot on the table. AEGIS Desktop gives it a proper home:
+OpenClaw is powerful — but managing it through a terminal or basic webchat leaves a lot on the table. AEGIS gives it a proper home:
 
 - 💬 **Chat** — streaming responses, artifacts, images, voice, in-chat search, and multi-tab sessions
 - 🎤 **Voice Chat** — real-time voice conversations powered by Gemini Live with intelligent Gateway relay
@@ -39,7 +39,7 @@ OpenClaw is powerful — but managing it through a terminal or basic webchat lea
 - 📁 **File Manager** — browse and manage workspace files
 - 🌍 **Multilingual** — Arabic (RTL), English, Spanish, and Chinese out of the box
 
-If you run OpenClaw, AEGIS Desktop is the UI it deserves.
+If you run OpenClaw, AEGIS is the UI it deserves.
 
 ---
 
@@ -152,7 +152,7 @@ Download from [Releases](../../releases):
 
 ### Requirements
 
-- Windows 10/11
+- Windows 10/11 
 - [OpenClaw](https://github.com/openclaw/openclaw) Gateway running locally or remotely
 
 On first launch, you'll pair with your Gateway — a one-time setup using Ed25519 device authentication.
@@ -161,14 +161,14 @@ On first launch, you'll pair with your Gateway — a one-time setup using Ed2551
 
 ## 🔌 How It Works
 
-AEGIS Desktop is a frontend client — it doesn't run AI or store data. Everything lives in your OpenClaw Gateway.
+AEGIS is a frontend client — it doesn't run AI or store data. Everything lives in your OpenClaw Gateway.
 
 ```
 OpenClaw Gateway (local or remote)       Gemini Live API
         │                                      │
         │  WebSocket                           │  WebSocket
         ▼                                      ▼
-  AEGIS Desktop ──────────────────────────────────
+  AEGIS ──────────────────────────────────
   ├── Chat        ← messages + streaming responses
   ├── Voice Chat  ← real-time speech via Gemini relay
   ├── Dashboard   ← sessions, cost, agent status

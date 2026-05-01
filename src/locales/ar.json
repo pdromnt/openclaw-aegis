@@ -552,7 +552,7 @@
     "enterTokenDesc": "أدخل الـ Gateway Token من إعدادات OpenClaw:",
     "pasteToken": "الصق الـ Token هنا...",
     "connect": "اتصل",
-    "tokenExplanation": "يحتاج AEGIS Desktop إلى token صالح للاتصال بـ OpenClaw Gateway. هذا الربط يتم مرة واحدة فقط.",
+    "tokenExplanation": "يحتاج AEGIS إلى token صالح للاتصال بـ OpenClaw Gateway. هذا الربط يتم مرة واحدة فقط.",
     "orApproveUI": "أو وافق من واجهة OpenClaw",
     "tokenPlaceholder": "ألصق التوكن هنا..."
   },
@@ -1313,7 +1313,7 @@
     "pathPlaceholder": "أدخل مسار المجلد (مثال: D:workspace)",
     "searchFiles": "ابحث في الملفات...",
     "noBridgeCode": "تصفح الملفات يتطلب جسر IPC — قريباً",
-    "noBridgeDesc": "تصفح الملفات يتطلب جسر IPC الخاص بـ Electron. هذه الميزة متاحة فقط داخل تطبيق AEGIS Desktop."
+    "noBridgeDesc": "تصفح الملفات يتطلب جسر IPC الخاص بـ Electron. هذه الميزة متاحة فقط داخل تطبيق AEGIS."
   },
   "codeInterpreter": {
     "copyOutput": "نسخ المخرجات",
@@ -1407,7 +1407,7 @@
   },
   "plugins": {
     "title": "الإضافات",
-    "subtitle": "صفحات وأدوات إضافية متاحة في AEGIS Desktop",
+    "subtitle": "صفحات وأدوات إضافية متاحة في AEGIS",
     "open": "فتح",
     "enabled": "مفعّل",
     "disabled": "معطّل",

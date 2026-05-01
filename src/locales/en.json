@@ -552,7 +552,7 @@
     "enterTokenDesc": "Enter the Gateway Token from OpenClaw settings:",
     "pasteToken": "Paste token here...",
     "connect": "Connect",
-    "tokenExplanation": "AEGIS Desktop needs a valid token to connect to the OpenClaw Gateway. This pairing is done once only.",
+    "tokenExplanation": "AEGIS needs a valid token to connect to the OpenClaw Gateway. This pairing is done once only.",
     "orApproveUI": "Or approve from the OpenClaw Control UI",
     "tokenPlaceholder": "Paste token here..."
   },
@@ -1313,7 +1313,7 @@
     "pathPlaceholder": "Enter folder path (e.g. D:\\workspace)",
     "searchFiles": "Search files…",
     "noBridgeCode": "File browsing requires IPC bridge — coming soon",
-    "noBridgeDesc": "File browsing requires the Electron IPC bridge. This feature is only available inside the AEGIS Desktop app."
+    "noBridgeDesc": "File browsing requires the Electron IPC bridge. This feature is only available inside the AEGIS app."
   },
   "codeInterpreter": {
     "copyOutput": "Copy output",
@@ -1407,7 +1407,7 @@
   },
   "plugins": {
     "title": "Plugins",
-    "subtitle": "Extra pages and tools available in AEGIS Desktop",
+    "subtitle": "Extra pages and tools available in AEGIS",
     "open": "Open",
     "enabled": "enabled",
     "disabled": "disabled",

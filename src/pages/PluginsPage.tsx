@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// PluginsPage — Plugin System for AEGIS Desktop
+// PluginsPage — Plugin System for AEGIS
 // Displays hidden/extra pages as interactive cards in a grid.
 // Selecting a plugin renders it inline (no route navigation),
 // with a back header and localStorage persistence.
@@ -362,7 +362,7 @@ export function PluginsPage() {
           🧩 Plugins
         </h1>
         <p className="text-aegis-text-muted text-[13px] mt-0.5">
-          Extra pages and tools available in AEGIS Desktop
+          Extra pages and tools available in AEGIS
         </p>
       </div>
 

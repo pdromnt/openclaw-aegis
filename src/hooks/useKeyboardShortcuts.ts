@@ -4,7 +4,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useChatStore } from '@/stores/chatStore';
 
 // ═══════════════════════════════════════════════════════════
-// Keyboard Shortcuts — Global hotkeys for AEGIS Desktop
+// Keyboard Shortcuts — Global hotkeys for AEGIS
 // ═══════════════════════════════════════════════════════════
 
 const NAV_ROUTES = ['/', '/chat', '/costs', '/cron', '/agents', '/memory', '/settings'];

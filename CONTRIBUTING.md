@@ -1,4 +1,4 @@
-# Contributing to AEGIS Desktop
+# Contributing to AEGIS
 
 Thank you for your interest in contributing! Here's how to get started.
 
