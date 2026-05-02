@@ -702,8 +702,8 @@ export class GatewayConnection {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        clientId: 'openclaw-control-ui',
-        clientName: 'AEGIS',
+        clientId: 'aegis',
+        displayName: 'AEGIS',
         platform: detectPlatform(),
         scopes: ['operator.read', 'operator.write', 'operator.admin', 'operator.approvals'],
       }),
