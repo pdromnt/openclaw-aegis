@@ -10,14 +10,6 @@ import clsx from 'clsx';
 // Emoji Picker — floating emoji selector using emoji-picker-react
 // ═══════════════════════════════════════════════════════════
 
-// Lazy-load locale data on demand (static import paths so Vite can code-split).
-// Arabic falls through to default (English) — no ar locale available.
-const localeLoaders: Record<string, () => Promise<any>> = {
-  en: () => import('emoji-picker-react/dist/data/emojis-en'),
-  es: () => import('emoji-picker-react/dist/data/emojis-es'),
-  zh: () => import('emoji-picker-react/dist/data/emojis-zh'),
-};
-
 interface EmojiPickerProps {
   onSelect: (emoji: string) => void;
   disabled?: boolean;
@@ -28,21 +20,6 @@ export function EmojiPicker({ onSelect, disabled }: EmojiPickerProps) {
   const { language, theme } = useSettingsStore();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [localeData, setLocaleData] = useState<any>(undefined);
-
-  // Load locale data when language changes
-  useEffect(() => {
-    let cancelled = false;
-    const loader = localeLoaders[language];
-    if (!loader) {
-      setLocaleData(undefined);
-      return;
-    }
-    loader().then((mod) => {
-      if (!cancelled) setLocaleData(mod);
-    });
-    return () => { cancelled = true; };
-  }, [language]);
 
   // Close on outside click
   useEffect(() => {
@@ -90,7 +67,7 @@ export function EmojiPicker({ onSelect, disabled }: EmojiPickerProps) {
           "absolute bottom-full mb-2 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200",
           getDirection(language) === 'rtl' ? 'right-0' : 'left-0'
         )}>
-          <div className="rounded-2xl overflow-hidden shadow-2xl border border-aegis-menu-border bg-aegis-menu-bg">
+          <div className="rounded-2xl shadow-2xl border border-aegis-menu-border bg-aegis-menu-bg">
             <EmojiPickerComponent
               onEmojiClick={(emojiData: EmojiClickData) => {
                 onSelect(emojiData.emoji);
@@ -100,7 +77,6 @@ export function EmojiPicker({ onSelect, disabled }: EmojiPickerProps) {
               emojiStyle={EmojiStyle.NATIVE}
               previewConfig={{ showPreview: false }}
               skinTonePickerLocation={SkinTonePickerLocation.SEARCH}
-              emojiData={localeData as any}
             />
           </div>
         </div>
