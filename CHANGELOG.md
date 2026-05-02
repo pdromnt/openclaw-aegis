@@ -6,6 +6,18 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [7.1.0] — FUTURE
+
+- Fix toast truncating text
+- Fix terminal opening a new tab everytime you open the terminal page
+- Fix an issue with chart rendering
+- Remove PostCSS from the stack
+- Fixes missing native Tailwind integration with Vite 8
+- Load gateway configuration instead of local config in the Config Manager
+- General code maintenance and cleanup
+
+---
+
 ## [7.0.3] — 2026-05-01
 
 - Fixes to the emoji picker
@@ -31,7 +43,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 - Added missing translation strings to notifications
 - Fixed issue with navbar having scroll when it shouldn't
 - Fixed issue with notification panel buttons being hard to click
-- Updated all dependencies (Tailwind 4, React 19, Electron and others)
+- Updated all dependencies (Tailwind 4, React 19, Vite 8, Electron 41 and more)
 - Remove prompt injection to reduce token usage
 - Added macOS build target
 - Renamed AEGIS Desktop -> AEGIS
