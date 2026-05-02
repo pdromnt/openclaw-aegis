@@ -1,9 +1,9 @@
 {
   "name": "aegis",
-  "version": "7.0.3",
+  "version": "7.1.0",
   "description": "AEGIS — Feature Complete Desktop Client for the OpenClaw Gateway",
   "main": "dist-electron/main.js",
-  "author": "Rashed",
+  "author": "pdromnt",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -69,7 +69,7 @@
   "build": {
     "appId": "com.aegis.desktop",
     "productName": "AEGIS",
-    "copyright": "Copyright © 2026 Rashed",
+    "copyright": "Copyright © 2026 Rashed Al-Dosari",
     "asar": true,
     "asarUnpack": [
       "node_modules/node-pty/**/*"
