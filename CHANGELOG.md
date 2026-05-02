@@ -6,6 +6,13 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [7.0.1] — 2026-05-01
+
+- Fix update check feature and redirect to our repo
+- Fix small visual issues
+
+---
+
 ## [7.0.0] — 2026-04-30
 
 - Removed workshop functionality

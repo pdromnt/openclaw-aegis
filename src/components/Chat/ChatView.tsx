@@ -162,6 +162,19 @@ export function ChatView() {
     });
   }, []);
 
+  // Force scroll when streaming content updates (thinking bubbles etc.
+  // are too subtle for followOutput to detect alone)
+  const prevBlockLen = useRef(renderBlocks.length);
+  useEffect(() => {
+    if (isTyping && renderBlocks.length >= prevBlockLen.current) {
+      // Only auto-scroll if user hasn't manually scrolled up
+      if (atBottom) {
+        scrollToBottom();
+      }
+    }
+    prevBlockLen.current = renderBlocks.length;
+  }, [renderBlocks, isTyping, atBottom, scrollToBottom]);
+
   // ── Scroll to bottom helper (after history load or navigation) ──
   // Virtuoso needs time to measure all virtual items before it can
   // scroll accurately. We retry at increasing intervals to handle

@@ -1424,11 +1424,6 @@ function registerHotkey(): void {
   });
 }
 function setupAutoUpdater(): void {
-  if (isDev) {
-    console.log('[Update] Skipped — dev mode');
-    return;
-  }
-
   autoUpdater.autoDownload = false;
 
   autoUpdater.on('update-available', (info) => {
@@ -1455,6 +1450,15 @@ function setupAutoUpdater(): void {
     console.error('[Update] Error:', err.message);
     mainWindow?.webContents.send('update:error', err.message);
   });
+
+  if (isDev) {
+    // Dev mode — stub handlers so renderer sees an error instead of hanging
+    ipcMain.handle('update:check', () => { throw new Error('Auto-update disabled in dev mode'); });
+    ipcMain.handle('update:download', () => { throw new Error('Auto-update disabled in dev mode'); });
+    ipcMain.handle('update:install', () => { throw new Error('Auto-update disabled in dev mode'); });
+    console.log('[Update] Disabled — not a packaged build');
+    return;
+  }
 
   ipcMain.handle('update:check', () => autoUpdater.checkForUpdates());
   ipcMain.handle('update:download', () => autoUpdater.downloadUpdate());

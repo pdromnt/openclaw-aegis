@@ -372,23 +372,40 @@ function useAutoUpdate() {
     return () => unsubs.forEach(fn => fn());
   }, []);
 
+  // Auto-reset error state after 10s
+  useEffect(() => {
+    if (status !== 'error') return;
+    const timer = setTimeout(() => setStatus('idle'), 10_000);
+    return () => clearTimeout(timer);
+  }, [status]);
+
   const check = async () => {
     const api = window.aegis?.update;
-    if (!api) return;
+    if (!api) {
+      console.warn('[Update] window.aegis.update not available — not running in Electron?');
+      setStatus('error');
+      return;
+    }
     setStatus('checking');
     try {
       await api.check();
-    } catch {
+    } catch (e: any) {
+      console.error('[Update] check failed:', e?.message ?? e);
       setStatus('error');
     }
   };
 
   const download = async () => {
     const api = window.aegis?.update;
-    if (!api) return;
+    if (!api) {
+      console.warn('[Update] window.aegis.update not available');
+      setStatus('error');
+      return;
+    }
     try {
       await api.download();
-    } catch {
+    } catch (e: any) {
+      console.error('[Update] download failed:', e?.message ?? e);
       setStatus('error');
     }
   };
@@ -453,13 +470,13 @@ function VersionBadge() {
   if (APP_VERSION === 'dev') {
     return (
       <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold font-mono bg-aegis-success/15 text-aegis-success border border-aegis-success/30 transition-colors duration-300">
-        Version dev
+        DEV
       </span>
     );
   }
 
   const openReleasePage = () => {
-    window.open('https://github.com/rshodoskar-star/openclaw-desktop/releases/latest', '_blank');
+    window.open('https://github.com/pdromnt/openclaw-aegis/releases/latest', '_blank');
   };
 
   const handleClick = () => {
@@ -474,12 +491,12 @@ function VersionBadge() {
 
   let label: string;
   switch (status) {
-    case 'checking':    label = `v${APP_VERSION}`; break;
-    case 'available':   label = `Update v${updateVersion ?? ''}`; break;
+    case 'checking':    label = 'Checking…'; break;
+    case 'available':   label = `Update to v${updateVersion ?? ''}`; break;
     case 'downloading': label = `Downloading ${downloadPercent}%`; break;
     case 'ready':       label = 'Restart to update'; break;
-    case 'error':       label = `v${APP_VERSION}`; break;
-    default:            label = `v${APP_VERSION} ✓`; break;
+    case 'error':       label = `v${APP_VERSION} — retry?`; break;
+    default:            label = `v${APP_VERSION}`; break;
   }
 
   return (
@@ -487,14 +504,14 @@ function VersionBadge() {
       onClick={isClickable ? handleClick : undefined}
       title={
         status === 'idle'      ? 'Click to check for updates' :
-        status === 'available' ? `Update to v${updateVersion} — Click to download • Right-click for release page` :
+        status === 'available' ? `Update to v${updateVersion} — Click to download • Right-click to visit the releases page` :
         status === 'ready'     ? 'Update downloaded — click to restart' :
         status === 'error'     ? 'Update check failed — click to retry' :
         undefined
       }
       onContextMenu={status === 'available' ? (e) => { e.preventDefault(); openReleasePage(); } : undefined}
       className={clsx(
-        'rounded-full px-2 py-0.5 text-[10px] font-semibold font-mono transition-colors duration-300',
+        'rounded-full px-2 py-0.5 text-[10px] font-semibold font-mono transition-colors duration-300 no-drag',
         isYellow
           ? 'bg-aegis-warning/15 text-aegis-warning border border-aegis-warning/30'
           : 'bg-aegis-success/15 text-aegis-success border border-aegis-success/30',
@@ -596,12 +613,12 @@ export function TitleBar() {
           onClick={() => useSettingsStore.getState().setCommandPaletteOpen(true)}
           className="flex items-center gap-2 px-3 py-1 rounded-lg
             bg-[rgb(var(--aegis-overlay)/0.04)] border border-[rgb(var(--aegis-overlay)/0.08)]
-            text-aegis-text-dim text-[11px] cursor-pointer
+            text-aegis-text-dim text-[11px] leading-none cursor-pointer
             hover:bg-[rgb(var(--aegis-overlay)/0.08)] hover:border-[rgb(var(--aegis-overlay)/0.15)] transition-colors"
         >
           <Search size={12} className="text-aegis-text-dim/50 shrink-0" />
           <span className="opacity-40 min-w-[60px]">{t('palette.searchBarHint')}</span>
-          <kbd className="flex items-center gap-0.5 text-[9px] text-aegis-text-dim/40 bg-[rgb(var(--aegis-overlay)/0.06)] px-1 py-0.5 rounded border border-[rgb(var(--aegis-overlay)/0.08)]">
+          <kbd className="flex items-center gap-0.5 text-[9px] leading-none text-aegis-text-dim/40 bg-[rgb(var(--aegis-overlay)/0.06)] px-1 py-0.5 rounded border border-[rgb(var(--aegis-overlay)/0.08)]">
             <Command size={8} />K
           </kbd>
         </button>

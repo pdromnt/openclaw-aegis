@@ -556,9 +556,9 @@ export function MessageInput() {
                 placeholder={connected ? t('input.placeholder') : t('input.placeholderDisconnected')}
                 disabled={!connected}
                 className={clsx(
-                  'w-full resize-none bg-transparent border-none text-[14px]',
+                  'w-full resize-none bg-transparent border-none text-[14px] leading-snug',
                   'text-aegis-text placeholder:text-aegis-text-muted',
-                  'focus:outline-none py-1.5 px-1',
+                  'focus:outline-none pt-2.5 pb-1.5',
                   'max-h-[180px] scrollbar-hidden'
                 )}
                 dir={dir} rows={1} />

@@ -1,6 +1,6 @@
 {
   "name": "aegis",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "description": "AEGIS — Feature Complete Desktop Client for OpenClaw Gateway",
   "main": "dist-electron/main.js",
   "author": "Rashed",
@@ -156,8 +156,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "rshodoskar-star",
-        "repo": "openclaw-desktop"
+        "owner": "pdromnt",
+        "repo": "openclaw-aegis"
       }
     ],
     "npmRebuild": false
