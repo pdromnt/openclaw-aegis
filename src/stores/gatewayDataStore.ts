@@ -739,7 +739,7 @@ export function handleGatewayEvent(event: string, payload: any) {
 
     // ── Health event — update live status ──
     case 'health':
-      set({ health: payload as any });
+      useGatewayDataStore.setState({ health: payload as any });
       break;
 
     // ── Catch-all logging ──
