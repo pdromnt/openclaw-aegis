@@ -141,8 +141,7 @@ Download from [Releases](../../releases):
 | File | Type |
 |------|------|
 | `AEGIS-Setup-X.X.X.exe` | Windows installer |
-| `AEGIS-X.X.X.exe` | Portable (no install) |
-| `AEGIS-X.X.X-macOS-arm64.dmg` | DMG Installer Image |
+| `AEGIS-X.X.X-macOS-arm64.dmg` | DMG application image |
 
 
 ### Requirements

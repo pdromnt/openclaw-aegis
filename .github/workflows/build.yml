@@ -51,14 +51,6 @@ jobs:
               latest.yml
               *.blockmap
 
-          # ── Windows Portable ──
-          - os: windows-latest
-            platform: Windows
-            target: portable
-            target-flag: 'win portable'
-            artifact: |
-              'AEGIS *.exe'
-
           # ── macOS DMG (Apple Silicon) ──
           - os: macos-latest
             platform: macOS
