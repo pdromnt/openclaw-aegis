@@ -6,7 +6,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
-## [7.1.0] — FUTURE
+## [7.1.0] — 2026-05-02
 
 - Fix toast truncating text
 - Fix terminal opening a new tab everytime you open the terminal page
