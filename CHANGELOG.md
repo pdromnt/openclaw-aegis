@@ -6,6 +6,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [7.1.2] — 2026-05-02
+
+- Fix semi-broken pairing request
+
+---
+
 ## [7.1.1] — 2026-05-02
 
 - Completely toast text truncation
