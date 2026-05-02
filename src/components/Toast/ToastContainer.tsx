@@ -125,11 +125,11 @@ function ToastItem({ toast }: { toast: Toast }) {
 
       {/* Text content */}
       <div className="flex-1 min-w-0">
-        <div className="text-[13px] font-semibold text-aegis-text leading-tight truncate">
+        <div className="text-[13px] font-semibold text-aegis-text leading-tight">
           {toast.title}
         </div>
         {toast.body && (
-          <div className="text-[11px] text-aegis-text-dim mt-0.5 leading-snug max-w-[320px]">
+          <div className="text-[11px] text-aegis-text-dim mt-0.5 leading-snug whitespace-normal break-words">
             {toast.body}
           </div>
         )}

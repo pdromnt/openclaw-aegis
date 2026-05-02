@@ -343,7 +343,7 @@ function useAutoUpdate() {
         setStatus('available');
         showUpdateToast(
           '🔄 Update Available',
-          `Version ${info.version} is ready to download — click the version badge to install, or right-click for release page`,
+          `Version ${info.version} is ready to download — click the badge to install, or right-click to visit the releases page`,
           'info'
         );
       }),
