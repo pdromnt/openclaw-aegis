@@ -4,8 +4,9 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Server, Clock, Zap, Wrench, AlertCircle, RefreshCw } from 'lucide-react';
+import { Server, Zap, Wrench, AlertCircle, RefreshCw, Radio } from 'lucide-react';
 import { gateway } from '@/services/gateway/index';
+import { useGatewayDataStore } from '@/stores/gatewayDataStore';
 import clsx from 'clsx';
 
 interface SystemInfo {
@@ -50,6 +51,23 @@ export function GatewayTab() {
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [skills, setSkills] = useState<SkillEntry[]>([]);
   const [tools, setTools] = useState<ToolEntry[]>([]);
+
+  // Subscribe to live health events from the Gateway
+  const liveHealth = useGatewayDataStore((s) => s.health);
+  const healthTs = useGatewayDataStore((s) => s.lastFetch?.health ?? 0);
+  const [livePlugins, setLivePlugins] = useState<string[]>([]);
+  const [liveChannels, setLiveChannels] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!liveHealth) return;
+    const h = liveHealth as any;
+    setLivePlugins(h?.plugins?.loaded ?? []);
+    setLiveChannels(
+      Object.entries(h?.channels ?? {} as Record<string, any>)
+        .filter(([_, v]) => (v as any)?.enabled)
+        .map(([k]) => k)
+    );
+  }, [liveHealth, healthTs]);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -166,6 +184,39 @@ export function GatewayTab() {
               </div>
             );
           })()}
+        </div>
+      )}
+
+      {/* ── Live Health ── */}
+      {(livePlugins.length > 0 || liveChannels.length > 0) && (
+        <div className="rounded-xl border border-aegis-border bg-aegis-elevated p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Radio size={14} className="text-aegis-success animate-pulse" />
+            <span className="text-[13px] font-semibold text-aegis-text">Live Status</span>
+            <span className="text-[9px] text-aegis-text-dim/50 ml-auto">auto-updating</span>
+          </div>
+          <div className="flex flex-wrap gap-4">
+            {livePlugins.length > 0 && (
+              <div>
+                <div className="text-[9px] text-aegis-text-dim uppercase tracking-wider mb-1.5">Plugins</div>
+                <div className="flex flex-wrap gap-1">
+                  {livePlugins.map((p) => (
+                    <span key={p} className="text-[10px] px-1.5 py-0.5 rounded bg-aegis-accent/10 text-aegis-accent font-mono">{p}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {liveChannels.length > 0 && (
+              <div>
+                <div className="text-[9px] text-aegis-text-dim uppercase tracking-wider mb-1.5">Channels</div>
+                <div className="flex flex-wrap gap-1">
+                  {liveChannels.map((c) => (
+                    <span key={c} className="text-[10px] px-1.5 py-0.5 rounded bg-aegis-success/10 text-aegis-success font-mono">{c}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

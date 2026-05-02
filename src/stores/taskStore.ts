@@ -59,13 +59,15 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   fetchTasks: async () => {
     try {
       set({ loading: true });
-      const result = await gateway.call('tasks.list', {}) as any;
-      if (result?.tasks && Array.isArray(result.tasks)) {
-        const mapped: BackgroundTask[] = result.tasks.map((t: any) => ({
-          id: t.id || t.taskId,
-          runtime: t.runtime || t.kind || 'unknown',
+      // Use status RPC — tasks.list doesn't exist on the Gateway
+      const result = await gateway.call('status', {}) as any;
+      const tasks = result?.tasks;
+      if (tasks?.recent && Array.isArray(tasks.recent)) {
+        const mapped: BackgroundTask[] = tasks.recent.map((t: any) => ({
+          id: t.id || t.taskId || t.key,
+          runtime: t.runtime || t.kind || t.byRuntime || 'unknown',
           status: t.status || 'queued',
-          summary: t.summary || t.description || t.label,
+          summary: t.summary || t.description || t.label || t.name,
           error: t.error || t.errorMessage,
           childSessionKey: t.childSessionKey || t.sessionKey,
           requesterSessionKey: t.requesterSessionKey,
@@ -78,9 +80,9 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         }));
         set({ tasks: mapped, lastFetchedAt: Date.now() });
       }
-    } catch (err) {
-      // tasks.list may not exist on older gateways — silent fail
-      console.log('[Tasks] fetch failed (may be unsupported):', err);
+    } catch (err: any) {
+      if (err?.message?.startsWith?.('Not connected')) return;
+      console.debug('[Tasks] fetch failed:', err?.message ?? err);
     } finally {
       set({ loading: false });
     }

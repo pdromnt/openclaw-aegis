@@ -733,9 +733,18 @@ export function handleGatewayEvent(event: string, payload: any) {
       break;
     }
 
+    // ── Silently ignored events (keepalives / periodic) ──
+    case 'tick':
+      break;
+
+    // ── Health event — update live status ──
+    case 'health':
+      set({ health: payload as any });
+      break;
+
     // ── Catch-all logging ──
     default:
-      console.log('[DataStore] 📡 Unhandled event:', event, JSON.stringify(payload).substring(0, 200));
+      console.debug('[DataStore] 📡 Unhandled event:', event);
       break;
   }
 }
