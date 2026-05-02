@@ -210,6 +210,7 @@ export function TerminalPage() {
   const [tabs, setTabs] = useState<TermTab[]>([]);
   const [activeTabId, setActiveTabId] = useState<string>('');
   const tabCounterRef = useRef(0);
+  const initializedRef = useRef(false);
 
   // Check if terminal API is available (Electron only)
   const hasTerminal = !!window.aegis?.terminal;
@@ -225,9 +226,10 @@ export function TerminalPage() {
     return cleanup;
   }, [hasTerminal]);
 
-  // Create first tab on mount
+  // Create first tab on initial mount only — not on re-mounts from navigation
   useEffect(() => {
-    if (hasTerminal && tabs.length === 0) {
+    if (hasTerminal && !initializedRef.current) {
+      initializedRef.current = true;
       createTab();
     }
   }, [hasTerminal]); // eslint-disable-line
