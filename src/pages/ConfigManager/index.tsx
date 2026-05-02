@@ -622,25 +622,6 @@ export function ConfigManagerPage() {
           </div>
         </div>
 
-        {/* Quick stats (only when config loaded) */}
-        {!detecting && configExists && config && (
-          <div className="grid grid-cols-3 gap-3 mb-5">
-            {[
-              { val: providerCount, label: t('config.providers'), color: 'text-aegis-primary' },
-              { val: agentCount,    label: t('config.agents'),    color: 'text-blue-400' },
-              { val: channelCount,  label: t('config.channels'),  color: 'text-purple-400' },
-            ].map(({ val, label, color }) => (
-              <div
-                key={label}
-                className="rounded-xl border border-aegis-border bg-aegis-elevated p-4 text-center"
-              >
-                <div className={clsx('text-2xl font-extrabold', color)}>{val}</div>
-                <div className="text-xs text-aegis-text-muted mt-1">{label}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
         {/* Tab content */}
         {detecting ? (
           <div className="flex items-center justify-center py-20 text-aegis-text-muted text-sm animate-pulse">

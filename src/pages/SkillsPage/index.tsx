@@ -292,7 +292,6 @@ export function SkillsPage() {
     setMySkills(prev => prev.map(s =>
       s.slug === slug ? { ...s, enabled: !s.enabled } : s
     ));
-    // TODO: gateway call to toggle skill
   }, []);
 
   // ═══ RENDER ═══

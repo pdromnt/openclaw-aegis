@@ -1,7 +1,6 @@
 @import 'tailwindcss';
 @import './primitives.css';
 @import './terminal.css';
-@import './voice-live.css';
 @import './themes/aegis-dark.css';
 @import './themes/aegis-light.css';
 @import './themes/aegis-knot.css';

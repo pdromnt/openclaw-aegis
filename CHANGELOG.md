@@ -9,6 +9,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [7.1.2] — 2026-05-02
 
 - Fix semi-broken pairing request
+- Remove Claude experimental settings
+- Remove memory explorer (deprecated)
+- Remove "voice chat" (deprecated)
+- Massive cleanup
 
 ---
 

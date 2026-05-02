@@ -68,7 +68,6 @@ interface ConfigAgent {
     cacheRetention?: string;
     temperature?: number;
     maxTokens?: number;
-    context1m?: boolean;
   };
   [k: string]: unknown;
 }

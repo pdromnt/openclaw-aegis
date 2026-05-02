@@ -11,7 +11,6 @@ const ChatPage = lazy(() => import('@/pages/ChatPage').then(m => ({ default: m.C
 const FullAnalyticsPage = lazy(() => import('@/pages/FullAnalytics').then(m => ({ default: m.FullAnalyticsPage })));
 const CronMonitorPage = lazy(() => import('@/pages/CronMonitor').then(m => ({ default: m.CronMonitorPage })));
 const AgentHubPage = lazy(() => import('@/pages/AgentHub').then(m => ({ default: m.AgentHubPage })));
-const MemoryExplorerPage = lazy(() => import('@/pages/MemoryExplorer').then(m => ({ default: m.MemoryExplorerPage })));
 const SkillsPageFull = lazy(() => import('@/pages/SkillsPage').then(m => ({ default: m.SkillsPage })));
 const TerminalPage = lazy(() => import('@/pages/TerminalPage').then(m => ({ default: m.TerminalPage })));
 const SettingsPageFull = lazy(() => import('@/pages/SettingsPage').then(m => ({ default: m.SettingsPageFull })));
@@ -19,13 +18,11 @@ const ConfigManagerPage = lazy(() => import('@/pages/ConfigManager').then(m => (
 const SessionManagerPage = lazy(() => import('@/pages/SessionManager').then(m => ({ default: m.SessionManagerPage })));
 const LogsViewerPage = lazy(() => import('@/pages/LogsViewer').then(m => ({ default: m.LogsViewerPage })));
 const MultiAgentViewPage = lazy(() => import('@/pages/MultiAgentView').then(m => ({ default: m.MultiAgentViewPage })));
-const FileManagerPage = lazy(() => import('@/pages/FileManager').then(m => ({ default: m.FileManagerPage })));
 const CalendarPage = lazy(() => import('@/pages/Calendar'));
 const CodeInterpreterPage = lazy(() => import('@/pages/CodeInterpreter').then(m => ({ default: m.CodeInterpreterPage })));
 const McpToolsPage = lazy(() => import('@/pages/McpTools').then(m => ({ default: m.McpToolsPage })));
 const PixelAgentsPage = lazy(() => import('@/pages/PixelAgents').then(m => ({ default: m.PixelAgentsPage })));
 const PluginsPage = lazy(() => import('@/pages/PluginsPage').then(m => ({ default: m.PluginsPage })));
-const VoiceLivePage = lazy(() => import('@/pages/VoiceLive').then(m => ({ default: m.VoiceLivePage })));
 import { useChatStore } from '@/stores/chatStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { gateway } from '@/services/gateway/index';
@@ -356,12 +353,10 @@ export default function App() {
               <Route path="/agents" element={<AgentHubPage />} />
               <Route path="/skills" element={<SkillsPageFull />} />
               <Route path="/terminal" element={<TerminalPage />} />
-              <Route path="/memory" element={<MemoryExplorerPage />} />
               <Route path="/config" element={<ConfigManagerPage />} />
               <Route path="/sessions" element={<SessionManagerPage />} />
               <Route path="/logs" element={<LogsViewerPage />} />
               <Route path="/agents/live" element={<MultiAgentViewPage />} />
-              <Route path="/files" element={<FileManagerPage />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/sandbox" element={<CodeInterpreterPage />} />
               <Route path="/tools" element={<McpToolsPage />} />
@@ -369,7 +364,6 @@ export default function App() {
               <Route path="/pixel-agents" element={<PixelAgentsPage />} />
               <Route path="/plugins" element={<PluginsPage />} />
             </Route>
-            <Route path="/voice" element={<VoiceLivePage />} />
           </Routes>
       </HashRouter>
     </>

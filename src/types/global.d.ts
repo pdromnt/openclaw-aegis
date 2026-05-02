@@ -83,10 +83,6 @@ interface AegisAPI {
     updateEvent: (id: string, updates: any) => Promise<{ success: boolean }>;
     deleteEvent: (id: string) => Promise<{ success: boolean }>;
   };
-  memory: {
-    browse: () => Promise<string | null>;
-    readLocal: (dirPath: string) => Promise<{ success: boolean; files: any[]; error?: string }>;
-  };
   pairing: {
     getToken: () => Promise<string | null>;
     saveToken: (token: string) => Promise<{ success: boolean }>;

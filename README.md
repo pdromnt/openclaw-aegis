@@ -17,7 +17,6 @@ This is a small fork made to add some small QoL that I don't intend to contribut
 OpenClaw is powerful — but managing it through a terminal or basic webchat leaves a lot on the table. AEGIS gives it a proper home:
 
 - 💬 **Chat** — streaming responses, artifacts, images, voice, in-chat search, and multi-tab sessions
-- 🎤 **Voice Chat** — real-time voice conversations powered by Gemini Live with intelligent Gateway relay
 - 🔘 **Smart Quick Replies** — clickable buttons when the AI needs your decision
 - 📅 **Calendar** — full calendar with Cron-powered reminders delivered to Telegram, Discord, or WhatsApp
 - 📊 **Analytics** — see exactly what you're spending and where, broken down by model and agent
@@ -26,7 +25,6 @@ OpenClaw is powerful — but managing it through a terminal or basic webchat lea
 - ⚙️ **Config Manager** — edit your OpenClaw configuration with Smart Merge (preserves external edits)
 - 🧩 **Plugins** — modular system with 9 built-in plugins, inline rendering, and persistent state
 - 🔧 **Skills & Terminal** — browse the marketplace and run shell commands without leaving the app
-- 🧠 **Memory Explorer** — semantic search and CRUD for agent memories
 - 📋 **Session Manager** — monitor and manage all active sessions
 - 📜 **Logs Viewer** — real-time Gateway logs with filtering
 - 📁 **File Manager** — browse and manage workspace files
@@ -49,9 +47,6 @@ If you run OpenClaw, AEGIS is the UI it deserves.
 
 ### 💻 Integrated Terminal
 ![Terminal](screenshots/Terminal.gif)
-
-### 🎤 Voice Chat
-![Voice Chat](screenshots/voice%20chat.gif)
 
 ### 🧩 Plugins
 ![Plugins](screenshots/Plugins.gif)
@@ -89,18 +84,8 @@ If you run OpenClaw, AEGIS is the UI it deserves.
 - Offline-first — events persist in localStorage, sync with Gateway when connected
 - Full multilingual support (Arabic, English, Spanish, Chinese)
 
-### 🎤 Voice Chat
-- Real-time voice conversations powered by **Gemini Live API** as a speech relay
-- **`ask_aegis` function calling** — Gemini handles speech-to-text and text-to-speech, Gateway handles the intelligence
-- **AudioWorklet** mic capture (PCM16 @ 16kHz) with gapless audio playback (PCM @ 24kHz)
-- **Silero VAD** (Voice Activity Detection) — filters background noise, only sends real speech
-- **Aura Visualizer** — animated orb with four states: idle, listening, thinking, speaking
-- Dedicated settings panel — Gemini API Key, response model, voice selection, live model
-- Isolated voice session — separate from text chat history
-- Session timer with model info display
-
 ### 🧩 Plugins
-- Modular plugin system with **9 built-in plugins**: Pixel Agents, Session Manager, Logs Viewer, Multi-Agent, File Manager, Code Interpreter, MCP Tools, Skills, Memory Explorer
+- Modular plugin system with **9 built-in plugins**: Pixel Agents, Session Manager, Logs Viewer, Multi-Agent, File Manager, Code Interpreter, MCP Tools, Skills
 - **Responsive grid layout** — 3 columns on desktop, 2 on tablet, 1 on mobile
 - **Inline rendering** — plugins open inside the page without route navigation
 - **Persistent state** — remembers your last opened plugin via localStorage
@@ -120,7 +105,6 @@ If you run OpenClaw, AEGIS is the UI it deserves.
 ### 🔧 Tools
 - **Skills Marketplace** — browse and search 3,286+ skills from ClawHub
 - **Integrated Terminal** — PowerShell/Bash via xterm.js with multi-tab support
-- **Memory Explorer** — semantic search and CRUD for agent memories
 
 ### 🎨 Interface
 - Dark and light themes with full CSS variable system (`--aegis-*`)
@@ -164,7 +148,6 @@ OpenClaw Gateway (local or remote)       Gemini Live API
         ▼                                      ▼
   AEGIS ──────────────────────────────────
   ├── Chat        ← messages + streaming responses
-  ├── Voice Chat  ← real-time speech via Gemini relay
   ├── Dashboard   ← sessions, cost, agent status
   ├── Calendar    ← events + Cron reminders
   ├── Analytics   ← cost summary + token history
@@ -176,7 +159,6 @@ OpenClaw Gateway (local or remote)       Gemini Live API
   ├── Terminal    ← shell via node-pty
   ├── Sessions    ← active session manager
   ├── Logs        ← real-time log viewer
-  ├── Memory      ← semantic memory explorer
   ├── Files       ← workspace file manager
   ├── Sandbox     ← code interpreter
   ├── MCP Tools   ← tool management

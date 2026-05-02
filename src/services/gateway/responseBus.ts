@@ -3,8 +3,6 @@
 //
 // Bridges the gap between gateway.sendMessage() (returns ACK)
 // and the actual AI response (arrives via chat events).
-// Used by Voice Live to collect the full response text
-// before sending it back to Gemini as a tool response.
 // ═══════════════════════════════════════════════════════════
 
 interface ResponseWaiter {

@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 import {
   LayoutDashboard, MessageCircle, Kanban, DollarSign,
   Clock, Bot, Settings, Settings2, Blocks, Users, Puzzle,
-  Terminal, CalendarDays, Mic,
+  Terminal, CalendarDays,
 } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { getDirection } from '@/i18n';
@@ -48,7 +48,6 @@ const navSections: NavSection[] = [
     items: [
       { to: '/terminal', icon: Terminal, labelKey: 'nav.terminal' },
       { to: '/calendar', icon: CalendarDays, labelKey: 'nav.calendar' },
-      { to: '/voice', icon: Mic, labelKey: 'nav.voiceLive' },
     ],
   },
   {

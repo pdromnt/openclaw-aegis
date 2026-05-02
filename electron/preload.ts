@@ -42,10 +42,6 @@ const api = {
   // Gateway IPC removed — all WS communication handled by src/services/gateway.ts (renderer-side)
 
   // ── Screenshot ──
-  memory: {
-    browse: () => ipcRenderer.invoke('memory:browse'),
-    readLocal: (dirPath: string) => ipcRenderer.invoke('memory:readLocal', dirPath),
-  },
   screenshot: {
     capture: () => ipcRenderer.invoke('screenshot:capture'),
     getWindows: () => ipcRenderer.invoke('screenshot:windows'),

@@ -945,52 +945,6 @@ function setupIPC(): void {
     };
   })
 
-  // ── Memory: Local Files ──
-  ipcMain.handle('memory:browse', async () => {
-    const result = await dialog.showOpenDialog(mainWindow!, {
-      properties: ['openDirectory'],
-      title: 'Select Memory Folder',
-    });
-    if (result.canceled || !result.filePaths.length) return null;
-    return result.filePaths[0];
-  });
-
-  ipcMain.handle('memory:readLocal', async (_e, dirPath: string) => {
-    try {
-      const files: { name: string; content: string; modified: string; size: number }[] = [];
-      // Read MEMORY.md if exists
-      const memoryMd = path.join(dirPath, 'MEMORY.md');
-      if (fs.existsSync(memoryMd)) {
-        const stat = fs.statSync(memoryMd);
-        files.push({ name: 'MEMORY.md', content: fs.readFileSync(memoryMd, 'utf-8'), modified: stat.mtime.toISOString(), size: stat.size });
-      }
-      // Read all .md files in directory
-      const entries = fs.readdirSync(dirPath).filter((f: string) => f.endsWith('.md') && f !== 'MEMORY.md').sort().reverse();
-      for (const fname of entries.slice(0, 100)) {
-        const fpath = path.join(dirPath, fname);
-        const stat = fs.statSync(fpath);
-        if (stat.isFile() && stat.size < 500_000) {
-          files.push({ name: fname, content: fs.readFileSync(fpath, 'utf-8'), modified: stat.mtime.toISOString(), size: stat.size });
-        }
-      }
-      // Also check memory/ subfolder
-      const memDir = path.join(dirPath, 'memory');
-      if (fs.existsSync(memDir) && fs.statSync(memDir).isDirectory()) {
-        const memFiles = fs.readdirSync(memDir).filter((f: string) => f.endsWith('.md')).sort().reverse();
-        for (const fname of memFiles.slice(0, 100)) {
-          const fpath = path.join(memDir, fname);
-          const stat = fs.statSync(fpath);
-          if (stat.isFile() && stat.size < 500_000) {
-            files.push({ name: `memory/${fname}`, content: fs.readFileSync(fpath, 'utf-8'), modified: stat.mtime.toISOString(), size: stat.size });
-          }
-        }
-      }
-      return { success: true, files };
-    } catch (e: any) {
-      return { success: false, error: e.message, files: [] };
-    }
-  });
-
   // ── Screenshot ──
 
   // Native PowerShell screen capture — reliable on all Windows setups

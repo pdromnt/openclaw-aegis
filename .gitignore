@@ -5,21 +5,3 @@ release/
 *.log
 .DS_Store
 .env*
-aegis-config.json
-_old/
-UI/
--e 
-# v5.1 concept mockups
-*-concept*.html
-.trash/
-scripts/full-usage-stats.js
--e 
-S2S-RESEARCH.md
-VOICE-LIVE-PLAN.md
-final_summary.txt
-patch-ar-voice.js
-patch-voice-i18n.js
-RELEASE_NOTES.md
--e 
-Office Tileset/
-calendar-rebuild-plan.md

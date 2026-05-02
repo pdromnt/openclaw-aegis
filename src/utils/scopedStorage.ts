@@ -1,8 +1,7 @@
 // Keys that should be scoped per gateway
 const SCOPED_KEYS = [
-  'aegis-memory-explorer', 'aegis-memory-mode', 'aegis-memory-api-url',
-  'aegis-memory-local-path', 'aegis-budget-limit', 'aegis-context1m',
-  'aegis-tool-intent', 'aegis-audio-autoplay', 'aegis-config-backups'
+  'aegis-budget-limit','aegis-tool-intent',
+  'aegis-audio-autoplay', 'aegis-config-backups'
 ];
 
 function getPrefix(): string {

@@ -9,8 +9,8 @@ import { lazy, Suspense, useState, useEffect, type JSX } from 'react';
 import { motion } from 'framer-motion';
 import {
   Gamepad2, Users, ScrollText, Radio,
-  FolderOpen, Code2, Wrench,
   ArrowRight, ArrowLeft, Puzzle, Brain,
+  Code2, Wrench,
   LucideIcon, ToggleLeft, ToggleRight,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -33,21 +33,14 @@ const pluginComponents: Record<string, React.LazyExoticComponent<() => JSX.Eleme
   'multi-agent': lazy(() =>
     import('@/pages/MultiAgentView').then((m) => ({ default: m.MultiAgentViewPage }))
   ),
-  'files': lazy(() =>
-    import('@/pages/FileManager').then((m) => ({ default: m.FileManagerPage }))
-  ),
   'sandbox': lazy(() =>
     import('@/pages/CodeInterpreter').then((m) => ({ default: m.CodeInterpreterPage }))
   ),
   'tools': lazy(() =>
     import('@/pages/McpTools').then((m) => ({ default: m.McpToolsPage }))
   ),
-
   'skills': lazy(() =>
     import('@/pages/SkillsPage').then((m) => ({ default: m.SkillsPage }))
-  ),
-  'memory': lazy(() =>
-    import('@/pages/MemoryExplorer').then((m) => ({ default: m.MemoryExplorerPage }))
   ),
 };
 
@@ -107,12 +100,6 @@ const plugins: Plugin[] = [
     descKey: 'plugins.multiAgentDesc',
   },
   {
-    id: 'files',
-    nameKey: 'plugins.fileManager',
-    icon: FolderOpen,
-    descKey: 'plugins.fileManagerDesc',
-  },
-  {
     id: 'sandbox',
     nameKey: 'plugins.codeInterpreter',
     icon: Code2,
@@ -124,19 +111,12 @@ const plugins: Plugin[] = [
     icon: Wrench,
     descKey: 'plugins.mcpToolsDesc',
   },
-
   {
     id: 'skills',
     nameKey: 'plugins.skills',
     icon: Puzzle,
     descKey: 'plugins.skillsDesc',
-  },
-  {
-    id: 'memory',
-    nameKey: 'plugins.memoryExplorer',
-    icon: Brain,
-    descKey: 'plugins.memoryExplorerDesc',
-  },
+  }
 ];
 
 // ── Animation variants ─────────────────────────────────────

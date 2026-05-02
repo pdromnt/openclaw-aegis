@@ -28,11 +28,6 @@ export function SettingsPageFull() {
     notificationsEnabled, setNotificationsEnabled,
     soundEnabled, setSoundEnabled,
     dndMode, setDndMode,
-    memoryExplorerEnabled, setMemoryExplorerEnabled,
-    memoryMode, setMemoryMode,
-    memoryApiUrl, setMemoryApiUrl,
-    memoryLocalPath, setMemoryLocalPath,
-
     gatewayUrl, setGatewayUrl,
     gatewayToken, setGatewayToken,
     accentColor, setAccentColor,
@@ -520,103 +515,6 @@ export function SettingsPageFull() {
             </div>
           ))}
         </div>
-      </GlassCard>
-
-      {/* Experimental */}
-      <GlassCard delay={0.3}>
-        <h3 className="text-[14px] font-semibold text-aegis-text mb-4 flex items-center gap-2">
-          <span className="text-aegis-primary">🧪</span>
-          {t('settings.experimental', 'Experimental')}
-          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">{t('settings.beta')}</span>
-        </h3>
-
-        {/* Memory Explorer Toggle */}
-        <div className="flex items-center justify-between py-3 border-b border-aegis-border/10">
-          <div>
-            <div className="text-[13px] text-aegis-text font-medium">{t('settings.memoryExplorer', 'Memory Explorer')}</div>
-            <div className="text-[11px] text-aegis-text-dim/60 mt-0.5">{t('settings.memoryExplorerDesc', 'Browse and search memories via API server or local .md files')}</div>
-          </div>
-          <Toggle
-            enabled={memoryExplorerEnabled}
-            onChange={(v) => setMemoryExplorerEnabled(v)}
-          />
-        </div>
-
-        {/* Memory Config */}
-        {memoryExplorerEnabled && (
-          <div className="mt-3 space-y-3">
-            {/* Mode Toggle */}
-            <div>
-              <label className="text-[11px] text-aegis-text-dim block mb-1.5">{t('settings.memoryMode', 'Source')}</label>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setMemoryMode('local')}
-                  className={clsx(
-                    'flex-1 py-1.5 rounded-lg text-[11px] font-medium border transition-all duration-150',
-                    memoryMode === 'local'
-                      ? 'bg-[rgb(var(--aegis-primary)/0.1)] border-[rgb(var(--aegis-primary)/0.25)] text-aegis-primary'
-                      : 'bg-transparent border-[rgb(var(--aegis-overlay)/0.08)] text-aegis-text-dim hover:border-[rgb(var(--aegis-overlay)/0.15)] hover:text-aegis-text-muted'
-                  )}
-                >
-                  📁 {t('settings.memoryLocal', 'Local Files')}
-                </button>
-                <button
-                  onClick={() => setMemoryMode('api')}
-                  className={clsx(
-                    'flex-1 py-1.5 rounded-lg text-[11px] font-medium border transition-all duration-150',
-                    memoryMode === 'api'
-                      ? 'bg-[rgb(var(--aegis-primary)/0.1)] border-[rgb(var(--aegis-primary)/0.25)] text-aegis-primary'
-                      : 'bg-transparent border-[rgb(var(--aegis-overlay)/0.08)] text-aegis-text-dim hover:border-[rgb(var(--aegis-overlay)/0.15)] hover:text-aegis-text-muted'
-                  )}
-                >
-                  🔌 {t('settings.memoryApi', 'API Server')}
-                </button>
-              </div>
-            </div>
-
-            {/* Local Files Path */}
-            {memoryMode === 'local' && (
-              <div>
-                <label className="text-[11px] text-aegis-text-dim block mb-1.5">{t('settings.memoryPath', 'Memory Folder')}</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={memoryLocalPath}
-                    readOnly
-                    placeholder={t('settings.memoryPathPlaceholder', 'Select folder...')}
-                    className="flex-1 bg-[rgb(var(--aegis-overlay)/0.05)] border border-[rgb(var(--aegis-overlay)/0.1)] rounded-lg px-3 py-2 text-[12px] font-mono text-aegis-text placeholder:text-aegis-text-dim/30 focus:outline-none"
-                    style={{ colorScheme: 'dark' }}
-                  />
-                  <button
-                    onClick={async () => {
-                      const path = await (window as any).aegis?.memory?.browse();
-                      if (path) setMemoryLocalPath(path);
-                    }}
-                    className="px-3 py-2 rounded-lg bg-aegis-primary/15 border border-aegis-primary/30 text-aegis-primary text-[12px] font-medium hover:bg-aegis-primary/25 transition-colors whitespace-nowrap"
-                  >
-                    {t('settings.browse', 'Browse')}
-                  </button>
-                </div>
-                <p className="text-[10px] text-aegis-text-dim/40 mt-1">{t('settings.memoryPathHint', 'Select your OpenClaw workspace folder (contains MEMORY.md)')}</p>
-              </div>
-            )}
-
-            {/* API URL */}
-            {memoryMode === 'api' && (
-              <div>
-                <label className="text-[11px] text-aegis-text-dim block mb-1.5">{t('settings.memoryApiUrl', 'Memory API URL')}</label>
-                <input
-                  type="text"
-                  defaultValue={memoryApiUrl}
-                  onBlur={(e) => setMemoryApiUrl(e.target.value)}
-                  placeholder="http://localhost:3040"
-                  className="w-full bg-[rgb(var(--aegis-overlay)/0.05)] border border-[rgb(var(--aegis-overlay)/0.1)] rounded-lg px-3 py-2 text-[12px] font-mono text-aegis-text placeholder:text-aegis-text-dim/30 focus:outline-none focus:border-[rgb(var(--aegis-primary)/0.4)] focus:bg-[rgb(var(--aegis-overlay)/0.07)]"
-                  style={{ colorScheme: 'dark' }}
-                />
-              </div>
-            )}
-          </div>
-        )}
       </GlassCard>
 
       {/* About + System Info */}

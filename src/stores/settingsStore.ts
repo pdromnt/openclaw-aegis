@@ -18,11 +18,6 @@ interface SettingsState {
   budgetLimit: number;
   commandPaletteOpen: boolean;
   focusMode: boolean;
-  memoryExplorerEnabled: boolean;
-  memoryMode: 'api' | 'local';
-  memoryApiUrl: string;
-  memoryLocalPath: string;
-  context1mEnabled: boolean;
   toolIntentEnabled: boolean;
   audioAutoPlay: boolean;
   gatewayUrl: string;
@@ -41,19 +36,12 @@ interface SettingsState {
   setBudgetLimit: (n: number) => void;
   setCommandPaletteOpen: (open: boolean) => void;
   toggleFocusMode: () => void;
-  setMemoryExplorerEnabled: (enabled: boolean) => void;
-  setMemoryMode: (mode: 'api' | 'local') => void;
-  setMemoryApiUrl: (url: string) => void;
-  setMemoryLocalPath: (path: string) => void;
-  setContext1mEnabled: (enabled: boolean) => void;
   setToolIntentEnabled: (enabled: boolean) => void;
   setAudioAutoPlay: (enabled: boolean) => void;
   setGatewayUrl: (url: string) => void;
   setGatewayToken: (token: string) => void;
   accentColor: string;
   setAccentColor: (color: string) => void;
-  voiceVisualizerStyle: 'aura' | 'nebula' | 'raphael';
-  setVoiceVisualizerStyle: (style: 'aura' | 'nebula' | 'raphael') => void;
   uiRoundness: 'sharp' | 'soft' | 'round';
   setUiRoundness: (r: 'sharp' | 'soft' | 'round') => void;
 }
@@ -93,11 +81,6 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   budgetLimit: parseFloat(scopedGet('aegis-budget-limit') || '0') || 0,
   commandPaletteOpen: false,
   focusMode: false,
-  memoryExplorerEnabled: scopedGet('aegis-memory-explorer') === 'true',
-  memoryMode: (scopedGet('aegis-memory-mode') || 'local') as 'api' | 'local',
-  memoryApiUrl: scopedGet('aegis-memory-api-url') || 'http://localhost:3040',
-  memoryLocalPath: scopedGet('aegis-memory-local-path') || '',
-  context1mEnabled: scopedGet('aegis-context1m') === 'true',
   toolIntentEnabled: scopedGet('aegis-tool-intent') !== 'false',
   audioAutoPlay: scopedGet('aegis-audio-autoplay') === 'true',
   gatewayUrl: localStorage.getItem('aegis-gateway-url') || '',
@@ -124,11 +107,6 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setBudgetLimit: (n) => { scopedSet('aegis-budget-limit', String(n)); set({ budgetLimit: n }); },
   setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
-  setMemoryExplorerEnabled: (enabled) => { scopedSet('aegis-memory-explorer', String(enabled)); set({ memoryExplorerEnabled: enabled }); },
-  setMemoryMode: (mode) => { scopedSet('aegis-memory-mode', mode); set({ memoryMode: mode }); },
-  setMemoryApiUrl: (url) => { scopedSet('aegis-memory-api-url', url); set({ memoryApiUrl: url }); },
-  setMemoryLocalPath: (path) => { scopedSet('aegis-memory-local-path', path); set({ memoryLocalPath: path }); },
-  setContext1mEnabled: (enabled) => { scopedSet('aegis-context1m', String(enabled)); set({ context1mEnabled: enabled }); },
   setToolIntentEnabled: (enabled) => { scopedSet('aegis-tool-intent', String(enabled)); set({ toolIntentEnabled: enabled }); },
   setAudioAutoPlay: (enabled) => { scopedSet('aegis-audio-autoplay', String(enabled)); set({ audioAutoPlay: enabled }); },
   setGatewayUrl: (url) => {
@@ -154,11 +132,6 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       root.style.setProperty('--aegis-primary-glow', `rgb(${shades.raw400} / 0.16)`);
       root.style.setProperty('--aegis-primary-surface', `rgb(${shades.raw400} / 0.08)`);
     }
-  },
-  voiceVisualizerStyle: (localStorage.getItem('aegis-voice-visualizer') || 'aura') as 'aura' | 'nebula' | 'raphael',
-  setVoiceVisualizerStyle: (style) => {
-    localStorage.setItem('aegis-voice-visualizer', style);
-    set({ voiceVisualizerStyle: style });
   },
   uiRoundness: (localStorage.getItem('aegis-ui-roundness') || 'round') as 'sharp' | 'soft' | 'round',
   setUiRoundness: (r) => {
