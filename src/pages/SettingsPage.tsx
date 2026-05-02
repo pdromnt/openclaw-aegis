@@ -32,7 +32,6 @@ export function SettingsPageFull() {
     memoryMode, setMemoryMode,
     memoryApiUrl, setMemoryApiUrl,
     memoryLocalPath, setMemoryLocalPath,
-    context1mEnabled, setContext1mEnabled,
 
     gatewayUrl, setGatewayUrl,
     gatewayToken, setGatewayToken,
@@ -70,21 +69,6 @@ export function SettingsPageFull() {
   const handleDndToggle = (dnd: boolean) => {
     setDndMode(dnd);
     notifications.setDndMode(dnd);
-  };
-
-  const [context1mSaving, setContext1mSaving] = useState(false);
-
-  const handleContext1mToggle = async (enabled: boolean) => {
-    setContext1mEnabled(enabled);
-    setContext1mSaving(true);
-    try {
-      // Apply to main agent via agents.update extraParams
-      await gateway.updateAgentParams('main', { context1m: enabled || undefined });
-    } catch (err) {
-      console.error('[Settings] Failed to update context1m:', err);
-    } finally {
-      setContext1mSaving(false);
-    }
   };
 
   const resolveConnectionUrl = async (): Promise<{ url: string; token: string }> => {
@@ -545,24 +529,6 @@ export function SettingsPageFull() {
           {t('settings.experimental', 'Experimental')}
           <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">{t('settings.beta')}</span>
         </h3>
-
-        {/* 1M Context Toggle */}
-        <div className="flex items-center justify-between py-3 border-b border-aegis-border/10">
-          <div>
-            <div className="text-[13px] text-aegis-text font-medium flex items-center gap-2">
-              {t('settings.context1mTitle')}
-              {context1mSaving && <Loader2 size={11} className="animate-spin text-aegis-text-dim" />}
-            </div>
-            <div className="text-[11px] text-aegis-text-dim/60 mt-0.5">
-              {t('settingsExtra.context1mDesc')}
-            </div>
-          </div>
-          <Toggle
-            enabled={context1mEnabled}
-            onChange={(v) => handleContext1mToggle(v)}
-            disabled={context1mSaving}
-          />
-        </div>
 
         {/* Memory Explorer Toggle */}
         <div className="flex items-center justify-between py-3 border-b border-aegis-border/10">
