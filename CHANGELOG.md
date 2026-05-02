@@ -6,6 +6,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [7.0.2] — 2026-05-01
+
+- Fixes to update check feature (now on macOS and Windows)
+
+---
+
 ## [7.0.1] — 2026-05-01
 
 - Fix update check feature and redirect to our repo

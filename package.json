@@ -1,6 +1,6 @@
 {
   "name": "aegis",
-  "version": "7.0.1",
+  "version": "7.0.2",
   "description": "AEGIS — Feature Complete Desktop Client for OpenClaw Gateway",
   "main": "dist-electron/main.js",
   "author": "Rashed",
