@@ -232,5 +232,5 @@ npm run package:mac:dmg        # macOS DMG Installer Image
 
 [MIT](LICENSE)
 
-Copyright (c) 2026 Rashed Al-Dosari
+Copyright (c) 2026 Rashed Al-Dosari  
 All new changes are made also under the MIT license.
