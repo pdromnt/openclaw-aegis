@@ -129,7 +129,7 @@ function ToastItem({ toast }: { toast: Toast }) {
           {toast.title}
         </div>
         {toast.body && (
-          <div className="text-[11px] text-aegis-text-dim mt-0.5 leading-snug whitespace-normal break-words">
+          <div className="text-[11px] text-aegis-text-dim mt-0.5 leading-snug" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
             {toast.body}
           </div>
         )}
