@@ -124,8 +124,13 @@ export const gateway = {
   async getTaskDetail(lookup: string) { return connection.request('tasks.show', { lookup }); },
 
   // Health & Status
-  async getHealth() { return connection.request('system.status', {}); },
+  async getHealth() { return connection.request('health', {}); },
+  async getGatewayStatus() { return connection.request('status', {}); },
   async getChannelsStatus() { return connection.request('channels.status', {}); },
+
+  // Skills & Tools
+  async getSkillsStatus(agentId?: string) { return connection.request('skills.status', agentId ? { agentId } : {}); },
+  async getToolCatalog(agentId?: string) { return connection.request('tools.catalog', agentId ? { agentId } : {}); },
 
   // Session Management
   async resetSession(sessionKey: string) { return connection.request('sessions.reset', { key: sessionKey }); },

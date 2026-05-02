@@ -939,6 +939,7 @@
     "saveAndRestart": "حفظ وإعادة تشغيل البوابة",
     "discard": "تجاهل التغييرات",
     "reload": "إعادة تحميل",
+    "reloading": "جاري التحميل…",
     "exportConfig": "تصدير الكونفق",
     "importConfig": "استيراد كونفق",
     "importError": "ملف JSON غير صالح",

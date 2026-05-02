@@ -13,11 +13,14 @@ import { AgentsTab } from './AgentsTab';
 import { ChannelsTab } from './ChannelsTab';
 import { AdvancedTab } from './AdvancedTab';
 import { SecretsTab } from './SecretsTab';
+import { GatewayTab } from './GatewayTab';
 import { FloatingSaveButton, ChangesPill, DiffPreviewModal } from './components';
 import { gateway } from '@/services/gateway/index';
+import { useChatStore } from '@/stores/chatStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { validateConfig, formatValidationSummary, type ValidationIssue } from '@/utils/configValidator';
 
-type Tab = 'providers' | 'agents' | 'channels' | 'advanced' | 'secrets';
+type Tab = 'providers' | 'agents' | 'channels' | 'advanced' | 'secrets' | 'gateway';
 
 // ─────────────────────────────────────────────────────────────
 // smartMerge — applies only the user's changes (diff between
@@ -83,6 +86,8 @@ function smartMerge(disk: any, original: any, current: any): any {
 
 export function ConfigManagerPage() {
   const { t } = useTranslation();
+  const connected = useChatStore((s) => s.connected);
+  const gatewayUrl = useSettingsStore((s) => s.gatewayUrl);
   const [activeTab, setActiveTab] = useState<Tab>('providers');
 
   // ── Config detection ──
@@ -108,6 +113,8 @@ export function ConfigManagerPage() {
   const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([]);
   const [showValidationWarning, setShowValidationWarning] = useState(false);
   const [configBaseHash, setConfigBaseHash] = useState<string | null>(null);
+  const [isGatewayConfig, setIsGatewayConfig] = useState(false);
+  const [reloading, setReloading] = useState(false);
 
   // ── hasChanges — true when config differs from disk ──
   const hasChanges = useMemo(
@@ -122,6 +129,26 @@ export function ConfigManagerPage() {
         setDetecting(true);
         setError('');
 
+        // ── Strategy 1: Gateway API (remote — preferred when connected) ──
+        if (connected) {
+          try {
+            const gatewayConfig = await gateway.getConfig();
+            // Response may be { config, baseHash } or { raw, hash } or the config object directly
+            const data = gatewayConfig?.config ?? gatewayConfig?.raw ?? gatewayConfig?.data ?? gatewayConfig;
+            setConfigPath(gatewayUrl || 'Gateway');
+            setIsGatewayConfig(true);
+            setConfigExists(true);
+            setConfig(data);
+            setOriginalConfig(structuredClone(data));
+            setConfigBaseHash(gatewayConfig?.baseHash ?? gatewayConfig?.hash ?? null);
+            return;
+          } catch {
+            // Gateway call failed — fall through to local filesystem
+          }
+        }
+
+        // ── Strategy 2: Local filesystem (Electron IPC fallback) ──
+        setIsGatewayConfig(false);
         const detected = await window.aegis.config.detect();
         setConfigPath(detected.path);
         setConfigExists(detected.exists);
@@ -139,21 +166,13 @@ export function ConfigManagerPage() {
     };
 
     init();
-  }, []);
+  }, [connected]);
 
-  // ── Fetch config schema + baseHash from Gateway ──
+  // ── Fetch config schema from Gateway (client-side validation) ──
   useEffect(() => {
-    // Schema for client-side validation
     gateway.getConfigSchema()
       .then((schema: any) => {
         if (schema && typeof schema === 'object') setConfigSchema(schema);
-      })
-      .catch(() => {});
-    // BaseHash for concurrent-edit guard (used by config.apply)
-    gateway.getConfig()
-      .then((res: any) => {
-        const hash = res?.baseHash || res?.hash;
-        if (hash) setConfigBaseHash(hash);
       })
       .catch(() => {});
   }, []);
@@ -323,11 +342,23 @@ export function ConfigManagerPage() {
     input.click();
   };
 
-  // ── Reload (re-detect path + re-read) ──
+  // ── Reload (re-read from source) ──
   const handleReload = async () => {
+    setReloading(true);
     try {
       setError('');
-      // Re-detect in case path preference was saved
+
+      if (connected) {
+        const gatewayConfig = await gateway.getConfig();
+        const data = gatewayConfig?.config ?? gatewayConfig?.raw ?? gatewayConfig?.data ?? gatewayConfig;
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
+          setConfig(data);
+          setOriginalConfig(structuredClone(data));
+          return;
+        }
+      }
+
+      // Fallback to local filesystem
       const detected = await window.aegis.config.detect();
       const pathToUse = configPath || detected.path;
       setConfigPath(pathToUse);
@@ -339,6 +370,8 @@ export function ConfigManagerPage() {
       setConfigExists(true);
     } catch (err: any) {
       setError(err.message || t('config.reloadFailed'));
+    } finally {
+      setReloading(false);
     }
   };
 
@@ -399,6 +432,7 @@ export function ConfigManagerPage() {
     { id: 'channels',  labelKey: 'config.channels',  icon: '💬', badge: channelCount            },
     { id: 'advanced',  labelKey: 'config.advanced',  icon: '🔧', badge: toolCount || undefined  },
     { id: 'secrets',   labelKey: 'config.secrets',   icon: '🔐', badge: undefined               },
+    { id: 'gateway',   labelKey: 'config.gateway',   icon: '🖥️',  badge: undefined               },
   ];
 
   return (
@@ -414,14 +448,16 @@ export function ConfigManagerPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleReload}
+            disabled={reloading}
             className={clsx(
               'px-3 py-1.5 rounded-lg text-xs font-medium border',
               'border-aegis-border text-aegis-text-secondary',
               'hover:bg-white/[0.03] hover:border-aegis-border-hover',
-              'transition-all duration-200'
+              'transition-all duration-200',
+              reloading && 'opacity-50 cursor-wait'
             )}
           >
-            🔄 {t('config.reload')}
+            {reloading ? '⏳' : '🔄'} {t(reloading ? 'config.reloading' : 'config.reload')}
           </button>
           <button
             onClick={handleExport}
@@ -564,13 +600,15 @@ export function ConfigManagerPage() {
                 <span className="text-sm text-aegis-text font-mono truncate flex-1 min-w-0">
                   {configPath || '—'}
                 </span>
-                <button
-                  onClick={handleStartEdit}
-                  className="text-aegis-text-muted hover:text-aegis-primary transition-colors shrink-0"
-                  title={t('configExtra.editPath', 'Edit path')}
-                >
-                  <Pencil size={13} />
-                </button>
+                {!isGatewayConfig && (
+                  <button
+                    onClick={handleStartEdit}
+                    className="text-aegis-text-muted hover:text-aegis-primary transition-colors shrink-0"
+                    title={t('configExtra.editPath', 'Edit path')}
+                  >
+                    <Pencil size={13} />
+                  </button>
+                )}
                 {configExists ? (
                   <CheckCircle2 size={13} className="text-aegis-primary shrink-0" />
                 ) : (
@@ -623,6 +661,8 @@ export function ConfigManagerPage() {
           <AdvancedTab config={config} onChange={handleChange} />
         ) : activeTab === 'secrets' ? (
           <SecretsTab config={config} />
+        ) : activeTab === 'gateway' ? (
+          <GatewayTab />
         ) : null}
 
         {/* Error display */}
