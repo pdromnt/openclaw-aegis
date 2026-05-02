@@ -54,8 +54,8 @@ export const ChartsSection = memo(function ChartsSection({ chartData, donutData,
           </div>
 
           {chartData.length >= 2 ? (
-            <div dir="ltr" style={{ height: 220 }}>
-              <ResponsiveContainer width="100%" height="100%">
+            <div dir="ltr" className="min-w-0" style={{ height: 220 }}>
+              <ResponsiveContainer width="99%" height={220}>
                 <AreaChart
                   data={chartData}
                   margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
@@ -142,7 +142,7 @@ export const ChartsSection = memo(function ChartsSection({ chartData, donutData,
 
           {donutData.length > 0 ? (
             <>
-              <div dir="ltr" className="flex justify-center" style={{ height: 160 }}>
+              <div dir="ltr" className="flex justify-center min-w-0" style={{ height: 160 }}>
                 <PieChart width={160} height={160}>
                   <Pie
                     data={donutData}

@@ -129,8 +129,8 @@ function ToastItem({ toast }: { toast: Toast }) {
           {toast.title}
         </div>
         {toast.body && (
-          <div className="text-[11px] text-aegis-text-dim mt-0.5 line-clamp-2 leading-snug">
-            {toast.body.length > 100 ? `${toast.body.slice(0, 100)}…` : toast.body}
+          <div className="text-[11px] text-aegis-text-dim mt-0.5 leading-snug max-w-[320px]">
+            {toast.body}
           </div>
         )}
         <div className="text-[10px] text-aegis-text-dim/50 mt-1">
