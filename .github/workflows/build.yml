@@ -46,20 +46,12 @@ jobs:
             platform: Windows
             target: nsis
             target-flag: win
-            artifact: |
-              AEGIS-Setup-*.exe
-              latest.yml
-              *.blockmap
 
           # ── macOS DMG (Apple Silicon) ──
           - os: macos-latest
             platform: macOS
             target: dmg-arm64
             target-flag: mac
-            artifact: |
-              AEGIS-*-macOS-arm64.dmg
-              latest-mac.yml
-              *.blockmap
 
     steps:
       - name: Checkout
@@ -83,7 +75,11 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.platform }}-${{ matrix.target }}
-          path: release/${{ matrix.artifact }}
+          path: |
+            release/*.exe
+            release/*.dmg
+            release/*.yml
+            release/*.blockmap
           if-no-files-found: error
 
   release:
