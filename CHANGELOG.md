@@ -6,6 +6,13 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [7.1.1] — 2026-05-02
+
+- Completely toast text truncation
+- Fix typo to keep my OCD in check
+
+---
+
 ## [7.1.0] — 2026-05-02
 
 - Fix toast truncating text
