@@ -331,6 +331,7 @@ function useAutoUpdate() {
   const [status, setStatus] = useState<UpdateStatus>('idle');
   const [updateVersion, setUpdateVersion] = useState<string | null>(null);
   const [downloadPercent, setDownloadPercent] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const api = window.aegis?.update;
@@ -359,11 +360,12 @@ function useAutoUpdate() {
           'success'
         );
       }),
-      api.onError(() => {
+      api.onError((msg) => {
         setStatus('error');
+        setErrorMessage(typeof msg === 'string' ? msg : 'Unknown error');
         showUpdateToast(
           '⚠️ Update Error',
-          'Failed to check for updates',
+          typeof msg === 'string' ? msg : 'Failed to check for updates',
           'warning'
         );
       }),

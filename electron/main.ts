@@ -1425,6 +1425,14 @@ function registerHotkey(): void {
 }
 function setupAutoUpdater(): void {
   autoUpdater.autoDownload = false;
+  autoUpdater.forceDevUpdateConfig = isDev;
+
+  // Explicit feed config — required for dev mode (no app-update.yml)
+  autoUpdater.setFeedURL({
+    provider: 'github',
+    owner: 'pdromnt',
+    repo: 'openclaw-aegis',
+  });
 
   autoUpdater.on('update-available', (info) => {
     console.log('[Update] Available:', info.version);
@@ -1451,21 +1459,23 @@ function setupAutoUpdater(): void {
     mainWindow?.webContents.send('update:error', err.message);
   });
 
-  if (isDev) {
-    // Dev mode — stub handlers so renderer sees an error instead of hanging
-    ipcMain.handle('update:check', () => { throw new Error('Auto-update disabled in dev mode'); });
-    ipcMain.handle('update:download', () => { throw new Error('Auto-update disabled in dev mode'); });
-    ipcMain.handle('update:install', () => { throw new Error('Auto-update disabled in dev mode'); });
-    console.log('[Update] Disabled — not a packaged build');
-    return;
-  }
-
-  ipcMain.handle('update:check', () => autoUpdater.checkForUpdates());
+  // IPC handlers — same for dev and packaged
+  ipcMain.handle('update:check', async () => {
+    try {
+      return await autoUpdater.checkForUpdates();
+    } catch (err: any) {
+      console.error('[Update] Check failed:', err.message);
+      mainWindow?.webContents.send('update:error', err.message);
+      throw err;
+    }
+  });
   ipcMain.handle('update:download', () => autoUpdater.downloadUpdate());
   ipcMain.handle('update:install', () => autoUpdater.quitAndInstall());
 
+  // Auto-check on startup + every hour
   autoUpdater.checkForUpdates();
   setInterval(() => autoUpdater.checkForUpdates(), 60 * 60 * 1000);
+  console.log(isDev ? '[Update] Active (dev mode — debug with DevTools)' : '[Update] Active');
 }
 
 // ═══════════════════════════════════════════════════════════
