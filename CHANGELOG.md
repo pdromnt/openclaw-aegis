@@ -6,6 +6,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [7.0.3] — 2026-05-01
+
+- Fixes to the emoji picker
+
+---
+
 ## [7.0.2] — 2026-05-01
 
 - Fixes to update check feature (now on macOS and Windows)
